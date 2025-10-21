@@ -1,0 +1,42 @@
+syntax = "proto3";
+option go_package = ".;params";
+package params;
+
+// ===== Service =====
+service ParamsService {
+  rpc GetParams(ParamsRequest) returns (ParamsJsonResponse);
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// ===== Requests =====
+message ParamsRequest {
+  double market_cap_m = 1;
+  bool is_meme = 2;
+  string symbol_name  = 3;
+}
+
+message HealthCheckRequest {}
+
+// ===== Health =====
+message HealthCheckResponse {
+  enum Status {
+    SERVING = 0;
+    NOT_SERVING = 1;
+  }
+  Status status = 1;
+  string detail = 2;
+}
+
+// ===== Payload you want: {"fields":[ { "key": "...", "value": { "string_value": "..."} | {"number_value": 0} | {"bool_value": true}} ]} =====
+message FieldValue {
+  string key = 1;
+  oneof value {
+    string string_value = 2;
+    double number_value = 3;
+    bool   bool_value   = 4;
+  }
+}
+
+message ParamsJsonResponse {
+  repeated FieldValue data = 1;
+}

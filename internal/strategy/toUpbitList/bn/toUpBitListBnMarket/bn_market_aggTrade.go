@@ -1,0 +1,40 @@
+package toUpBitListBnMarket
+
+import (
+	"github.com/hhh500/quantGoInfra/pkg/container/pool/byteBufPool"
+	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
+	"github.com/tidwall/gjson"
+)
+
+func (s *Market) OnAggTradePool(len int, bufPtr *[]byte) {
+	data := (*bufPtr)[:len]
+	result := gjson.GetBytes(data, jsonSymbol)
+	if !result.Exists() {
+		if !gjson.GetBytes(data, "id").Exists() {
+			toUpBitListDataStatic.DyLog.GetLog().Errorf("aggTrade symbol not found: %s", string(data))
+		}
+		byteBufPool.ReleaseBuffer(bufPtr)
+		return
+	}
+	symbolIndex, ok := toUpBitListDataStatic.SymbolIndex.Load(result.String())
+	if !ok {
+		toUpBitListDataStatic.DyLog.GetLog().Errorf("aggTrade symbol not found: %s", string(data))
+		byteBufPool.ReleaseBuffer(bufPtr)
+		return
+	}
+	toUpbitListChan.SendAggTrade(symbolIndex, bufPtr, len)
+}
+
+// {
+// 	"e": "aggTrade",
+// 	"E": 1749721515950,
+// 	"a": 125390584,
+// 	"s": "ETHUSDC",
+// 	"p": "2755.00",
+// 	"q": "0.181",
+// 	"f": 221147828,
+// 	"l": 221147828,
+// 	"T": 1749721515794, //第一笔归集的时间戳
+// 	"m": true
+// }

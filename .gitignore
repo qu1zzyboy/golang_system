@@ -1,0 +1,12 @@
+logs/
+cmd/
+config/
+test/
+.idea/
+.vscode/
+scripts/
+localData/
+artifacts/
+*.log
+*.pem
+*.exe

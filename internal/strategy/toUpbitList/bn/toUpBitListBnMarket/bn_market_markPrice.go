@@ -1,0 +1,40 @@
+package toUpBitListBnMarket
+
+import (
+	"github.com/hhh500/quantGoInfra/pkg/container/pool/byteBufPool"
+	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
+	"github.com/tidwall/gjson"
+)
+
+func (s *Market) OnMarkPricePool(len int, bufPtr *[]byte) {
+	data := (*bufPtr)[:len]
+	result := gjson.GetBytes(data, jsonSymbol)
+	if !result.Exists() {
+		if !gjson.GetBytes(data, "id").Exists() {
+			toUpBitListDataStatic.DyLog.GetLog().Errorf("markPrice symbol not found: %s", string(data))
+		}
+		byteBufPool.ReleaseBuffer(bufPtr)
+		return
+	}
+	symbolIndex, ok := toUpBitListDataStatic.SymbolIndex.Load(result.String())
+	if !ok {
+		toUpBitListDataStatic.DyLog.GetLog().Errorf("markPrice symbol not found: %s", string(data))
+		byteBufPool.ReleaseBuffer(bufPtr)
+		return
+	}
+	toUpbitListChan.SendMarkPrice(symbolIndex, bufPtr, len)
+}
+
+//
+
+// {
+// 	"e": "markPriceUpdate",
+// 	"E": 1760239703000,
+// 	"s": "TAUSDT",
+// 	"p": "0.04080855",
+// 	"P": "0.04031165",
+// 	"i": "0.04072079",
+// 	"r": "0.00005000",
+// 	"T": 1760241600000
+// }

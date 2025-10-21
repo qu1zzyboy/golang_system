@@ -1,0 +1,39 @@
+syntax = "proto3";
+option go_package = ".;toUpbitV1";
+package toUpbitV1;
+
+service ParamsService {
+  rpc GetParams(GetParamsRequest) returns (GetParamsResponse);
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message GetParamsRequest {
+  double market_cap_m = 1;  // 市值(百万 USD)
+  bool is_meme = 2;         // 是否 meme 币
+  string request_id = 3;    // 可选：链路追踪
+}
+
+message GetParamsResponse {
+  double gain_pct = 1;      // 期望分界点涨幅（%）
+  double twap_sec = 2;      // 建议 TWAP 持续时间（秒）
+
+  // 诊断信息（可帮助你线上观测/排障）
+  double btc_1d = 10;       // 近 24h（滚动口径）涨跌幅（%，可能为 NaN）
+  double btc_7d = 11;       // 近 7d（滚动口径）涨跌幅（%，可能为 NaN）
+  int32 fgi = 12;           // Fear & Greed Index（未知时可设 -1）
+  string asof_utc = 13;     // BTC “现在价”对应时间（UTC，ISO 8601）
+  int32 staleness_sec = 14; // BTC “现在价”新鲜度（秒）
+  string server_version = 15; // 可选：服务端版本
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+  }
+  ServingStatus status = 1;
+  string detail = 2;
+}
