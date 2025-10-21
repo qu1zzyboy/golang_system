@@ -22,12 +22,12 @@ const (
 )
 
 var (
-	GlobalCfg         ConfigVir                                    // 全局配置
-	SymbolIndex       = myMap.NewMySyncMap[string, int]()          // symbolName --> symbolIndex
-	SymbolMaxNotional = myMap.NewMySyncMap[int, decimal.Decimal]() //symbolIndex-->最大仓位上限
-	Dec500            = decimal.NewFromInt(500)                    // 小于这个数全部平仓
-	PriceRiceTrig     float64                                      // 价格触发阈值,当价格变化超过该值时触发
-	OrderRiceTrig     float64                                      // 下单触发阈值,当价格变化超过该值时下单
+	GlobalCfg         ConfigVir                                       // 全局配置
+	SymbolIndex       = myMap.NewMySyncMap[string, int]()             // symbolName --> symbolIndex
+	SymbolMaxNotional = myMap.NewMySyncMap[int, decimal.Decimal]()    //symbolIndex-->最大仓位上限
+	Dec500            = decimal.NewFromInt(500)                       // 小于这个数全部平仓
+	PriceRiceTrig     float64                                         // 价格触发阈值,当价格变化超过该值时触发
+	OrderRiceTrig     float64                                         // 下单触发阈值,当价格变化超过该值时下单
 	DyLog             = dynamicLog.NewDynamicLogger(staticLog.Config{ // 创建日志记录器
 		NeedErrorHook: true,
 		FileDir:       "toUpBitList",
