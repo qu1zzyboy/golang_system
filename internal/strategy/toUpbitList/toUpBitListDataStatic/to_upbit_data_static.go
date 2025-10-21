@@ -6,12 +6,12 @@ import (
 	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
 	"github.com/hhh500/quantGoInfra/infra/observe/log/staticLog"
 	"github.com/hhh500/quantGoInfra/infra/observe/notify/notifyTg"
-	"github.com/hhh500/quantGoInfra/pkg/algorithms"
 	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
 	"github.com/hhh500/quantGoInfra/pkg/container/ring/ringBuf"
 	"github.com/hhh500/quantGoInfra/pkg/utils/idGen"
 	"github.com/hhh500/quantGoInfra/pkg/utils/timeUtils"
 	"github.com/hhh500/quantGoInfra/quant/exchanges/exchangeEnum"
+	"github.com/hhh500/upbitBnServer/internal/utils/algorithms"
 	"github.com/shopspring/decimal"
 )
 
@@ -22,12 +22,12 @@ const (
 )
 
 var (
-	GlobalCfg         ConfigVir                                       // 全局配置
-	SymbolIndex       = myMap.NewMySyncMap[string, int]()             // symbolName --> symbolIndex
-	SymbolMaxNotional = myMap.NewMySyncMap[int, decimal.Decimal]()    //symbolIndex-->最大仓位上限
-	Dec500            = decimal.NewFromInt(500)                       // 小于这个数全部平仓
-	PriceRiceTrig     float64                                         // 价格触发阈值,当价格变化超过该值时触发
-	OrderRiceTrig     float64                                         // 下单触发阈值,当价格变化超过该值时下单
+	GlobalCfg         ConfigVir                                    // 全局配置
+	SymbolIndex       = myMap.NewMySyncMap[string, int]()          // symbolName --> symbolIndex
+	SymbolMaxNotional = myMap.NewMySyncMap[int, decimal.Decimal]() //symbolIndex-->最大仓位上限
+	Dec500            = decimal.NewFromInt(500)                    // 小于这个数全部平仓
+	PriceRiceTrig     float64                                      // 价格触发阈值,当价格变化超过该值时触发
+	OrderRiceTrig     float64                                      // 下单触发阈值,当价格变化超过该值时下单
 	DyLog             = dynamicLog.NewDynamicLogger(staticLog.Config{ // 创建日志记录器
 		NeedErrorHook: true,
 		FileDir:       "toUpBitList",
