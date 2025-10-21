@@ -1,0 +1,4 @@
+[submodule "libs/quantGoInfra"]
+	path = libs/quantGoInfra
+	url = git@github.com:hhh500/quantGoInfra.git
+	branch = main
