@@ -1,6 +1,7 @@
 package toUpBitListDataAfter
 
 import (
+	"fmt"
 	"sync/atomic"
 
 	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
@@ -64,10 +65,17 @@ func ClearTrig() {
 	TrigPriceMax_10.Clear()
 }
 
-func UpdateTreeNewsFlag() {
-	HasTreeNews.Store(true)
-	toUpBitListDataStatic.SendToUpBitMsg("TreeNews确认", map[string]string{
-		"symbol": TrigSymbolName,
-		"op":     "TreeNews确认",
-	})
+func UpdateTreeNewsFlag(symbolIndex int) {
+	if symbolIndex == TrigSymbolIndex {
+		HasTreeNews.Store(true)
+		toUpBitListDataStatic.SendToUpBitMsg("TreeNews确认", map[string]string{
+			"symbol": TrigSymbolName,
+			"op":     "TreeNews确认",
+		})
+	} else {
+		toUpBitListDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
+			"symbol": TrigSymbolName,
+			"op":     fmt.Sprintf("触发[%d],确认[%d]", TrigSymbolIndex, symbolIndex),
+		})
+	}
 }

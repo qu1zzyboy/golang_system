@@ -80,8 +80,10 @@ type Execute struct {
 
 }
 
-func (s *Execute) ReceiveTreeNews() {
-	s.hasTreeNews.Store(true)
+func (s *Execute) ReceiveTreeNews(symbolIndex int) {
+	if symbolIndex == s.symbolIndex {
+		s.hasTreeNews.Store(true)
+	}
 }
 
 func (s *Execute) clear() {

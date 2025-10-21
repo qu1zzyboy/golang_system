@@ -131,8 +131,10 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 		}
 	case grpcEvent.TO_UPBIT_RECEIVE_NEWS:
 		{
-			toUpBitListBnExecute.GetExecute().ReceiveTreeNews()
-			toUpBitListDataAfter.UpdateTreeNewsFlag()
+			Asset := gjson.Get(in.JsonData, "events.0.symbols.0").String()
+			symbolIndex, _ := toUpBitListDataStatic.SymbolIndex.Load(Asset + "USDT")
+			toUpBitListBnExecute.GetExecute().ReceiveTreeNews(symbolIndex)
+			toUpBitListDataAfter.UpdateTreeNewsFlag(symbolIndex)
 		}
 	case grpcEvent.TO_UPBIT_TEST:
 		{
