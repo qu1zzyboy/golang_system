@@ -39,8 +39,8 @@ func (s *Single) IntoExecuteNoCheck(eventTs int64, trigFlag string, riseValue fl
 	toUpBitListDataAfter.Trig(symbolName, s.symbolIndex)
 
 	if toUpBitListDataStatic.IsDebug {
-		toUpBitListDataAfter.UpdateTreeNewsFlag()           //实盘待删除
-		toUpBitListBnExecute.GetExecute().ReceiveTreeNews() //实盘待删除
+		toUpBitListDataAfter.UpdateTreeNewsFlag(s.symbolIndex)           //实盘待删除
+		toUpBitListBnExecute.GetExecute().ReceiveTreeNews(s.symbolIndex) //实盘待删除
 	}
 	toUpBitListBnExecute.GetExecute().StartTrig(s.symbolIndex, s.pScale, s.qScale, s.StMeta)
 	// 开启第0秒协程
