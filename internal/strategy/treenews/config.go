@@ -4,9 +4,9 @@ import (
 	"os"
 	"strconv"
 	"time"
-)
 
-const defaultAPIKey = "03610598fc45358259ba8c8ebe1e858709ec9a227d38bb87cc66b7c459474985"
+	"github.com/hhh500/quantGoInfra/conf"
+)
 
 // Config 汇总 Tree News WebSocket 客户端相关的运行时参数。
 type Config struct {
@@ -23,15 +23,40 @@ type Config struct {
 
 func defaultConfig() Config {
 	cfg := Config{
-		Enabled:          false,
-		URL:              "wss://news.treeofalpha.com/ws",
-		APIKey:           defaultAPIKey,
-		Workers:          2,
-		PingInterval:     15 * time.Second,
-		PingTimeout:      2 * time.Second,
-		RollingReconnect: 6 * time.Hour,
-		RollingJitter:    10 * time.Minute,
-		DedupCapacity:    50000,
+		Enabled:          conf.TreeNewsCfg.Enabled,
+		URL:              conf.TreeNewsCfg.URL,
+		APIKey:           conf.TreeNewsCfg.APIKey,
+		Workers:          conf.TreeNewsCfg.Workers,
+		PingInterval:     conf.TreeNewsCfg.PingInterval,
+		PingTimeout:      conf.TreeNewsCfg.PingTimeout,
+		RollingReconnect: conf.TreeNewsCfg.RollingReconnect,
+		RollingJitter:    conf.TreeNewsCfg.RollingJitter,
+		DedupCapacity:    conf.TreeNewsCfg.DedupCapacity,
+	}
+
+	if cfg.URL == "" {
+		cfg.URL = "wss://news.treeofalpha.com/ws"
+	}
+	if cfg.APIKey == "" {
+		cfg.APIKey = "03610598fc45358259ba8c8ebe1e858709ec9a227d38bb87cc66b7c459474985"
+	}
+	if cfg.Workers <= 0 {
+		cfg.Workers = 2
+	}
+	if cfg.PingInterval <= 0 {
+		cfg.PingInterval = 15 * time.Second
+	}
+	if cfg.PingTimeout <= 0 {
+		cfg.PingTimeout = 2 * time.Second
+	}
+	if cfg.RollingReconnect <= 0 {
+		cfg.RollingReconnect = 6 * time.Hour
+	}
+	if cfg.RollingJitter < 0 {
+		cfg.RollingJitter = 10 * time.Minute
+	}
+	if cfg.DedupCapacity <= 0 {
+		cfg.DedupCapacity = 50000
 	}
 
 	if v := os.Getenv("TREE_NEWS_ENABLED"); v != "" {

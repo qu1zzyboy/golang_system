@@ -1,6 +1,10 @@
 package treenews
 
-import "context"
+import (
+	"context"
+
+	"github.com/hhh500/quantGoInfra/conf"
+)
 
 type Boot struct{}
 
@@ -13,7 +17,7 @@ func (b *Boot) ModuleId() string {
 }
 
 func (b *Boot) DependsOn() []string {
-	return nil
+	return []string{conf.MODULE_ID}
 }
 
 func (b *Boot) Start(ctx context.Context) error {
