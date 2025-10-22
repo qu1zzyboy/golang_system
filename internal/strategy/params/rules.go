@@ -169,3 +169,13 @@ func normalizeS(s float64) float64 {
 		return 1.0 - 2.0*(s-sLow)/(sHigh-sLow)
 	}
 }
+
+func clampFloat(value, lower, upper float64) float64 {
+	if value < lower {
+		return lower
+	}
+	if value > upper {
+		return upper
+	}
+	return value
+}

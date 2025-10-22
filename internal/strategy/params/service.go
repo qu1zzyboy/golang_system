@@ -18,26 +18,67 @@ const (
 	defaultFGI = 50
 )
 
+// BTCProvider 定义 BTC 指标数据源接口，用于支持 mock。
+type BTCProvider interface {
+	Start(context.Context) error
+	Stop(context.Context) error
+	Snapshot() BTCSnapshot
+}
+
+// FGIProvider 定义恐惧贪婪指数数据源接口。
+type FGIProvider interface {
+	Start(context.Context) error
+	Stop(context.Context) error
+	GetValue() int
+}
+
+// OIProvider 定义 OI 数据源接口。
+type OIProvider interface {
+	Start(context.Context) error
+	Stop(context.Context) error
+	Get(symbol string) (OIRecord, bool)
+}
+
+type providerFactories struct {
+	newBTC func(BTCConfig) BTCProvider
+	newFGI func(FGIConfig) FGIProvider
+	newOI  func(OIConfig) OIProvider
+}
+
 var (
 	serviceSingleton = singleton.NewSingleton(func() *Service {
-		return &Service{
-			cfg: defaultConfig(),
-		}
+		return newService(defaultConfig(), defaultFactories())
 	})
 
-	log      = dynamicLog.Log
 	logError = dynamicLog.Error
 )
 
 // Service 为参数计算核心，负责整合 BTC 收益、恐惧贪婪指数与币安 OI，并提供同步计算接口。
 type Service struct {
-	cfg           Config
-	startStopOnce sync.Once
-	stopOnce      sync.Once
+	mu        sync.Mutex
+	cfg       Config
+	factories providerFactories
 
-	btc *BTCMetrics
-	fgi *FGIPoller
-	oi  *OIStore
+	btc     BTCProvider
+	fgi     FGIProvider
+	oi      OIProvider
+	started bool
+	err     error
+}
+
+func newService(cfg Config, factories providerFactories) *Service {
+	return &Service{
+		cfg:       cfg,
+		factories: factories,
+	}
+}
+
+func defaultFactories() providerFactories {
+	return providerFactories{
+		newBTC: func(cfg BTCConfig) BTCProvider { return NewBTCMetrics(cfg) },
+		newFGI: func(cfg FGIConfig) FGIProvider { return NewFGIPoller(cfg) },
+		newOI:  func(cfg OIConfig) OIProvider { return NewOIStore(cfg) },
+	}
 }
 
 func GetService() *Service {
@@ -78,51 +119,137 @@ func defaultConfig() Config {
 	}
 }
 
-// Start 启动所有后台任务（幂等）。
-func (s *Service) Start(ctx context.Context) error {
-	var startErr error
-	s.startStopOnce.Do(func() {
-		s.btc = NewBTCMetrics(s.cfg.BTC)
-		s.fgi = NewFGIPoller(s.cfg.FGI)
-		s.oi = NewOIStore(s.cfg.OI)
-
-		if err := s.btc.Start(ctx); err != nil {
-			startErr = err
-			return
-		}
-		if err := s.fgi.Start(ctx); err != nil {
-			startErr = err
-			return
-		}
-		if err := s.oi.Start(ctx); err != nil {
-			startErr = err
-			return
-		}
-	})
-	return startErr
+// NewWithProviders 允许在测试中注入自定义 Provider。
+func NewWithProviders(cfg Config, btc BTCProvider, fgi FGIProvider, oi OIProvider) *Service {
+	return &Service{
+		cfg:       cfg,
+		factories: defaultFactories(),
+		btc:       btc,
+		fgi:       fgi,
+		oi:        oi,
+	}
 }
 
-// Stop 优雅关闭后台协程，多次调用安全。
+// SetConfig 在启动前调整配置。
+func (s *Service) SetConfig(cfg Config) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.started {
+		return errors.New("params service already started")
+	}
+	s.cfg = cfg
+	return nil
+}
+
+// SetProviderFactories 在启动前替换默认工厂，方便注入 mock。
+func (s *Service) SetProviderFactories(btc func(BTCConfig) BTCProvider, fgi func(FGIConfig) FGIProvider, oi func(OIConfig) OIProvider) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.started {
+		return errors.New("params service already started")
+	}
+	if btc != nil {
+		s.factories.newBTC = btc
+	}
+	if fgi != nil {
+		s.factories.newFGI = fgi
+	}
+	if oi != nil {
+		s.factories.newOI = oi
+	}
+	return nil
+}
+
+// SetProviders 在启动前直接注入实例。
+func (s *Service) SetProviders(btc BTCProvider, fgi FGIProvider, oi OIProvider) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.started {
+		return errors.New("params service already started")
+	}
+	s.btc = btc
+	s.fgi = fgi
+	s.oi = oi
+	return nil
+}
+
+// Start 启动所有后台任务。
+func (s *Service) Start(ctx context.Context) error {
+	s.mu.Lock()
+	if s.started {
+		err := s.err
+		s.mu.Unlock()
+		return err
+	}
+	if s.btc == nil {
+		s.btc = s.factories.newBTC(s.cfg.BTC)
+	}
+	if s.fgi == nil {
+		s.fgi = s.factories.newFGI(s.cfg.FGI)
+	}
+	if s.oi == nil {
+		s.oi = s.factories.newOI(s.cfg.OI)
+	}
+	s.mu.Unlock()
+
+	if err := s.btc.Start(ctx); err != nil {
+		s.setState(false, err)
+		return err
+	}
+	if err := s.fgi.Start(ctx); err != nil {
+		s.btc.Stop(ctx)
+		s.setState(false, err)
+		return err
+	}
+	if err := s.oi.Start(ctx); err != nil {
+		s.fgi.Stop(ctx)
+		s.btc.Stop(ctx)
+		s.setState(false, err)
+		return err
+	}
+	s.setState(true, nil)
+	return nil
+}
+
+// Stop 优雅关闭后台协程。
 func (s *Service) Stop(ctx context.Context) error {
-	var stopErr error
-	s.stopOnce.Do(func() {
-		if s.oi != nil {
-			if err := s.oi.Stop(ctx); err != nil && stopErr == nil {
-				stopErr = err
-			}
+	s.mu.Lock()
+	if !s.started {
+		s.mu.Unlock()
+		return nil
+	}
+
+	btc := s.btc
+	fgi := s.fgi
+	oi := s.oi
+	s.started = false
+	s.err = nil
+	s.mu.Unlock()
+
+	var firstErr error
+	if oi != nil {
+		if err := oi.Stop(ctx); err != nil && firstErr == nil {
+			firstErr = err
 		}
-		if s.fgi != nil {
-			if err := s.fgi.Stop(ctx); err != nil && stopErr == nil {
-				stopErr = err
-			}
+	}
+	if fgi != nil {
+		if err := fgi.Stop(ctx); err != nil && firstErr == nil {
+			firstErr = err
 		}
-		if s.btc != nil {
-			if err := s.btc.Stop(ctx); err != nil && stopErr == nil {
-				stopErr = err
-			}
+	}
+	if btc != nil {
+		if err := btc.Stop(ctx); err != nil && firstErr == nil {
+			firstErr = err
 		}
-	})
-	return stopErr
+	}
+	return firstErr
+}
+
+func (s *Service) setState(started bool, err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.started = started
+	s.err = err
 }
 
 // ComputeRequest 描述计算止盈与 TWAP 所需的入参。
@@ -171,12 +298,19 @@ func (s *Service) Compute(ctx context.Context, req ComputeRequest) (ComputeRespo
 		default:
 		}
 	}
-	if s.btc == nil || s.fgi == nil || s.oi == nil {
+
+	s.mu.Lock()
+	btc := s.btc
+	fgi := s.fgi
+	oi := s.oi
+	s.mu.Unlock()
+
+	if btc == nil || fgi == nil || oi == nil {
 		return ComputeResponse{}, errors.New("params service not started")
 	}
 
-	snapshot := s.btc.Snapshot()
-	fgiValue := s.fgi.GetValue()
+	snapshot := btc.Snapshot()
+	fgiValue := fgi.GetValue()
 	if fgiValue <= 0 {
 		fgiValue = defaultFGI
 	}
@@ -196,7 +330,7 @@ func (s *Service) Compute(ctx context.Context, req ComputeRequest) (ComputeRespo
 		oiTime  *int64
 	)
 	if req.SymbolName != "" {
-		if record, ok := s.oi.Get(req.SymbolName); ok {
+		if record, ok := oi.Get(req.SymbolName); ok {
 			if record.OpenInterest != nil {
 				oiValue = record.OpenInterest
 			}
@@ -236,7 +370,6 @@ func (s *Service) Compute(ctx context.Context, req ComputeRequest) (ComputeRespo
 	if norm != nil {
 		diag.SNorm = norm
 	}
-	// record the clip bands for debugging
 	diag.GainFinal = clampFloat(gainFinal, gainMin, gainMax)
 	diag.TwapFinal = clampFloat(twapFinal, twapMin, twapMax)
 
@@ -246,14 +379,4 @@ func (s *Service) Compute(ctx context.Context, req ComputeRequest) (ComputeRespo
 		Diag:    diag,
 	}
 	return resp, nil
-}
-
-func clampFloat(value, lower, upper float64) float64 {
-	if value < lower {
-		return lower
-	}
-	if value > upper {
-		return upper
-	}
-	return value
 }
