@@ -14,7 +14,7 @@ import (
 	"github.com/hhh500/quantGoInfra/infra/safex"
 )
 
-// BTCConfig mirrors the tunables from the Python implementation.
+// BTCConfig 对应 Python 版本的可调参数。
 type BTCConfig struct {
 	Symbol            string
 	H1WindowSize      int
@@ -31,8 +31,7 @@ type h1Bar struct {
 	Close     float64
 }
 
-// BTCMetrics periodically pulls Binance futures klines and maintains sufficient
-// history to compute 24h/7d percentage returns. It is safe for concurrent use.
+// BTCMetrics 周期性获取币安合约 K 线，维护 24h/7d 收益计算所需的历史数据，并保证并发安全。
 type BTCMetrics struct {
 	cfg       BTCConfig
 	client    *http.Client
@@ -48,7 +47,7 @@ type BTCMetrics struct {
 	lastM1Err error
 }
 
-// BTCSnapshot is returned to callers so they can read the latest metrics safely.
+// BTCSnapshot 供调用方读取最新指标。
 type BTCSnapshot struct {
 	BTC1D            float64
 	BTC7D            float64

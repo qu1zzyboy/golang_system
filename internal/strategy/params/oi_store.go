@@ -14,14 +14,14 @@ import (
 	"github.com/hhh500/quantGoInfra/infra/safex"
 )
 
-// OIConfig describes how open-interest snapshots are refreshed.
+// OIConfig 描述 OI 快照的刷新策略。
 type OIConfig struct {
 	RedisKey     string
 	RefreshEvery time.Duration
 	Timeout      time.Duration
 }
 
-// OIRecord is the normalized view per symbol.
+// OIRecord 为按交易对整理后的结构化数据。
 type OIRecord struct {
 	Symbol       string
 	OpenInterest *float64
@@ -109,14 +109,14 @@ func (s *OIStore) loop(ctx context.Context) {
 			return
 		case <-ticker.C:
 			if err := s.refresh(ctx); err != nil {
-				// keep previous data; log once
+				// 保留上一份数据，仅记录告警日志。
 				logError.GetLog().Errorf("oi refresh failed: %v", err)
 			}
 		}
 	}
 }
 
-// Get returns the latest OI record for a symbol.
+// Get 返回目标交易对的最新 OI 数据。
 func (s *OIStore) Get(symbol string) (OIRecord, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -136,7 +136,7 @@ func (s *OIStore) refresh(ctx context.Context) error {
 		return fmt.Errorf("redis HGetAll key=%s: %w", s.cfg.RedisKey, err)
 	}
 	if len(res) == 0 {
-		// fallback to plain GET big JSON
+		// 若没有哈希结构，则尝试读取整块 JSON。
 		str, err := s.client.Get(ctx, s.cfg.RedisKey).Result()
 		if err != nil {
 			return fmt.Errorf("redis GET key=%s: %w", s.cfg.RedisKey, err)

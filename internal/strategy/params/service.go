@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	// ModuleId is used in bootx registration.
+	// ModuleId 用于在 bootx 中注册该模块。
 	ModuleId = "params_service"
 
 	defaultFGI = 50
@@ -29,9 +29,7 @@ var (
 	logError = dynamicLog.Error
 )
 
-// Service is the central coordinator that aggregates market data sources
-// (BTC returns, Fear&Greed index, Binance OI) and exposes a synchronous
-// Compute method for strategy usage.
+// Service 为参数计算核心，负责整合 BTC 收益、恐惧贪婪指数与币安 OI，并提供同步计算接口。
 type Service struct {
 	cfg           Config
 	startStopOnce sync.Once
@@ -46,7 +44,7 @@ func GetService() *Service {
 	return serviceSingleton.Get()
 }
 
-// Config contains tunables for the background data providers.
+// Config 定义各后台数据源的配置项。
 type Config struct {
 	BTC BTCConfig
 	FGI FGIConfig
@@ -80,7 +78,7 @@ func defaultConfig() Config {
 	}
 }
 
-// Start boots all background providers. It is idempotent.
+// Start 启动所有后台任务（幂等）。
 func (s *Service) Start(ctx context.Context) error {
 	var startErr error
 	s.startStopOnce.Do(func() {
@@ -104,7 +102,7 @@ func (s *Service) Start(ctx context.Context) error {
 	return startErr
 }
 
-// Stop gracefully stops background goroutines. It is safe to call multiple times.
+// Stop 优雅关闭后台协程，多次调用安全。
 func (s *Service) Stop(ctx context.Context) error {
 	var stopErr error
 	s.stopOnce.Do(func() {
@@ -127,15 +125,14 @@ func (s *Service) Stop(ctx context.Context) error {
 	return stopErr
 }
 
-// ComputeRequest describes the inputs required for gain/twap evaluation.
+// ComputeRequest 描述计算止盈与 TWAP 所需的入参。
 type ComputeRequest struct {
 	MarketCapM float64
 	IsMeme     bool
 	SymbolName string
 }
 
-// Diagnostics captures metadata used for observability. Fields largely mirror
-// the Python implementation to keep parity during the migration.
+// Diagnostics 记录观测字段，与 Python 版本保持一致便于对齐。
 type Diagnostics struct {
 	OI               *float64
 	OITimestamp      *int64
@@ -154,18 +151,18 @@ type Diagnostics struct {
 	StalenessSeconds int
 }
 
-// ComputeResponse is the outcome returned to strategy callers.
+// ComputeResponse 是返回给策略层的结果。
 type ComputeResponse struct {
 	GainPct float64
 	TwapSec float64
 	Diag    Diagnostics
 }
 
-// Compute replicates the Python strategy logic:
-//  1. fetch BTC metrics + FGI (with staleness guarding)
-//  2. evaluate baseline gain/twap from market-cap buckets
-//  3. add OI-based adjustments
-//  4. clip by bucket bounds
+// Compute 复刻 Python 的策略流程：
+//  1. 获取 BTC 指标与 FGI，并处理数据陈旧；
+//  2. 根据市值分桶得到基准 gain/twap；
+//  3. 叠加 OI 修正项；
+//  4. 按分桶上下限裁剪结果。
 func (s *Service) Compute(ctx context.Context, req ComputeRequest) (ComputeResponse, error) {
 	if ctx != nil {
 		select {

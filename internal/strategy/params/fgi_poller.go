@@ -13,7 +13,7 @@ import (
 	"github.com/hhh500/quantGoInfra/infra/safex"
 )
 
-// FGIConfig controls the polling behaviour for the Fear & Greed Index.
+// FGIConfig 描述恐惧贪婪指数轮询的行为参数。
 type FGIConfig struct {
 	Interval         time.Duration
 	RequestTimeout   time.Duration
@@ -29,7 +29,7 @@ type fgiState struct {
 	TimeUntilUpdate int64
 }
 
-// FGIPoller polls the alternative.me API and caches the latest indicator.
+// FGIPoller 周期性拉取 alternative.me 的指数，并缓存最新结果。
 type FGIPoller struct {
 	cfg       FGIConfig
 	client    *http.Client
@@ -116,7 +116,7 @@ func (p *FGIPoller) loop(ctx context.Context) {
 			return
 		case <-ticker.C:
 			if err := p.fetchOnce(ctx); err != nil {
-				// Backoff by doubling until cap of 30s.
+				// 退避策略：每次翻倍直至封顶 30 秒。
 				interval = time.Duration(minInt(int(interval.Seconds()*2), 30)) * time.Second
 				ticker.Reset(interval)
 			} else {
@@ -185,8 +185,7 @@ func (p *FGIPoller) fetchOnce(ctx context.Context) error {
 	return nil
 }
 
-// GetValue returns the latest indicator value, falling back to the configured
-// default when unavailable.
+// GetValue 返回最新指数，若不可用则回退至默认值。
 func (p *FGIPoller) GetValue() int {
 	select {
 	case <-p.ready:

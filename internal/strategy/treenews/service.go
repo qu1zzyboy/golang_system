@@ -27,7 +27,7 @@ var (
 	svcInstance *Service
 )
 
-// GetService returns the singleton instance used by the boot module.
+// GetService 返回供 boot 模块使用的单例。
 func GetService() *Service {
 	svcOnce.Do(func() {
 		svcInstance = NewService(defaultConfig())
@@ -35,7 +35,7 @@ func GetService() *Service {
 	return svcInstance
 }
 
-// Event represents a filtered Tree News payload that targets the Upbit KRW flow.
+// Event 表示通过筛选的 Tree News 事件，聚焦 Upbit KRW 场景。
 type Event struct {
 	ID          string
 	Symbols     []string
@@ -44,7 +44,7 @@ type Event struct {
 	ServerMilli int64
 }
 
-// HandlerFunc is invoked for every filtered event.
+// HandlerFunc 会在每条过滤后的事件上被调用。
 type HandlerFunc func(context.Context, Event)
 
 var (
@@ -52,14 +52,14 @@ var (
 	handlers  []HandlerFunc
 )
 
-// RegisterHandler registers a callback that receives filtered Tree News events.
+// RegisterHandler 注册事件回调。
 func RegisterHandler(fn HandlerFunc) {
 	handlerMu.Lock()
 	defer handlerMu.Unlock()
 	handlers = append(handlers, fn)
 }
 
-// Service manages websocket workers and dispatches events to handlers.
+// Service 管理 WebSocket 工作者并将事件分发给回调。
 type Service struct {
 	cfg     Config
 	dialer  *websocket.Dialer

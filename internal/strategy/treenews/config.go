@@ -8,7 +8,7 @@ import (
 
 const defaultAPIKey = "03610598fc45358259ba8c8ebe1e858709ec9a227d38bb87cc66b7c459474985"
 
-// Config aggregates runtime knobs for the Tree News websocket client.
+// Config 汇总 Tree News WebSocket 客户端相关的运行时参数。
 type Config struct {
 	Enabled          bool
 	URL              string
