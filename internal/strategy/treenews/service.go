@@ -190,6 +190,7 @@ func (s *Service) worker(ctx context.Context, workerID int) {
 		}
 
 		errCh := make(chan error, 1)
+		logger.GetLog().Infof("tree news worker=%d connected to %s", workerID, s.cfg.URL)
 		go s.readLoop(ctx, conn, errCh)
 		go s.heartbeatLoop(ctx, conn, errCh)
 		go s.rollingLoop(ctx, conn, errCh)
@@ -215,7 +216,11 @@ func (s *Service) dial(ctx context.Context) (*websocket.Conn, error) {
 func (s *Service) login(conn *websocket.Conn) error {
 	message := fmt.Sprintf("login %s", s.cfg.APIKey)
 	conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
-	return conn.WriteMessage(websocket.TextMessage, []byte(message))
+	if err := conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+		return err
+	}
+	logger.GetLog().Info("tree news login success")
+	return nil
 }
 
 func (s *Service) readLoop(ctx context.Context, conn *websocket.Conn, errCh chan<- error) {
@@ -299,6 +304,7 @@ func (s *Service) handleMessage(ctx context.Context, data []byte) error {
 		return nil
 	}
 
+	logger.GetLog().Infof("tree news event id=%s symbols=%v", id, symbols)
 	event := Event{
 		ID:         id,
 		Symbols:    symbols,
