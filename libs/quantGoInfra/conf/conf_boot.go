@@ -5,6 +5,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -51,7 +52,11 @@ func initConfig() {
 	// "configFile"： 帮助信息：当你运行 ./main -h 时会显示这段说明文字
 	flag.StringVar(&configFile, "config", "config_main.yaml", "指定配置文件解析")
 	flag.Parse() // 解析命令行参数
-	readConfig() // 读取配置文件
+	useOs := os.Getenv("USE_OS_CONFIG")
+	if useOs == "" {
+		readConfig() // 读取配置文件
+	}
+
 	ServerName = getConfig("serverName")
 	ServerIpIn = getConfig("serverIpIn")
 	ServerIpOut = getConfig("serverIpOut")

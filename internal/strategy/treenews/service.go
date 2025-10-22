@@ -14,12 +14,28 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
+	"github.com/hhh500/quantGoInfra/infra/observe/log/staticLog"
 	"github.com/hhh500/quantGoInfra/infra/safex"
+	"github.com/hhh500/quantGoInfra/pkg/utils/timeUtils"
 )
 
 var (
-	logger    = dynamicLog.Log
-	loggerErr = dynamicLog.Error
+	treeLogConfig = staticLog.Config{
+		NeedErrorHook: true,
+		FileDir:       "tree_news_log",
+		DateStr:       timeUtils.GetNowDateStr(),
+		FileName:      "tree_news",
+		Level:         staticLog.INFO_LEVEL,
+	}
+	treeErrConfig = staticLog.Config{
+		NeedErrorHook: false,
+		FileDir:       "tree_news_log",
+		DateStr:       timeUtils.GetNowDateStr(),
+		FileName:      "tree_news_error",
+		Level:         staticLog.ERROR_LEVEL,
+	}
+	logger    = dynamicLog.NewDynamicLogger(treeLogConfig)
+	loggerErr = dynamicLog.NewDynamicLogger(treeErrConfig)
 )
 
 var (
