@@ -11,7 +11,8 @@
    3. [调用参数服务](#调用参数服务)  
    4. [订阅 Tree News 事件（可选）](#订阅-tree-news-事件可选)  
 3. [本地测试示例](#本地测试示例)  
-4. [Mock 建议](#mock-建议)
+4. [Mock 建议](#mock-建议)  
+5. [Tree News 独立验证](#tree-news-独立验证)
 
 ---
 
@@ -143,5 +144,55 @@ svc := params.NewWithProviders(
 
 ---
 
-通过以上步骤，可在不依赖完整 gRPC 服务的情况下，将策略模块嵌入其它子系统，实现参数获取与 Tree News 事件驱动。若有更多需求（如并发控制、诊断指标订阅），可进一步参考 `internal/strategy/params` 与 `internal/strategy/treenews` 源码。
+## Tree News 独立验证
 
+若仅需确认 WebSocket 链接与过滤逻辑，可单独启动 Tree News 模块：
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hhh500/quantGoInfra/conf"
+	"github.com/hhh500/quantGoInfra/infra/bootx"
+	"github.com/hhh500/quantGoInfra/infra/observe/notify"
+	"github.com/hhh500/quantGoInfra/infra/observe/notify/notifyTg"
+	"github.com/hhh500/quantGoInfra/infra/safex"
+	"github.com/hhh500/upbitBnServer/internal/strategy/treenews"
+)
+
+func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	manager := bootx.GetManager()
+	manager.Register(conf.NewBoot())
+	manager.Register(notify.NewBoot(notifyTg.GetTg()))
+	manager.Register(safex.NewBoot())
+	manager.Register(treenews.NewBoot())
+
+	treenews.RegisterHandler(func(_ context.Context, evt treenews.Event) {
+		fmt.Printf("Tree News: id=%s symbols=%v\n", evt.ID, evt.Symbols)
+	})
+
+	manager.StartAll(ctx)
+	defer manager.StopAll(context.Background())
+
+	<-ctx.Done()
+}
+```
+
+运行前设置：
+
+- `TREE_NEWS_ENABLED=1`
+- `TREE_NEWS_API_KEY=<有效 key>`
+- `TREE_NEWS_URL`（若需指定本地 mock）
+
+日志 (`logs/` 目录中包含 “tree news”) 或 handler 输出可用来判断是否成功连接、登陆以及过滤消息。
+
+---
+
+通过以上步骤，可在不依赖完整 gRPC 服务的情况下，将策略模块嵌入其它子系统，实现参数获取与 Tree News 事件驱动。若有更多需求（如并发控制、诊断指标订阅），可进一步参考 `internal/strategy/params` 与 `internal/strategy/treenews` 源码。
