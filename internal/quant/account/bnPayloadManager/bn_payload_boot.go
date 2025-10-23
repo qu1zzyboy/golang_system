@@ -5,7 +5,6 @@ import (
 
 	"github.com/hhh500/quantGoInfra/infra/observe/notify"
 	"github.com/hhh500/upbitBnServer/internal/quant/account/accountConfig"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 )
 
 const MODULE_ID = "bn_payload_manager"
@@ -13,8 +12,7 @@ const MODULE_ID = "bn_payload_manager"
 type Boot struct {
 }
 
-func NewBoot(fnSuccess_ toUpBitListDataAfter.OnSuccessOrder) *Boot {
-	fnSuccess = fnSuccess_
+func NewBoot() *Boot {
 	return &Boot{}
 }
 

@@ -1,4 +1,4 @@
-package toUpBitListBnExecute
+package toUpbitListBnSymbol
 
 import (
 	"time"
@@ -17,10 +17,25 @@ var (
 	qtyTotal decimal.Decimal                     //单次下单总金额
 )
 
-func (s *Execute) SetParam(qty, dec003 float64) {
+func SetParam(qty, dec003 float64) {
 	qtyTotal = decimal.NewFromFloat(qty)
 	dec03 = decimal.NewFromFloat(dec003)
 }
+
+/**
+limit_maker协程,用到成员变量
+posTotalNeed:在这里赋值,后面都只读
+pScale: 多线程读安全
+maxNotional: 初始化赋值之后都只读不写
+secondArr: 不修改指针就安全
+ctxStop:
+hasAllFilled:
+symbolIndex:
+StMeta: 多线程读安全
+firstPriceBuy:
+thisOrderAccountId:
+
+**/
 
 /*
 限制1: maxNotional 单账户单品种最大开仓上限
@@ -30,15 +45,14 @@ func (s *Execute) SetParam(qty, dec003 float64) {
 1、账户没钱(不一定准)
 */
 
-func (s *Execute) PlacePostOnlyOrder(limit decimal.Decimal) {
-	s.posTotalNeed = qtyTotal.Div(limit).Truncate(s.QScale)
+func (s *Single) PlacePostOnlyOrder(limit decimal.Decimal) {
+	s.posTotalNeed = qtyTotal.Div(limit).Truncate(s.pScale)
 
 	// maker抽奖金额为 min(单账户单品种最大开仓上限,需开参数价值)
-	orderNum := decimal.Min(s.maxNotional, qtyTotal.Mul(dec03)).Div(limit).Truncate(s.QScale)
+	orderNum := decimal.Min(s.maxNotional, qtyTotal.Mul(dec03)).Div(limit).Truncate(s.pScale)
 
 	safex.SafeGo("to_upbit_bn_limit_maker", func() {
-		s.stopThisSecondPerArr[0].Store(false)   // 开启本轮抽奖信号
-		s.hasInToSecondPerLoopArr[0].Store(true) // 确认进入了每秒抽奖循环
+		s.secondArr[0].start()
 		var i int
 		defer func() {
 			toUpBitListDataStatic.DyLog.GetLog().Infof("账户[%d],下单[%d]次 10ms POST_ONLY 协程结束", 0, i+1)
@@ -52,7 +66,7 @@ func (s *Execute) PlacePostOnlyOrder(limit decimal.Decimal) {
 			default:
 				{
 					//完全成交或者本轮挂单成功
-					if s.stopThisSecondPerArr[0].Load() || s.hasAllFilled.Load() {
+					if s.secondArr[0].loadStop() || s.hasAllFilled.Load() {
 						break OUTER
 					}
 					if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(order_from, 0, s.symbolIndex,
@@ -71,6 +85,5 @@ func (s *Execute) PlacePostOnlyOrder(limit decimal.Decimal) {
 			}
 		}
 	})
-	s.firstPriceBuy = limit.Mul(dec103).Truncate(s.PScale)
-	s.thisOrderAccountId.Store(0) // 当前订单使用的资金账户ID
+	s.firstPriceBuy = limit.Mul(dec103).Truncate(s.pScale)
 }

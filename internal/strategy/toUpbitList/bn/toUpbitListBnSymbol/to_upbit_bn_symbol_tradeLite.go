@@ -12,31 +12,23 @@ func (s *Single) onTradeLite(data []byte) {
 	if toUpBitListDataAfter.LoadTrig() {
 		if s.symbolIndex == toUpBitListDataAfter.TrigSymbolIndex {
 			toUpBitListDataStatic.SendToUpBitMsg("发送bn二次确认失败", map[string]string{
-				"symbol": toUpBitListDataAfter.TrigSymbolName,
+				"symbol": s.StMeta.SymbolName,
 				"op":     "bn_TRADE_LITE二次上涨确认",
 			})
-			toUpBitListDataStatic.DyLog.GetLog().Infof("触发后二次确认:%s", toUpBitListDataAfter.TrigSymbolName)
+			toUpBitListDataStatic.DyLog.GetLog().Infof("触发后二次确认:%s", s.StMeta.SymbolName)
 		}
 	} else {
 		/*********************上币还未触发**************************/
-		eventTs := gjson.GetBytes(data, jsonEvent).Int()
+		tradeTs := gjson.GetBytes(data, jsonT).Int()
 		go func() {
-			toUpBitListDataStatic.DyLog.GetLog().Infof("[%d]触发前成交,%s", s.accountKeyId, string(data))
+			toUpBitListDataStatic.DyLog.GetLog().Infof("[%d]触发前成交,%s", s.preAccountKeyId, string(data))
 			toUpBitListDataStatic.SendToUpBitMsg("发送bn预挂单成交失败", map[string]string{
 				"symbol": s.StMeta.SymbolName,
 				"op":     "bn_TRADE_LITE预挂单成交",
 			})
 		}()
-		riseValue := 0.0
-		var priceU64_8 uint64 = 0
-		if eventTs <= s.committedTs {
-			riseValue = s.lastRiseValue
-		} else {
-			priceU64_8 = convertx.PriceStringToUint64(gjson.GetBytes(data, "p").String(), bnConst.PScale_8)
-			riseValue, _, _ = s.commit(priceU64_8, toUpBitListDataStatic.OrderRiceTrig, eventTs)
-		}
-		s.onOrderPriceCheck(eventTs, priceU64_8, riseValue)
-		s.IntoExecuteCheck(eventTs, "preOrder", riseValue, priceU64_8)
+		priceU64_8 := convertx.PriceStringToUint64(gjson.GetBytes(data, "p").String(), bnConst.PScale_8)
+		s.onOrderPriceCheck(tradeTs, priceU64_8)
 	}
 	s.onPreFilled(gjson.GetBytes(data, "c").String())
 }

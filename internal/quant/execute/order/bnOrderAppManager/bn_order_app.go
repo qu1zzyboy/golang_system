@@ -6,7 +6,6 @@ import (
 	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
 	"github.com/hhh500/quantGoInfra/infra/observe/notify"
 	"github.com/hhh500/upbitBnServer/internal/quant/account/accountConfig"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute"
 	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnRest"
 	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnWsSign"
@@ -14,23 +13,9 @@ import (
 	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/wsRequestCache"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
 	"github.com/shopspring/decimal"
 	"github.com/tidwall/gjson"
-)
-
-type OnOrderPrePlace func(ok bool, clientOrderId string)
-type OnMonitorData func(symbolIndex int, data []byte)
-type OnFailureOrder func(accountKeyId uint8, errCode int64)
-type OnCanceledOrder func(accountKeyId uint8)
-type OnMaxWithdrawAmount func(accountKeyId uint8, maxWithdrawAmount decimal.Decimal)
-
-var (
-	fnPrePlace    OnOrderPrePlace                     // 预挂单回调函数
-	fnSuccess     toUpBitListDataAfter.OnSuccessOrder // 下单成功回调函数
-	fnMonitor     OnMonitorData                       // 监控数据回调函数
-	fnFailure     OnFailureOrder                      // 下单失败回调函数
-	fnCanceled    OnCanceledOrder                     // 撤单返回
-	fnMaxWithdraw OnMaxWithdrawAmount                 //最大可划转金额返回
 )
 
 type OrderApp struct {
@@ -73,7 +58,7 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 
 		// 拿到clientOrderId去查内存静态数据
 		clientOrderId := idStr[1:]
-		orderFrom, orderMode, symbolIndex, ok := orderStatic.GetService().GetOrderInstanceIdAndSymbolId(clientOrderId)
+		orderFrom, _, symbolIndex, ok := orderStatic.GetService().GetOrderInstanceIdAndSymbolId(clientOrderId)
 
 		// 不属于这个服务的订单直接pass
 		if !ok {
@@ -92,8 +77,7 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 		case orderBelongEnum.TO_UPBIT_LIST_PRE:
 			{
 				if ok {
-					isOnline := execute.IsOrderOnLine(execute.ParseBnOrderStatus(gjson.GetBytes(data, "result.status").String()))
-					fnPrePlace(isOnline, clientOrderId)
+					return
 				} else {
 					code := gjson.GetBytes(data, "error.code").Int()
 					// "code":-2013,"msg":"Order does not exist."
@@ -112,6 +96,7 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 					dynamicLog.Error.GetLog().Errorf("[%d]下单失败: 请求:%s,返回%s", s.accountKeyId, wsMeta.Json, string(data))
 				}
 			}
+
 		case orderBelongEnum.TO_UPBIT_LIST_LOOP:
 			{
 				// 需要判断是不是触发的币种
@@ -143,24 +128,24 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 				}
 				if ok {
 					// 下单成功回调
-					fnSuccess(toUpBitListDataAfter.OnSuccessEvt{
-						ClientOrderId: clientOrderId,
-						IsOnline:      true,
-						OrderMode:     orderMode,
-						InstanceId:    orderFrom,
-						AccountKeyId:  s.accountKeyId,
-						TimeStamp:     gjson.GetBytes(data, "result.updateTime").Int(),
-					})
+					//fnSuccess(toUpBitListDataAfter.OnSuccessEvt{
+					//	ClientOrderId: clientOrderId,
+					//	IsOnline:      true,
+					//	OrderMode:     orderMode,
+					//	InstanceId:    orderFrom,
+					//	AccountKeyId:  s.accountKeyId,
+					//	TimeStamp:     gjson.GetBytes(data, "result.updateTime").Int(),
+					//})
 					return
 				}
 				errCode := gjson.GetBytes(data, "error.code").Int()
 				// "Limit price can't be higher than 4550.62."
-				// 价格超出下单失败
+				// 价格超出下单失败,启动探测逻辑
 				if errCode == (-4016) {
-					fnMonitor(symbolIndex, data)
+					toUpbitListChan.SendMonitorData(symbolIndex, data)
 					return
 				}
-				fnFailure(s.accountKeyId, errCode)
+				toUpbitListChan.SendSpecial(symbolIndex, decimal.Zero, errCode, toUpbitListChan.FailureOrder, s.accountKeyId)
 				// 如果已经触发,并且是只做maker失败,直接忽略
 				// GTX_ORDER_REJECT
 				if errCode == (-5022) {
@@ -184,7 +169,7 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 		switch wsMeta.ReqFrom {
 		case orderBelongEnum.TO_UPBIT_LIST_LOOP_CANCEL_TRANSFER:
 			{
-				fnCanceled(s.accountKeyId)
+				toUpbitListChan.SendSpecial(toUpBitListDataAfter.TrigSymbolIndex, decimal.Zero, 0, toUpbitListChan.CancelOrderReturn, s.accountKeyId)
 			}
 		case orderBelongEnum.TO_UPBIT_LIST_LOOP, orderBelongEnum.TO_UPBIT_LIST_PRE:
 			{
@@ -214,13 +199,14 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 				{
 					value := gjson.GetBytes(data, `result.#(asset=="USDT").maxWithdrawAmount`)
 					if value.Exists() {
-						fnMaxWithdraw(s.accountKeyId, decimal.RequireFromString(value.String()))
+						toUpbitListChan.SendSpecial(toUpBitListDataAfter.TrigSymbolIndex,
+							decimal.RequireFromString(value.String()), 0, toUpbitListChan.QUERY_ACCOUNT_RETURN, s.accountKeyId)
 					} else {
-						dynamicLog.Error.GetLog().Errorf("QUERY_ACCOUNT_BALANCE: json异常 %s", string(data))
+						dynamicLog.Error.GetLog().Errorf("QUERY_AC_BALANCE: json异常 %s", string(data))
 					}
 				}
 			default:
-				dynamicLog.Error.GetLog().Errorf("QUERY_ACCOUNT_BALANCE: unknown orderFrom %v", wsMeta.ReqFrom)
+				dynamicLog.Error.GetLog().Errorf("QUERY_AC_BALANCE: unknown ReqFrom %v", wsMeta.ReqFrom)
 			}
 		}
 	default:

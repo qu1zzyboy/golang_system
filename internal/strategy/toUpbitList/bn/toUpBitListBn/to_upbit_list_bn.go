@@ -14,8 +14,8 @@ import (
 	"github.com/hhh500/quantGoInfra/quant/exchanges/exchangeEnum"
 	strategyV1 "github.com/hhh500/upbitBnServer/api/strategy/v1"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnAccount"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnExecute"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnMarket"
+	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
@@ -58,7 +58,7 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 	toUpBitListDataStatic.SetParam(req.PriceRiceTrig, req.OrderRiceTrig, req.TickCap, req.Dec500, req.IsDebug)
 	toUpBitListDataStatic.ExType = exchangeEnum.BINANCE
 	toUpBitListDataStatic.AcType = exchangeEnum.FUTURE
-	toUpBitListBnExecute.GetExecute().SetParam(req.Qty, req.Dec003)
+	toUpbitListBnSymbol.SetParam(req.Qty, req.Dec003)
 	// --- IGNORE ---
 	toUpBitListDataAfter.ClearTrig()
 	//获取初始化要订阅的品种

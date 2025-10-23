@@ -5,7 +5,8 @@ import (
 
 	"github.com/hhh500/upbitBnServer/internal/quant/account/accountConfig"
 	"github.com/hhh500/upbitBnServer/internal/quant/account/bnPayload"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnExecute"
+	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
+	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"github.com/shopspring/decimal"
 	"github.com/tidwall/gjson"
@@ -38,11 +39,15 @@ func (s *Payload) OnPayload(data []byte) {
 		s.onTradeLite(data)
 	case bnPayload.ACCOUNT_UPDATE:
 		if s.accountKeyId == 11 {
+			// 必须是转入导致的资金变化
+			if gjson.GetBytes(data, "a.m").String() != "ADMIN_DEPOSIT" {
+				return
+			}
 			wb := gjson.GetBytes(data, `a.B.#(a=="USDT").wb`)
 			if wb.Exists() {
-				max := decimal.RequireFromString(wb.String())
-				if max.GreaterThan(decimal.Zero) {
-					toUpBitListBnExecute.GetExecute().OnTransOut(max)
+				max_ := decimal.RequireFromString(wb.String())
+				if max_.GreaterThan(decimal.Zero) {
+					toUpbitListBnSymbolArr.GetSymbolObj(toUpBitListDataAfter.TrigSymbolIndex).OnTransOut(max_)
 				}
 			}
 		}
@@ -54,9 +59,12 @@ func (s *Payload) OnPayload(data []byte) {
 	}
 }
 
+// {"e":"ACCOUNT_UPDATE","T":1761103247006,"E":1761103247006,"a":{"B":[{"a":"USDT","wb":"1","cw":"1","bc":"1"}],"P":[],"m":"ADMIN_DEPOSIT"}}
+// {"e":"ACCOUNT_UPDATE","T":1761103247282,"E":1761103247282,"a":{"B":[{"a":"USDT","wb":"0","cw":"0","bc":"-1"}],"P":[],"m":"ADMIN_WITHDRAW"}}
+
 // {
 // 	"a": "USDT",
 // 	"wb": "12.31980017", //钱包余额
-// 	"cw": "12.31980017", // 除去逐仓仓位保证金的钱包余额
+// 	"cw": "12.31980017", //除去逐仓仓位保证金的钱包余额
 // 	"bc": "0"
 // }
