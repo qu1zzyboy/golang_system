@@ -19,6 +19,11 @@ type Config struct {
 	RollingReconnect time.Duration
 	RollingJitter    time.Duration
 	DedupCapacity    int
+	QueueCapacity    int
+	LatencyWarnMS    int
+	LatencyWarnCount int
+	RTTWarnMS        int
+	RTTWarnCount     int
 }
 
 func defaultConfig() Config {
@@ -32,6 +37,11 @@ func defaultConfig() Config {
 		RollingReconnect: conf.TreeNewsCfg.RollingReconnect,
 		RollingJitter:    conf.TreeNewsCfg.RollingJitter,
 		DedupCapacity:    conf.TreeNewsCfg.DedupCapacity,
+		QueueCapacity:    conf.TreeNewsCfg.QueueCapacity,
+		LatencyWarnMS:    conf.TreeNewsCfg.LatencyWarnMS,
+		LatencyWarnCount: conf.TreeNewsCfg.LatencyWarnCount,
+		RTTWarnMS:        conf.TreeNewsCfg.RTTWarnMS,
+		RTTWarnCount:     conf.TreeNewsCfg.RTTWarnCount,
 	}
 
 	if cfg.URL == "" {
@@ -57,6 +67,21 @@ func defaultConfig() Config {
 	}
 	if cfg.DedupCapacity <= 0 {
 		cfg.DedupCapacity = 50000
+	}
+	if cfg.QueueCapacity <= 0 {
+		cfg.QueueCapacity = cfg.DedupCapacity
+	}
+	if cfg.LatencyWarnMS <= 0 {
+		cfg.LatencyWarnMS = 500
+	}
+	if cfg.LatencyWarnCount <= 0 {
+		cfg.LatencyWarnCount = 3
+	}
+	if cfg.RTTWarnMS <= 0 {
+		cfg.RTTWarnMS = 400
+	}
+	if cfg.RTTWarnCount <= 0 {
+		cfg.RTTWarnCount = 3
 	}
 
 	if v := os.Getenv("TREE_NEWS_ENABLED"); v != "" {
@@ -96,6 +121,31 @@ func defaultConfig() Config {
 	if v := os.Getenv("TREE_NEWS_DEDUP_CAPACITY"); v != "" {
 		if n, err := strconv.Atoi(v); err == nil && n > 0 {
 			cfg.DedupCapacity = n
+		}
+	}
+	if v := os.Getenv("TREE_NEWS_QUEUE_CAPACITY"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			cfg.QueueCapacity = n
+		}
+	}
+	if v := os.Getenv("TREE_NEWS_LATENCY_WARN_MS"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			cfg.LatencyWarnMS = n
+		}
+	}
+	if v := os.Getenv("TREE_NEWS_LATENCY_WARN_COUNT"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			cfg.LatencyWarnCount = n
+		}
+	}
+	if v := os.Getenv("TREE_NEWS_RTT_WARN_MS"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			cfg.RTTWarnMS = n
+		}
+	}
+	if v := os.Getenv("TREE_NEWS_RTT_WARN_COUNT"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			cfg.RTTWarnCount = n
 		}
 	}
 

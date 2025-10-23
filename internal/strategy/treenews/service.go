@@ -54,11 +54,15 @@ func GetService() *Service {
 
 // Event 表示通过筛选的 Tree News 事件，聚焦 Upbit KRW 场景。
 type Event struct {
-	ID          string
-	Symbols     []string
-	Payload     map[string]any
-	ReceivedAt  time.Time
-	ServerMilli int64
+	ID              string
+	Symbols         []string
+	Payload         map[string]any
+	ReceivedAt      time.Time
+	ServerMilli     int64
+	LatencyRawMS    int
+	LatencyAdjustMS int
+	LatencyMS       int
+	RTTMS           int64
 }
 
 // HandlerFunc 会在每条过滤后的事件上被调用。
@@ -86,14 +90,23 @@ type Service struct {
 	cancel context.CancelFunc // cancel 用于通知所有后台协程退出
 	wg     sync.WaitGroup     // wg 等待后台协程全部结束
 
-	dedup *idSet // dedup 保存最近的消息 id，防止重复处理
+	dedup            *idSet // dedup 保存最近的消息 id，防止重复处理
+	outQueue         chan queuedMessage
+	latencyWarnMS    int
+	latencyWarnCount int
+	rttWarnMS        int
+	rttWarnCount     int
 }
 
 func NewService(cfg Config) *Service {
 	return &Service{
-		cfg:    cfg,
-		dialer: &websocket.Dialer{Proxy: http.ProxyFromEnvironment, HandshakeTimeout: 15 * time.Second},
-		dedup:  newIDSet(cfg.DedupCapacity),
+		cfg:              cfg,
+		dialer:           &websocket.Dialer{Proxy: http.ProxyFromEnvironment, HandshakeTimeout: 15 * time.Second},
+		dedup:            newIDSet(cfg.DedupCapacity),
+		latencyWarnMS:    cfg.LatencyWarnMS,
+		latencyWarnCount: cfg.LatencyWarnCount,
+		rttWarnMS:        cfg.RTTWarnMS,
+		rttWarnCount:     cfg.RTTWarnCount,
 	}
 }
 
@@ -122,6 +135,13 @@ func (s *Service) Start(ctx context.Context) error {
 			}
 		})
 	}
+
+	s.outQueue = make(chan queuedMessage, s.cfg.QueueCapacity)
+	s.wg.Add(1)
+	safex.SafeGo("treenews_merger", func() {
+		defer s.wg.Done()
+		s.mergerLoop(ctxRun)
+	})
 
 	workers := s.cfg.Workers
 	if workers <= 0 {
@@ -195,9 +215,10 @@ func (s *Service) worker(ctx context.Context, workerID int) {
 		}
 
 		errCh := make(chan error, 1)
+		state := newWorkerState(workerID, errCh)
 		logger.GetLog().Infof("tree news worker=%d connected to %s", workerID, s.cfg.URL)
-		go s.readLoop(ctx, conn, errCh)
-		go s.heartbeatLoop(ctx, conn, errCh)
+		go s.readLoop(ctx, conn, errCh, state)
+		go s.heartbeatLoop(ctx, conn, errCh, state)
 		go s.rollingLoop(ctx, conn, errCh)
 
 		select {
@@ -230,12 +251,29 @@ func (s *Service) login(conn *websocket.Conn) error {
 }
 
 // readLoop 专职从 WebSocket 读取原始消息，一旦遇到异常就通过 errCh 通知上层 worker。
-func (s *Service) readLoop(ctx context.Context, conn *websocket.Conn, errCh chan<- error) {
+// readLoop 从 WebSocket 逐条读取消息，推入 outQueue，由 mergerLoop 顺序处理。
+func (s *Service) readLoop(ctx context.Context, conn *websocket.Conn, errCh chan<- error, state *workerState) {
 	conn.SetReadLimit(2 << 20)
 	if s.cfg.PingTimeout > 0 {
 		_ = conn.SetReadDeadline(time.Now().Add(s.cfg.PingInterval + s.cfg.PingTimeout))
 		conn.SetPongHandler(func(string) error {
-			return conn.SetReadDeadline(time.Now().Add(s.cfg.PingInterval + s.cfg.PingTimeout))
+			if s.cfg.PingTimeout > 0 {
+				_ = conn.SetReadDeadline(time.Now().Add(s.cfg.PingInterval + s.cfg.PingTimeout))
+			}
+			if start := state.lastPing.Load(); start > 0 {
+				rtt := time.Since(time.Unix(0, start)).Milliseconds()
+				state.lastRTT.Store(rtt)
+				if s.rttWarnMS > 0 && rtt > int64(s.rttWarnMS) {
+					count := state.highRTT.Add(1)
+					loggerErr.GetLog().Warnf("tree news worker=%d high rtt=%dms count=%d", state.workerID, rtt, count)
+					if s.rttWarnCount > 0 && int(count) >= s.rttWarnCount {
+						state.triggerReconnect(fmt.Sprintf("high rtt %dms", rtt))
+					}
+				} else {
+					state.highRTT.Store(0)
+				}
+			}
+			return nil
 		})
 	}
 
@@ -251,14 +289,21 @@ func (s *Service) readLoop(ctx context.Context, conn *websocket.Conn, errCh chan
 		if s.cfg.PingTimeout > 0 {
 			_ = conn.SetReadDeadline(time.Now().Add(s.cfg.PingInterval + s.cfg.PingTimeout))
 		}
-		if err := s.handleMessage(ctx, data); err != nil {
-			loggerErr.GetLog().Errorf("tree news handle message failed: %v", err)
+		msg := queuedMessage{
+			data:  append([]byte(nil), data...),
+			recv:  time.Now().UTC(),
+			state: state,
+		}
+		select {
+		case s.outQueue <- msg:
+		case <-ctx.Done():
+			return
 		}
 	}
 }
 
 // heartbeatLoop 定期发送 ping，以检测链路健康；失败后交给 worker 重连。
-func (s *Service) heartbeatLoop(ctx context.Context, conn *websocket.Conn, errCh chan<- error) {
+func (s *Service) heartbeatLoop(ctx context.Context, conn *websocket.Conn, errCh chan<- error, state *workerState) {
 	if s.cfg.PingInterval <= 0 {
 		return
 	}
@@ -270,6 +315,7 @@ func (s *Service) heartbeatLoop(ctx context.Context, conn *websocket.Conn, errCh
 			return
 		case <-ticker.C:
 			conn.SetWriteDeadline(time.Now().Add(2 * time.Second))
+			state.lastPing.Store(time.Now().UnixNano())
 			if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				errCh <- err
 				return
@@ -296,41 +342,75 @@ func (s *Service) rollingLoop(ctx context.Context, conn *websocket.Conn, errCh c
 }
 
 // handleMessage 负责：JSON 解析 -> 去重 -> Upbit KRW 过滤 -> 回调业务 handler。
-func (s *Service) handleMessage(ctx context.Context, data []byte) error {
+// mergerLoop 顺序消费 outQueue 中的消息，保证业务处理串行执行。
+func (s *Service) mergerLoop(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case msg := <-s.outQueue:
+			s.processMessage(ctx, msg)
+		}
+	}
+}
+
+// processMessage 执行解码、去重、延迟计算，并触发业务回调。
+func (s *Service) processMessage(ctx context.Context, msg queuedMessage) {
 	var payload map[string]any
-	if err := json.Unmarshal(data, &payload); err != nil {
-		return err
+	if err := json.Unmarshal(msg.data, &payload); err != nil {
+		loggerErr.GetLog().Errorf("tree news json decode failed: %v", err)
+		return
 	}
 	id := toString(payload["_id"])
 	if id == "" {
-		return nil
+		return
 	}
 	if !s.dedup.Add(id) {
-		return nil
+		return
 	}
 
 	symbols := upbitKRWSymbols(payload)
 	if len(symbols) == 0 {
-		return nil
+		return
 	}
 
-	logger.GetLog().Infof("tree news event id=%s symbols=%v", id, symbols)
 	event := Event{
 		ID:         id,
 		Symbols:    symbols,
 		Payload:    payload,
-		ReceivedAt: time.Now().UTC(),
+		ReceivedAt: msg.recv,
 	}
-	if ts := toInt64(payload["time"]); ts > 0 {
-		event.ServerMilli = ts
+	if msg.state != nil {
+		event.RTTMS = msg.state.lastRTT.Load()
 	}
 
+	if ts := toInt64(payload["time"]); ts > 0 {
+		event.ServerMilli = ts
+		raw := msg.recv.UnixMilli() - ts
+		if raw < 0 {
+			raw = 0
+		}
+		event.LatencyRawMS = int(raw)
+		event.LatencyAdjustMS = int(raw)
+		event.LatencyMS = int(raw)
+		if s.latencyWarnMS > 0 && event.LatencyMS > s.latencyWarnMS && msg.state != nil {
+			count := msg.state.highLatency.Add(1)
+			loggerErr.GetLog().Warnf("tree news worker=%d high latency=%dms count=%d id=%s", msg.state.workerID, event.LatencyMS, count, id)
+			if s.latencyWarnCount > 0 && int(count) >= s.latencyWarnCount {
+				msg.state.triggerReconnect(fmt.Sprintf("high latency %dms", event.LatencyMS))
+			}
+		} else if msg.state != nil {
+			msg.state.highLatency.Store(0)
+		}
+	}
+
+	logger.GetLog().Infof("tree news event id=%s symbols=%v latency=%d rtt=%d", id, symbols, event.LatencyMS, event.RTTMS)
+
 	handlerMu.RLock()
-	defer handlerMu.RUnlock()
 	for _, h := range handlers {
 		h(ctx, event)
 	}
-	return nil
+	handlerMu.RUnlock()
 }
 
 // idSet 用于维护最近 seen 消息，实现快速去重。
@@ -367,6 +447,35 @@ func (s *idSet) Add(id string) bool {
 		delete(s.set, stale)
 	}
 	return true
+}
+
+type queuedMessage struct {
+	data  []byte
+	recv  time.Time
+	state *workerState
+}
+
+type workerState struct {
+	workerID    int
+	errCh       chan<- error
+	lastPing    atomic.Int64
+	lastRTT     atomic.Int64
+	highRTT     atomic.Int32
+	highLatency atomic.Int32
+	triggered   atomic.Bool
+}
+
+func newWorkerState(workerID int, errCh chan<- error) *workerState {
+	return &workerState{workerID: workerID, errCh: errCh}
+}
+
+func (ws *workerState) triggerReconnect(reason string) {
+	if ws.triggered.CompareAndSwap(false, true) {
+		select {
+		case ws.errCh <- fmt.Errorf("worker %d: %s", ws.workerID, reason):
+		default:
+		}
+	}
 }
 
 // toString 将任意类型转换为字符串，以兼容树新闻返回的多种 JSON 字段类型。

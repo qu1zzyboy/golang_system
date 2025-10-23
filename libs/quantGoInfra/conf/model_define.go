@@ -42,4 +42,9 @@ type TreeNewsConfig struct {
 	RollingReconnect time.Duration
 	RollingJitter    time.Duration
 	DedupCapacity    int
+	QueueCapacity    int
+	LatencyWarnMS    int
+	LatencyWarnCount int
+	RTTWarnMS        int
+	RTTWarnCount     int
 }

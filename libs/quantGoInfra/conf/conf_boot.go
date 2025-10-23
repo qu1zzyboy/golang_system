@@ -108,6 +108,11 @@ func initConfig() {
 	TreeNewsCfg.RollingReconnect = parseDuration(getConfig("treeNews.rollingReconnect"), 6*time.Hour)
 	TreeNewsCfg.RollingJitter = parseDuration(getConfig("treeNews.rollingJitter"), 10*time.Minute)
 	TreeNewsCfg.DedupCapacity = viper.GetInt("treeNews.dedupCapacity")
+	TreeNewsCfg.QueueCapacity = viper.GetInt("treeNews.queueCapacity")
+	TreeNewsCfg.LatencyWarnMS = viper.GetInt("treeNews.latencyWarnMs")
+	TreeNewsCfg.LatencyWarnCount = viper.GetInt("treeNews.latencyWarnCount")
+	TreeNewsCfg.RTTWarnMS = viper.GetInt("treeNews.rttWarnMs")
+	TreeNewsCfg.RTTWarnCount = viper.GetInt("treeNews.rttWarnCount")
 
 	log.Info("===============结束读取配置信息==================")
 }
