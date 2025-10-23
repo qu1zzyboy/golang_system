@@ -384,15 +384,27 @@ func (s *Service) processMessage(ctx context.Context, msg queuedMessage) {
 		event.RTTMS = msg.state.lastRTT.Load()
 	}
 
+	source := strings.ToLower(toString(payload["source"]))
+	if source == "" {
+		source = strings.ToLower(toString(payload["type"]))
+	}
+
 	if ts := toInt64(payload["time"]); ts > 0 {
 		event.ServerMilli = ts
 		raw := msg.recv.UnixMilli() - ts
 		if raw < 0 {
 			raw = 0
 		}
+		adjust := raw
+		if source == "blogs" {
+			adjust -= 5000
+			if adjust < 0 {
+				adjust = 0
+			}
+		}
 		event.LatencyRawMS = int(raw)
-		event.LatencyAdjustMS = int(raw)
-		event.LatencyMS = int(raw)
+		event.LatencyAdjustMS = int(adjust)
+		event.LatencyMS = int(adjust)
 	}
 
 	logger.GetLog().Infof("tree news raw msg seq=%d id=%s latency_raw=%d latency=%d rtt=%d", msg.seq, logID, event.LatencyRawMS, event.LatencyMS, event.RTTMS)
