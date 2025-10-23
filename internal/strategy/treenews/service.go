@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -96,6 +97,7 @@ type Service struct {
 	latencyWarnCount int
 	rttWarnMS        int
 	rttWarnCount     int
+	msgSeq           atomic.Int64 // 全局消息序号，方便排查
 }
 
 func NewService(cfg Config) *Service {
@@ -293,6 +295,7 @@ func (s *Service) readLoop(ctx context.Context, conn *websocket.Conn, errCh chan
 			data:  append([]byte(nil), data...),
 			recv:  time.Now().UTC(),
 			state: state,
+			seq:   s.msgSeq.Add(1),
 		}
 		select {
 		case s.outQueue <- msg:
@@ -361,24 +364,21 @@ func (s *Service) processMessage(ctx context.Context, msg queuedMessage) {
 		loggerErr.GetLog().Errorf("tree news json decode failed: %v", err)
 		return
 	}
-	id := toString(payload["_id"])
-	if id == "" {
-		return
-	}
-	if !s.dedup.Add(id) {
-		return
-	}
 
-	symbols := upbitKRWSymbols(payload)
-	if len(symbols) == 0 {
-		return
+	idRaw := toString(payload["_id"])
+	trimID := strings.TrimSpace(idRaw)
+	logID := trimID
+	if logID == "" {
+		logID = fmt.Sprintf("raw-%d", msg.seq)
 	}
 
 	event := Event{
-		ID:         id,
-		Symbols:    symbols,
-		Payload:    payload,
-		ReceivedAt: msg.recv,
+		ID:              logID,
+		Payload:         payload,
+		ReceivedAt:      msg.recv,
+		LatencyRawMS:    -1,
+		LatencyAdjustMS: -1,
+		LatencyMS:       -1,
 	}
 	if msg.state != nil {
 		event.RTTMS = msg.state.lastRTT.Load()
@@ -393,18 +393,37 @@ func (s *Service) processMessage(ctx context.Context, msg queuedMessage) {
 		event.LatencyRawMS = int(raw)
 		event.LatencyAdjustMS = int(raw)
 		event.LatencyMS = int(raw)
-		if s.latencyWarnMS > 0 && event.LatencyMS > s.latencyWarnMS && msg.state != nil {
+	}
+
+	logger.GetLog().Infof("tree news raw msg seq=%d id=%s latency_raw=%d latency=%d rtt=%d", msg.seq, logID, event.LatencyRawMS, event.LatencyMS, event.RTTMS)
+
+	if msg.state != nil {
+		if event.LatencyMS >= 0 && s.latencyWarnMS > 0 && event.LatencyMS > s.latencyWarnMS {
 			count := msg.state.highLatency.Add(1)
-			loggerErr.GetLog().Warnf("tree news worker=%d high latency=%dms count=%d id=%s", msg.state.workerID, event.LatencyMS, count, id)
+			loggerErr.GetLog().Warnf("tree news worker=%d high latency=%dms count=%d id=%s", msg.state.workerID, event.LatencyMS, count, logID)
 			if s.latencyWarnCount > 0 && int(count) >= s.latencyWarnCount {
 				msg.state.triggerReconnect(fmt.Sprintf("high latency %dms", event.LatencyMS))
 			}
-		} else if msg.state != nil {
+		} else {
 			msg.state.highLatency.Store(0)
 		}
 	}
 
-	logger.GetLog().Infof("tree news event id=%s symbols=%v latency=%d rtt=%d", id, symbols, event.LatencyMS, event.RTTMS)
+	if trimID != "" && !s.dedup.Add(trimID) {
+		return
+	}
+	if trimID != "" {
+		event.ID = trimID
+	}
+
+	symbols := upbitKRWSymbols(payload)
+	if len(symbols) == 0 {
+		return
+	}
+
+	event.Symbols = symbols
+
+	logger.GetLog().Infof("tree news event id=%s symbols=%v latency=%d rtt=%d", event.ID, symbols, event.LatencyMS, event.RTTMS)
 
 	handlerMu.RLock()
 	for _, h := range handlers {
@@ -453,6 +472,7 @@ type queuedMessage struct {
 	data  []byte
 	recv  time.Time
 	state *workerState
+	seq   int64
 }
 
 type workerState struct {
