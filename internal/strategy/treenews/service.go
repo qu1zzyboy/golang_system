@@ -1,3 +1,4 @@
+// Package treenews 负责监听 Tree News WebSocket，筛选 Upbit KRW 相关事件，并以 channel 模式推送给业务层。
 package treenews
 
 import (
@@ -76,15 +77,16 @@ func RegisterHandler(fn HandlerFunc) {
 }
 
 // Service 管理 WebSocket 工作者并将事件分发给回调。
+// Service 维护 WebSocket 连接、读写协程和消息去重等核心状态。
 type Service struct {
 	cfg     Config
 	dialer  *websocket.Dialer
 	started atomic.Bool
 
-	cancel context.CancelFunc
-	wg     sync.WaitGroup
+	cancel context.CancelFunc // cancel 用于通知所有后台协程退出
+	wg     sync.WaitGroup     // wg 等待后台协程全部结束
 
-	dedup *idSet
+	dedup *idSet // dedup 保存最近的消息 id，防止重复处理
 }
 
 func NewService(cfg Config) *Service {
@@ -95,6 +97,7 @@ func NewService(cfg Config) *Service {
 	}
 }
 
+// Start 启动所有后台协程（worker + heartbeat），重复调用会直接返回。
 func (s *Service) Start(ctx context.Context) error {
 	if !s.cfg.Enabled {
 		logger.GetLog().Info("tree news service disabled")
@@ -135,6 +138,7 @@ func (s *Service) Start(ctx context.Context) error {
 	return nil
 }
 
+// Stop 通知所有后台协程退出，并等待清理结束。
 func (s *Service) Stop(ctx context.Context) error {
 	if !s.started.Load() {
 		return nil
@@ -156,6 +160,7 @@ func (s *Service) Stop(ctx context.Context) error {
 	return nil
 }
 
+// worker 管理单条 WebSocket 链路：负责连接、登录、启动读/心跳协程，并处理断线重连。
 func (s *Service) worker(ctx context.Context, workerID int) {
 	backoff := 300 * time.Millisecond
 	for {
@@ -219,10 +224,12 @@ func (s *Service) login(conn *websocket.Conn) error {
 	if err := conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
 		return err
 	}
+	// 仅在登录成功后打印一次日志，便于确认认证流程无误
 	logger.GetLog().Info("tree news login success")
 	return nil
 }
 
+// readLoop 专职从 WebSocket 读取原始消息，一旦遇到异常就通过 errCh 通知上层 worker。
 func (s *Service) readLoop(ctx context.Context, conn *websocket.Conn, errCh chan<- error) {
 	conn.SetReadLimit(2 << 20)
 	if s.cfg.PingTimeout > 0 {
@@ -250,6 +257,7 @@ func (s *Service) readLoop(ctx context.Context, conn *websocket.Conn, errCh chan
 	}
 }
 
+// heartbeatLoop 定期发送 ping，以检测链路健康；失败后交给 worker 重连。
 func (s *Service) heartbeatLoop(ctx context.Context, conn *websocket.Conn, errCh chan<- error) {
 	if s.cfg.PingInterval <= 0 {
 		return
@@ -270,6 +278,7 @@ func (s *Service) heartbeatLoop(ctx context.Context, conn *websocket.Conn, errCh
 	}
 }
 
+// rollingLoop 控制“滚动重连”，让长时间在线的连接定期刷新。
 func (s *Service) rollingLoop(ctx context.Context, conn *websocket.Conn, errCh chan<- error) {
 	if s.cfg.RollingReconnect <= 0 {
 		return
@@ -286,6 +295,7 @@ func (s *Service) rollingLoop(ctx context.Context, conn *websocket.Conn, errCh c
 	}
 }
 
+// handleMessage 负责：JSON 解析 -> 去重 -> Upbit KRW 过滤 -> 回调业务 handler。
 func (s *Service) handleMessage(ctx context.Context, data []byte) error {
 	var payload map[string]any
 	if err := json.Unmarshal(data, &payload); err != nil {
@@ -323,6 +333,7 @@ func (s *Service) handleMessage(ctx context.Context, data []byte) error {
 	return nil
 }
 
+// idSet 用于维护最近 seen 消息，实现快速去重。
 type idSet struct {
 	mu    sync.Mutex
 	order []string
@@ -330,6 +341,7 @@ type idSet struct {
 	max   int
 }
 
+// newIDSet 返回一个固定容量的 idSet（超过容量时按 FIFO 淘汰旧值）。
 func newIDSet(capacity int) *idSet {
 	if capacity <= 0 {
 		capacity = 1000
@@ -357,6 +369,7 @@ func (s *idSet) Add(id string) bool {
 	return true
 }
 
+// toString 将任意类型转换为字符串，以兼容树新闻返回的多种 JSON 字段类型。
 func toString(v any) string {
 	switch vv := v.(type) {
 	case string:
@@ -376,6 +389,7 @@ func toString(v any) string {
 	}
 }
 
+// toInt64 尝试把 JSON 字段转成 int64，用于时间戳等场景。
 func toInt64(v any) int64 {
 	switch vv := v.(type) {
 	case int64:
@@ -396,6 +410,7 @@ func toInt64(v any) int64 {
 	return 0
 }
 
+// minDuration 返回两个 duration 中的较小值。
 func minDuration(a, b time.Duration) time.Duration {
 	if a < b {
 		return a
