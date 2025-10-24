@@ -157,7 +157,7 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 	case grpcEvent.TO_UPBIT_PARAM_TEST:
 		{
 			var req toUpbitParam.ComputeRequest
-			if err = jsonUtils.UnmarshalFromString(gjson.Get(in.JsonData, "data").String(), &req); err != nil {
+			if err = jsonUtils.UnmarshalFromString(in.JsonData, &req); err != nil {
 				logError.GetLog().Error("特有参数json解析失败:", err)
 				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
 			}
