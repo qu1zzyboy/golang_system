@@ -6,6 +6,8 @@ import (
 	"github.com/hhh500/quantGoInfra/conf"
 )
 
+const MODULE_ID = "treenews_service"
+
 type Boot struct{}
 
 func NewBoot() *Boot {
@@ -13,7 +15,7 @@ func NewBoot() *Boot {
 }
 
 func (b *Boot) ModuleId() string {
-	return "treenews_service"
+	return MODULE_ID
 }
 
 func (b *Boot) DependsOn() []string {

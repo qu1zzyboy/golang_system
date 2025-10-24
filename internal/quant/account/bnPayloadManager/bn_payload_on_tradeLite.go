@@ -6,23 +6,22 @@ import (
 	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderStatic"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
 	"github.com/tidwall/gjson"
 )
 
 func (s *Payload) onTradeLite(data []byte) {
 	clientOrderId := gjson.GetBytes(data, "c").String()
-	instanceId, orderMode, symbolIndex, ok := orderStatic.GetService().GetOrderInstanceIdAndSymbolId(clientOrderId)
+	orderFrom, orderMode, symbolIndex, ok := orderStatic.GetService().GetOrderInstanceIdAndSymbolId(clientOrderId)
 	if !ok {
 		// 可能是手动平仓单
-		if gjson.GetBytes(data, "s").String() == toUpBitListDataAfter.TrigSymbolName {
+		if clientOrderId[0:3] == "ios" || clientOrderId[0:3] == "web" {
 			return
 		}
-		dynamicLog.Error.GetLog().Errorf("[%d]TRADE_LITE: [%s] orderInstance not found %s", s.accountKeyId, clientOrderId, string(data))
+		dynamicLog.Error.GetLog().Errorf("[%d]TRADE_LITE: [%s] orderFrom not found %s", s.accountKeyId, clientOrderId, string(data))
 		return
 	}
-	switch instanceId {
+	switch orderFrom {
 	case orderBelongEnum.TO_UPBIT_LIST_PRE:
 		{
 			// 卖出开仓成交,主要是用来驱动策略触发
@@ -41,6 +40,6 @@ func (s *Payload) onTradeLite(data []byte) {
 			//暂时不处理
 		}
 	default:
-		dynamicLog.Error.GetLog().Errorf("TRADE_LITE: unknown instanceId %v", instanceId)
+		dynamicLog.Error.GetLog().Errorf("TRADE_LITE: unknown orderFrom %v", orderFrom)
 	}
 }

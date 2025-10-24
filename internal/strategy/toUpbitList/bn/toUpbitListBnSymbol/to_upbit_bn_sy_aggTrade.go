@@ -13,12 +13,13 @@ import (
 func (s *Single) onAggTrade(len int, bufPtr *[]byte) {
 	defer byteBufPool.ReleaseBuffer(bufPtr)
 	data := (*bufPtr)[:len]
+
 	/****处理成交数据****/
 	if toUpBitListDataAfter.LoadTrig() {
+		/*********************上币已经触发**************************/
 		if s.symbolIndex != toUpBitListDataAfter.TrigSymbolIndex {
 			return
 		}
-		/*********************上币已经触发**************************/
 	} else {
 		/*********************上币还未触发**************************/
 		eventTs := gjson.GetBytes(data, jsonEvent).Int()

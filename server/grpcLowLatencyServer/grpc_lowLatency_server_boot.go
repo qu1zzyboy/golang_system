@@ -5,6 +5,7 @@ import (
 
 	"github.com/hhh500/quantGoInfra/pkg/container/pool/antPool"
 	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolInfoLoad"
+	"github.com/hhh500/upbitBnServer/internal/strategy/treenews"
 )
 
 const ModuleId = "grpc_lowLatency_server"
@@ -24,6 +25,7 @@ func (s *Boot) DependsOn() []string {
 	return []string{
 		symbolInfoLoad.MODULE_ID, // 从redis加载交易规范
 		antPool.MODULE_ID,        // 协程池
+		treenews.MODULE_ID,       // treeNews模块
 	}
 }
 

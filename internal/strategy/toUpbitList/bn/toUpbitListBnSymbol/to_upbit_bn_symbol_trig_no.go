@@ -2,67 +2,59 @@ package toUpbitListBnSymbol
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/hhh500/quantGoInfra/quant/exchanges/binance/bnConst"
 	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnExecute"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"github.com/shopspring/decimal"
 )
 
-func (s *Single) IntoExecuteNoCheck(eventTs int64, trigFlag string, riseValue float64, priceTrig_8 uint64) {
-	priceLimit_U10 := s.priceMax_10
-	if !toUpBitListDataStatic.IsDebug {
-		// 价格必须大于2min之前的价格
-		if priceTrig_8 < s.last2MinClose_8 {
-			toUpBitListDataStatic.SendToUpBitMsg("发送bn触发消息失败", map[string]string{
-				"msg":  trigFlag + fmt.Sprintf("触发但价格小于2min之前[%d,%d]", s.last2MinClose_8, priceTrig_8),
-				"bn品种": s.StMeta.SymbolName,
-				"上涨幅度": fmt.Sprintf("%.2f%%", riseValue*100),
-			})
-			return
-		}
-		// 价格上限
-		if priceLimit_U10 == 0 {
-			toUpBitListDataStatic.SendToUpBitMsg("发送bn触发消息失败", map[string]string{
-				"msg":  trigFlag + "触发但还未收到标记价格",
-				"bn品种": s.StMeta.SymbolName,
-				"上涨幅度": fmt.Sprintf("%.2f%%", riseValue*100),
-			})
-			return
-		}
-	}
-	// 设置参数
-	symbolName := s.StMeta.SymbolName
-	toUpBitListDataAfter.Trig(symbolName, s.symbolIndex)
+//to do
 
-	if toUpBitListDataStatic.IsDebug {
-		toUpBitListDataAfter.UpdateTreeNewsFlag(s.symbolIndex)           //实盘待删除
-		toUpBitListBnExecute.GetExecute().ReceiveTreeNews(s.symbolIndex) //实盘待删除
-	}
-	toUpBitListBnExecute.GetExecute().StartTrig(s.symbolIndex, s.pScale, s.qScale, s.StMeta)
-	// 开启第0秒协程
-	limit := decimal.New(int64(priceLimit_U10), -bnConst.PScale_10).Truncate(s.pScale)
-	toUpBitListBnExecute.GetExecute().PlacePostOnlyOrder(limit)
-	//开启二次校验等待循环
-	go func() {
-		time.Sleep(2 * time.Second)
-		if toUpBitListDataAfter.HasTreeNews.Load() {
-			return
-		}
-		toUpBitListBnExecute.GetExecute().ReceiveStop(toUpBitListBnExecute.StopByTreeNews)
-		toUpBitListDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
-			"symbol": symbolName,
-			"op":     "TreeNews未确认",
+func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
+	// minBId>=0.95*markPrice
+	if float64(s.minPriceAfterMp) >= toUpBitListDataStatic.OrderRiceTrig*float64(s.markPrice_8) {
+		toUpBitListDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
+			"msg":  "orderPrice快速上涨",
+			"bn品种": s.StMeta.SymbolName,
+			"上涨幅度": fmt.Sprintf("%.2f%%", s.lastRiseValue*100),
 		})
-	}()
-	// 开启抽奖协程
-	toUpBitListBnExecute.GetExecute().TryBuyLoop(20)
+		s.IntoExecuteNoCheck(tradeTs, "preOrder", priceU64_8)
+	} else {
+		toUpBitListDataStatic.SendToUpBitMsg("成交但不满足上市check消息失败", map[string]string{
+			"msg":  fmt.Sprintf("成交但不满足上市check,成交价:%d", priceU64_8),
+			"bn品种": s.StMeta.SymbolName,
+			"上涨幅度": fmt.Sprintf("%.2f%%", s.lastRiseValue*100),
+		})
+	}
+}
+
+func (s *Single) IntoExecuteNoCheck(eventTs int64, trigFlag string, priceTrig_8 uint64) {
+	s.hasTreeNews = false
+	if toUpBitListDataStatic.IsDebug {
+		s.hasTreeNews = true
+	}
+	toUpBitListDataAfter.Trig(s.symbolIndex)
+	s.startTrig()
+	limit := decimal.New(int64(s.priceMaxBuy_10), -bnConst.PScale_10).Truncate(s.pScale)
+	s.checkTreeNews()
+	s.PlacePostOnlyOrder(limit)
+	s.TryBuyLoop(20)
 	// 获取止盈止损参数
 	s.calParam()
-	toUpBitListDataStatic.DyLog.GetLog().Infof("%s->[%s]价格触发,最新价格: %d,涨幅: %f%%,事件时间:%d", trigFlag, symbolName, priceTrig_8, riseValue*100, eventTs)
+	toUpBitListDataStatic.DyLog.GetLog().Infof("%s->[%s]价格触发,最新价格: %d,涨幅: %f%%,事件时间:%d",
+		trigFlag, s.StMeta.SymbolName, priceTrig_8, s.lastRiseValue*100, eventTs)
+}
+
+func (s *Single) intoExecuteByMsg() {
+	s.hasTreeNews = true
+	toUpBitListDataAfter.Trig(s.symbolIndex)
+	s.startTrig()
+	s.TryBuyLoop(20)
+	// 获取止盈止损参数
+	s.calParam()
+	toUpBitListDataStatic.DyLog.GetLog().Infof("treeNews->[%s]触发,涨幅: %f%%", s.StMeta.SymbolName, s.lastRiseValue*100)
 }
 
 func (s *Single) calParam() {
@@ -71,7 +63,7 @@ func (s *Single) calParam() {
 	mesh, ok := coinMesh.GetManager().Get(s.StMeta.TradeId)
 	if !ok {
 		toUpBitListDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] not found for tradeId: %d", symbolName, s.StMeta.TradeId)
-		toUpBitListBnExecute.GetExecute().ReceiveStop(toUpBitListBnExecute.StopByGetCmcFailure)
+		s.receiveStop(StopByGetCmcFailure)
 		toUpBitListDataStatic.SendToUpBitMsg("获取cmc_id失败", map[string]string{
 			"symbol": symbolName,
 			"op":     "获取cmc_id失败",
@@ -85,14 +77,18 @@ func (s *Single) calParam() {
 	gainPct, twapSec, err := GetParam(mesh.IsMeMe, cap2Min/1_000_000, symbolName)
 	if err != nil {
 		toUpBitListDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] 获取止盈止损失败: %v", symbolName, err)
-		toUpBitListBnExecute.GetExecute().ReceiveStop(toUpBitListBnExecute.StopByGetRemoteFailure)
+		s.receiveStop(StopByGetRemoteFailure)
 		toUpBitListDataStatic.SendToUpBitMsg("获取止盈止损失败", map[string]string{
 			"symbol": symbolName,
 			"op":     "获取止盈止损失败",
 		})
 		return
 	}
+	if toUpBitListDataStatic.IsDebug {
+		gainPct = 7
+		twapSec = 10
+	}
 	// 返回值格式 15.5 30
 	toUpBitListDataStatic.DyLog.GetLog().Infof("远程参数:%t,市值:%f,%s,远程响应:[%f,%f]", mesh.IsMeMe, cap2Min/1_000_000, symbolName, gainPct, twapSec)
-	toUpBitListBnExecute.GetExecute().SetExecuteParam(last2MinCloseF64*(1+0.01*gainPct), twapSec)
+	s.setExecuteParam(last2MinCloseF64*(1+0.01*gainPct), twapSec)
 }

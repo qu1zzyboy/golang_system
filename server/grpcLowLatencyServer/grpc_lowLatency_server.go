@@ -14,7 +14,6 @@ import (
 	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
 	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBn"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnExecute"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
@@ -132,14 +131,25 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 	case grpcEvent.TO_UPBIT_RECEIVE_NEWS:
 		{
 			Asset := gjson.Get(in.JsonData, "events.0.symbols.0").String()
-			symbolIndex, _ := toUpBitListDataStatic.SymbolIndex.Load(Asset + "USDT")
-			toUpBitListBnExecute.GetExecute().ReceiveTreeNews(symbolIndex)
-			toUpBitListDataAfter.UpdateTreeNewsFlag(symbolIndex)
+			symbolName := Asset + "USDT"
+			symbolIndexTrue, ok := toUpBitListDataStatic.SymbolIndex.Load(symbolName)
+			if !ok {
+				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, "TreeNews品种不在品种池内", nil)
+			}
+
+			// 触发品种和TreeNews品种一致
+			if symbolIndexTrue == toUpBitListDataAfter.TrigSymbolIndex {
+				toUpbitListBnSymbolArr.GetSymbolObj(symbolIndexTrue).ReceiveTreeNews()
+			} else {
+				toUpbitListBnSymbolArr.GetSymbolObj(toUpBitListDataAfter.TrigSymbolIndex).ReceiveNoTreeNews()
+			}
 		}
 	case grpcEvent.TO_UPBIT_TEST:
 		{
 			symbolIndex, _ := toUpBitListDataStatic.SymbolIndex.Load("XPINUSDT")
-			toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex).IntoExecuteCheck(time.Now().UnixMilli(), "test", 0.05, 200000000)
+			obj := toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex)
+			go obj.ReceiveTreeNews()
+			obj.IntoExecuteNoCheck(time.Now().UnixMilli(), "test", 200000000)
 		}
 	case grpcEvent.TO_UPBIT_CFG:
 		{
