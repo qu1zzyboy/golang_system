@@ -19,7 +19,7 @@ import (
 
 type bnSubScribeReq struct {
 	Method string   `json:"method"`
-	Params []string `json:"toUpbitParam,omitempty"`
+	Params []string `json:"params,omitempty"`
 	Id     int64    `json:"id"`
 }
 
