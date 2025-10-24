@@ -2,6 +2,7 @@ package toUpbitListBnSymbol
 
 import (
 	"time"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListPos"
 
 	"upbitBnServer/internal/infra/safex"
 	"upbitBnServer/internal/quant/execute"
@@ -86,5 +87,6 @@ func (s *Single) PlacePostOnlyOrder(limit decimal.Decimal) {
 			}
 		}
 	})
+	s.pos = toUpbitListPos.NewPosCal()
 	s.firstPriceBuy = limit.Mul(dec103).Truncate(s.pScale)
 }
