@@ -35,9 +35,9 @@ func (s *FutureClient) accountPositionInfo(reqId string) map[string]interface{} 
 		"timestamp": timeStamp,
 	}
 	return map[string]any{
-		"id":     reqId,
-		"method": "v2/account.balance",
-		"params": params,
+		"id":           reqId,
+		"method":       "v2/account.balance",
+		"toUpbitParam": params,
 	}
 }
 

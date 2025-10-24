@@ -1,4 +1,4 @@
-package params
+package toUpbitParam
 
 import (
 	"sync/atomic"

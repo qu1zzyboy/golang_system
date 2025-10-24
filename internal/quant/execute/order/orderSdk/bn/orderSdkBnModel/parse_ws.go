@@ -29,7 +29,7 @@ var (
 	b_ID_ = []byte(`{"id":"`)
 
 	b_METHOD_ = []byte(`","method":"`)
-	b_PARAMS_ = []byte(`","params":{`)
+	b_PARAMS_ = []byte(`","toUpbitParam":{`)
 	b_WS_STEP = []byte(`":"`)
 	b_WS_END  = []byte("}}")
 )
@@ -61,7 +61,7 @@ func buildWsReqFast(preSize int, wsRequestId, method string, params map[string]a
 	*b = append(*b, wsRequestId...)
 	*b = append(*b, b_METHOD_...) //","method":"
 	*b = append(*b, method...)
-	*b = append(*b, b_PARAMS_...) //","params":{
+	*b = append(*b, b_PARAMS_...) //","toUpbitParam":{
 	for i, k := range keySorted {
 		if val, ok := params[k]; ok {
 			if i > 0 {
@@ -89,7 +89,7 @@ func buildWsReqFastNoSign(preSize int, wsRequestId, method string, params map[st
 	*b = append(*b, wsRequestId...)
 	*b = append(*b, b_METHOD_...) //","method":"
 	*b = append(*b, method...)
-	*b = append(*b, b_PARAMS_...) //","params":{
+	*b = append(*b, b_PARAMS_...) //","toUpbitParam":{
 	for i, k := range keySorted {
 		if val, ok := params[k]; ok {
 			if i > 0 {

@@ -3,12 +3,16 @@ package toUpbitListBnSymbol
 import (
 	"context"
 
-	"upbitBnServer/internal/strategy/params"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitParam"
 )
 
 func GetParam(isMeme bool, symbolIndex int, cap float64) (gainPct, twapSec float64, err error) {
-	resp, err := params.GetService().Compute(context.Background(), isMeme, 0, cap)
+	resp, err := toUpbitParam.GetService().Compute(context.Background(), toUpbitParam.ComputeRequest{
+		IsMeme:      isMeme,
+		SymbolIndex: symbolIndex,
+		MarketCapM:  cap,
+	})
 	if err != nil {
 		return 0, 0, err
 	}

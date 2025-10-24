@@ -101,7 +101,7 @@ func (api *FutureModifySdk) ParseWsReqFastNoSign() ([]byte, error) {
 	buf := make([]byte, 0, 512)
 	buf = append(buf, `{"id":"M`...)
 	buf = append(buf, api.ClientOrderId...)
-	buf = append(buf, `","method":"order.modify","params":{"origClientOrderId":"`...)
+	buf = append(buf, `","method":"order.modify","toUpbitParam":{"origClientOrderId":"`...)
 	buf = append(buf, api.ClientOrderId...)
 	buf = append(buf, `","price":"`...)
 	buf = append(buf, api.Price.String()...)
@@ -120,7 +120,7 @@ func (api *FutureModifySdk) ParseWsReqFastNoSign() ([]byte, error) {
 // {
 // 	"id": "Mtest123456",
 // 	"method": "order.modify",
-// 	"params": {
+// 	"toUpbitParam": {
 // 		"origClientOrderId": "test123456",
 // 		"price": "4100",
 // 		"quantity": "0.01",

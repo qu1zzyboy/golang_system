@@ -1,4 +1,4 @@
-package params
+package toUpbitParam
 
 import (
 	"context"
@@ -17,36 +17,9 @@ const (
 	defaultFGI = 50
 )
 
-// BTCProvider 定义 BTC 指标数据源接口，用于支持 mock。
-type BTCProvider interface {
-	Start(context.Context) error
-	Stop(context.Context) error
-	Snapshot() BTCSnapshot
-}
-
-// FGIProvider 定义恐惧贪婪指数数据源接口。
-type FGIProvider interface {
-	Start(context.Context) error
-	Stop(context.Context) error
-	GetValue() int
-}
-
-// OIProvider 定义 OI 数据源接口。
-type OIProvider interface {
-	Start(context.Context) error
-	Stop(context.Context) error
-	Get(symbol string) (OIRecord, bool)
-}
-
-type providerFactories struct {
-	newBTC func(BTCConfig) BTCProvider
-	newFGI func(FGIConfig) FGIProvider
-	newOI  func(OIConfig) OIProvider
-}
-
 var (
 	serviceSingleton = singleton.NewSingleton(func() *Service {
-		return newService(defaultConfig(), defaultFactories())
+		return newService(defaultConfig())
 	})
 	logError = dynamicLog.Error
 )
@@ -57,23 +30,15 @@ func GetService() *Service {
 
 // Service 为参数计算核心，负责整合 BTC 收益、恐惧贪婪指数与币安 OI，并提供同步计算接口。
 type Service struct {
-	cfg       Config
-	factories providerFactories
-	btc       BTCProvider
-	fgi       *FGIPoller
-	oi        *OIStore
+	cfg Config
+	btc *BTCMetrics
+	fgi *FGIPoller
+	oi  *OIStore
 }
 
-func newService(cfg Config, factories providerFactories) *Service {
+func newService(cfg Config) *Service {
 	return &Service{
-		cfg:       cfg,
-		factories: factories,
-	}
-}
-
-func defaultFactories() providerFactories {
-	return providerFactories{
-		newBTC: func(cfg BTCConfig) BTCProvider { return NewBTCMetrics(cfg) },
+		cfg: cfg,
 	}
 }
 
@@ -87,13 +52,11 @@ type Config struct {
 func defaultConfig() Config {
 	return Config{
 		BTC: BTCConfig{
-			Symbol:            "BTCUSDT",
 			H1WindowSize:      240,
 			H1RegularPullSec:  600,
 			H1EdgePreSec:      20,
 			H1EdgePostSec:     20,
 			M1PullSec:         45,
-			RequestTimeout:    5 * time.Second,
 			StartReadyTimeout: 20 * time.Second,
 		},
 		FGI: FGIConfig{
@@ -109,44 +72,9 @@ func defaultConfig() Config {
 	}
 }
 
-// NewWithProviders 允许在测试中注入自定义 Provider。
-func NewWithProviders(cfg Config, btc BTCProvider, fgi FGIProvider, oi OIProvider) *Service {
-	return &Service{
-		cfg:       cfg,
-		factories: defaultFactories(),
-		btc:       btc,
-	}
-}
-
-// SetConfig 在启动前调整配置。
-func (s *Service) SetConfig(cfg Config) error {
-	s.cfg = cfg
-	return nil
-}
-
-// SetProviderFactories 在启动前替换默认工厂，方便注入 mock。
-func (s *Service) SetProviderFactories(btc func(BTCConfig) BTCProvider, fgi func(FGIConfig) FGIProvider, oi func(OIConfig) OIProvider) error {
-	if btc != nil {
-		s.factories.newBTC = btc
-	}
-	if fgi != nil {
-		s.factories.newFGI = fgi
-	}
-	if oi != nil {
-		s.factories.newOI = oi
-	}
-	return nil
-}
-
-// SetProviders 在启动前直接注入实例。
-func (s *Service) SetProviders(btc BTCProvider, fgi FGIProvider, oi OIProvider) error {
-	s.btc = btc
-	return nil
-}
-
 // Start 启动所有后台任务。
 func (s *Service) Start(ctx context.Context, redisClient *redis.Client) error {
-	s.btc = s.factories.newBTC(s.cfg.BTC)
+	s.btc = NewBTCMetrics(s.cfg.BTC)
 	if err := s.btc.Start(ctx); err != nil {
 		return err
 	}
@@ -186,6 +114,12 @@ type Diagnostics struct {
 	StalenessSeconds int
 }
 
+type ComputeRequest struct {
+	MarketCapM  float64
+	SymbolIndex int
+	IsMeme      bool
+}
+
 // ComputeResponse 是返回给策略层的结果。
 type ComputeResponse struct {
 	GainPct float64
@@ -198,13 +132,12 @@ type ComputeResponse struct {
 //  2. 根据市值分桶得到基准 gain/twap；
 //  3. 叠加 OI 修正项；
 //  4. 按分桶上下限裁剪结果。
-func (s *Service) Compute(ctx context.Context, isMeme bool, symbolIndex int, marketCapM float64) (ComputeResponse, error) {
+func (s *Service) Compute(ctx context.Context, req ComputeRequest) (ComputeResponse, error) {
 	fgiValue, ok := s.fgi.LoadValue()
 	if !ok || fgiValue <= 0 {
 		fgiValue = defaultFGI
 	}
-	snapshot := s.btc.Snapshot()
-
+	snapshot := s.btc.Snapshot(time.Now().UnixMilli())
 	btc1d := snapshot.BTC1D
 	if math.IsNaN(btc1d) {
 		btc1d = 0
@@ -213,13 +146,14 @@ func (s *Service) Compute(ctx context.Context, isMeme bool, symbolIndex int, mar
 	if math.IsNaN(btc7d) {
 		btc7d = 0
 	}
-	gainBase, twapBase := expectedSplitGainAndTwapDuration(marketCapM, fgiValue, btc1d, btc7d, isMeme)
+	marketCapM := req.MarketCapM
+	gainBase, twapBase := expectedSplitGainAndTwapDuration(marketCapM, fgiValue, btc1d, btc7d, req.IsMeme)
 
 	var (
 		oiValue float64
 		oiTime  int64
 	)
-	if record, ok := s.oi.LoadBySymbolIndex(symbolIndex); ok {
+	if record, ok := s.oi.LoadBySymbolIndex(req.SymbolIndex); ok {
 		oiValue = record.OpenInterest
 		if record.Timestamp > 0 {
 			oiTime = record.Timestamp

@@ -187,7 +187,7 @@ func (api *FuturePlaceLimitSdk) ParseWsReqFastNoSign() ([]byte, error) {
 	buf := make([]byte, 0, 512)
 	buf = append(buf, `{"id":"P`...)
 	buf = append(buf, api.ClientOrderId...)
-	buf = append(buf, `","method":"order.place","params":{"newClientOrderId":"`...)
+	buf = append(buf, `","method":"order.place","toUpbitParam":{"newClientOrderId":"`...)
 	buf = append(buf, api.ClientOrderId...)
 	buf = append(buf, `","positionSide":"`...)
 	buf = append(buf, positionSideArr[api.positionSide]...)
@@ -218,7 +218,7 @@ func (api *FuturePlaceLimitSdk) ParseWsReqFastNoSign() ([]byte, error) {
 // {
 // 	"id": "Pfu0-u-HEMI7383069262832632231",
 // 	"method": "order.place",
-// 	"params": {
+// 	"toUpbitParam": {
 // 		"apiKey": "c2Y1zMXaZcz85k6MrQY1Qo3FEEy81ookmcI3js0KJrMfT0EL5pgvwSgHKfSbu7aH",
 // 		"newClientOrderId": "fu0-u-HEMI7383069262832632231",
 // 		"newOrderRespType": "ACK",
@@ -237,7 +237,7 @@ func (api *FuturePlaceLimitSdk) ParseWsReqFastNoSign() ([]byte, error) {
 // {
 // 	"id": "Pfu0-u-HEMI7383069262832632231",
 // 	"method": "order.place",
-// 	"params": {
+// 	"toUpbitParam": {
 // 		"newClientOrderId": "fu0-u-HEMI7383069262832632231",
 // 		"positionSide": "SHORT",
 // 		"price": "0.076831",

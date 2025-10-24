@@ -21,12 +21,12 @@ var loginSortedKeyFast = []string{p_API_KEY, p_TIME_STAMP}
 
 func (api *FutureLoginSdk) ParseWsReqFast(apiKey, method string, secretByte []byte) ([]byte, error) {
 	// // 模拟请求参数
-	// params := url.Values{}
-	// params.Add("apiKey", apiKey)
-	// params.Add("timestamp", fmt.Sprintf("%d", time.Now().UnixMilli()))
+	// toUpbitParam := url.Values{}
+	// toUpbitParam.Add("apiKey", apiKey)
+	// toUpbitParam.Add("timestamp", fmt.Sprintf("%d", time.Now().UnixMilli()))
 
 	// // 1. 生成 query string
-	// queryString := params.Encode()
+	// queryString := toUpbitParam.Encode()
 
 	// // 2. 从 PEM 加载 Ed25519 私钥
 	// privKey, err := loadEd25519PrivateKey("myprivatekey.pem")
