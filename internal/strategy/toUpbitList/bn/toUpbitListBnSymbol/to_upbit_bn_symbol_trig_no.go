@@ -32,6 +32,9 @@ func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
 
 func (s *Single) IntoExecuteNoCheck(eventTs int64, trigFlag string, priceTrig_8 uint64) {
 	s.hasTreeNews = false
+	if toUpBitListDataStatic.IsDebug {
+		s.hasTreeNews = true
+	}
 	toUpBitListDataAfter.Trig(s.symbolIndex)
 	s.startTrig()
 	limit := decimal.New(int64(s.priceMaxBuy_10), -bnConst.PScale_10).Truncate(s.pScale)
@@ -80,6 +83,10 @@ func (s *Single) calParam() {
 			"op":     "获取止盈止损失败",
 		})
 		return
+	}
+	if toUpBitListDataStatic.IsDebug {
+		gainPct = 7
+		twapSec = 10
 	}
 	// 返回值格式 15.5 30
 	toUpBitListDataStatic.DyLog.GetLog().Infof("远程参数:%t,市值:%f,%s,远程响应:[%f,%f]", mesh.IsMeMe, cap2Min/1_000_000, symbolName, gainPct, twapSec)

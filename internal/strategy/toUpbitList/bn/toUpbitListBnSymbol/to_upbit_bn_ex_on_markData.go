@@ -6,16 +6,18 @@ import (
 
 func (s *Single) onBookTickExecute(f64 float64, ts int64) {
 	s.bidPrice.Store(f64)
+
+	// 已经触发过停止信号
+	if s.hasReceiveStop {
+		return
+	}
 	//价格涨到位,触发平仓
 	if s.hasTreeNews && s.takeProfitPrice > 0 && f64 > s.takeProfitPrice {
 		toUpBitListDataStatic.DyLog.GetLog().Infof("触发平仓价格: %.8f,当前价格: %.8f", s.takeProfitPrice, f64)
 		s.receiveStop(StopByBtTakeProfit)
 		return
 	}
-	// 已经触发过停止信号
-	if s.hasReceiveStop {
-		return
-	}
+
 	// 还不允许移动止损
 	if !s.isStopLossAble.Load() {
 		return
