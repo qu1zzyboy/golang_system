@@ -115,9 +115,9 @@ type Diagnostics struct {
 }
 
 type ComputeRequest struct {
-	MarketCapM  float64
-	SymbolIndex int
-	IsMeme      bool
+	MarketCapM  float64 `json:"market_cap_m"`
+	SymbolIndex int     `json:"symbol_index"`
+	IsMeme      bool    `json:"is_meme"`
 }
 
 // ComputeResponse 是返回给策略层的结果。
