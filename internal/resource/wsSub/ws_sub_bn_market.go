@@ -3,17 +3,18 @@ package wsSub
 import (
 	"context"
 
+	"upbitBnServer/internal/define/defineOp"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/infra/observe/trace/tracex"
+	"upbitBnServer/internal/infra/ws/wsDefine"
+	"upbitBnServer/internal/quant/market/aggTrade"
+	"upbitBnServer/internal/quant/market/bookTick"
+	"upbitBnServer/internal/quant/market/markPrice"
+	"upbitBnServer/internal/resource/resourceEnum"
+	"upbitBnServer/pkg/utils/idGen"
+	"upbitBnServer/pkg/utils/jsonUtils"
+
 	"github.com/gorilla/websocket"
-	"github.com/hhh500/quantGoInfra/define/defineOp"
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/quantGoInfra/infra/observe/trace/tracex"
-	"github.com/hhh500/quantGoInfra/infra/ws/wsDefine"
-	"github.com/hhh500/quantGoInfra/pkg/utils/idGen"
-	"github.com/hhh500/quantGoInfra/pkg/utils/jsonUtils"
-	"github.com/hhh500/quantGoInfra/quant/market/depth/bookTick"
-	"github.com/hhh500/quantGoInfra/quant/market/price/markPrice"
-	"github.com/hhh500/quantGoInfra/quant/market/trade/aggTrade"
-	"github.com/hhh500/quantGoInfra/resource/resourceEnum"
 )
 
 type bnSubScribeReq struct {

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/hhh500/quantGoInfra/infra/observe/log/staticLog"
+	"upbitBnServer/internal/infra/observe/log/staticLog"
 )
 
 func TestXxx(t *testing.T) {

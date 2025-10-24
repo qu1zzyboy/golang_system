@@ -3,8 +3,8 @@ package bnPayloadManager
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
-	"github.com/hhh500/upbitBnServer/internal/quant/account/accountConfig"
+	"upbitBnServer/internal/quant/account/accountConfig"
+	"upbitBnServer/pkg/singleton"
 )
 
 var serviceSingleton = singleton.NewSingleton(func() *Manager {

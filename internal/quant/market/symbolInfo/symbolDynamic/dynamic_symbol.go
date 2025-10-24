@@ -1,9 +1,10 @@
 package symbolDynamic
 
 import (
-	"github.com/hhh500/quantGoInfra/infra/errorx"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errCode"
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/infra/errorx"
+	"upbitBnServer/internal/infra/errorx/errCode"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+
 	"github.com/shopspring/decimal"
 )
 

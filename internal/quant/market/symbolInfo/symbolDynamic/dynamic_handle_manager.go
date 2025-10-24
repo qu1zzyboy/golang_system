@@ -3,10 +3,10 @@ package symbolDynamic
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
-	"github.com/hhh500/upbitBnServer/internal/resource/registerHandler"
-	"github.com/hhh500/upbitBnServer/server/serverInstanceEnum"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/resource/registerHandler"
+	"upbitBnServer/pkg/singleton"
+	"upbitBnServer/server/serverInstanceEnum"
 )
 
 type DynamicSymbolHandler func(symbolKeyId uint64, dynamicSymbol DynamicSymbol)

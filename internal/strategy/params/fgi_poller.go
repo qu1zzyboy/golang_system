@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hhh500/quantGoInfra/infra/safex"
+	"upbitBnServer/internal/infra/safex"
 )
 
 // FGIConfig 描述恐惧贪婪指数轮询的行为参数。

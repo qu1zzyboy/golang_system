@@ -3,8 +3,8 @@ package bnOrderAppManager
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/infra/observe/notify"
-	"github.com/hhh500/upbitBnServer/internal/quant/account/accountConfig"
+	"upbitBnServer/internal/infra/observe/notify"
+	"upbitBnServer/internal/quant/account/accountConfig"
 )
 
 const MODULE_ID = "bn_order_app_manager"

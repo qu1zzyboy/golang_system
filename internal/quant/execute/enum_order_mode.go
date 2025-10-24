@@ -1,10 +1,10 @@
 package execute
 
 import (
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/errorx"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errDefine"
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/errorx"
+	"upbitBnServer/internal/infra/errorx/errDefine"
+	"upbitBnServer/pkg/utils/convertx"
 )
 
 // MyOrderMode 自定义订单模式,BUY_OPEN,SELL_OPEN,BUY_CLOSE,SELL_CLOSE

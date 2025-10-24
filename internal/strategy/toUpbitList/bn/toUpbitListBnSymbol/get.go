@@ -3,8 +3,8 @@ package toUpbitListBnSymbol
 import (
 	"context"
 
-	"github.com/hhh500/upbitBnServer/internal/strategy/params"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/params"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 )
 
 func GetParam(isMeme bool, cap float64, symbolName string) (gainPct, twapSec float64, err error) {

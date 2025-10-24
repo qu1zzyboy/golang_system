@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/httpx"
-	"github.com/hhh500/quantGoInfra/pkg/container/pool/byteBufPool"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/binance/bnConst"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
-	"github.com/hhh500/upbitBnServer/internal/utils/myCrypto"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/httpx"
+	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
+	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
+	"upbitBnServer/internal/utils/myCrypto"
+	"upbitBnServer/pkg/container/pool/byteBufPool"
 )
 
 var fuSymbolConfigFullUrlByte = fmt.Appendf(nil, "%s/fapi/v1/symbolConfig?", bnConst.FUTURE_BASE_REST_URL)

@@ -3,9 +3,10 @@ package grpcLowLatencyServer
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/conf"
-	"github.com/hhh500/quantGoInfra/pkg/utils/jsonUtils"
-	strategyV1 "github.com/hhh500/upbitBnServer/api/strategy/v1"
+	strategyV1 "upbitBnServer/api/strategy/v1"
+	"upbitBnServer/internal/conf"
+	"upbitBnServer/pkg/utils/jsonUtils"
+
 	"google.golang.org/grpc/metadata"
 )
 

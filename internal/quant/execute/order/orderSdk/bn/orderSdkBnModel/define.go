@@ -1,6 +1,6 @@
 package orderSdkBnModel
 
-import "github.com/hhh500/upbitBnServer/internal/quant/execute"
+import "upbitBnServer/internal/quant/execute"
 
 const (
 	max_order_place_batch = 5

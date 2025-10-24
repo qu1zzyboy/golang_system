@@ -3,12 +3,12 @@ package registerHandler
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errDefine"
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/upbitBnServer/server/serverInstanceEnum"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/errorx/errDefine"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/pkg/container/map/myMap"
+	"upbitBnServer/pkg/utils/convertx"
+	"upbitBnServer/server/serverInstanceEnum"
 )
 
 /***

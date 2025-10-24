@@ -3,10 +3,11 @@ package toUpbitListBnSymbol
 import (
 	"fmt"
 
-	"github.com/hhh500/quantGoInfra/quant/exchanges/binance/bnConst"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
+	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+
 	"github.com/shopspring/decimal"
 )
 

@@ -3,8 +3,8 @@ package toUpbitListBnSymbol
 import (
 	"fmt"
 
-	"github.com/hhh500/quantGoInfra/pkg/container/ring/ringBuf"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/pkg/container/ring/ringBuf"
 )
 
 // 写入序号 + 值,用于单调队列(只维护最小值队列)

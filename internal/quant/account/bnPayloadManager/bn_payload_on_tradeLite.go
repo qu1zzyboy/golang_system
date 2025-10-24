@@ -1,12 +1,13 @@
 package bnPayloadManager
 
 import (
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderBelongEnum"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderStatic"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/quant/execute"
+	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
+	"upbitBnServer/internal/quant/execute/order/orderStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
+
 	"github.com/tidwall/gjson"
 )
 

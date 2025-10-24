@@ -3,7 +3,7 @@ package toUpbitListBnSymbol
 import (
 	"time"
 
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 )
 
 func (s *Single) checkTreeNews() {

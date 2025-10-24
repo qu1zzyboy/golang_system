@@ -4,9 +4,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/quantGoInfra/infra/safex"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/infra/safex"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+
 	"github.com/shopspring/decimal"
 )
 

@@ -1,8 +1,8 @@
 package orderSdkBnModel
 
 import (
-	"github.com/hhh500/quantGoInfra/pkg/container/pool/byteBufPool"
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
+	"upbitBnServer/pkg/container/pool/byteBufPool"
+	"upbitBnServer/pkg/utils/convertx"
 )
 
 const (

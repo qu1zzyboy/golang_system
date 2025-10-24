@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hhh500/quantGoInfra/infra/httpx"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/binance/bnConst"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
+	"upbitBnServer/internal/infra/httpx"
+	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
+	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
 )
 
 var (

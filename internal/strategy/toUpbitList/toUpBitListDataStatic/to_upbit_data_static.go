@@ -3,15 +3,16 @@ package toUpBitListDataStatic
 import (
 	"strconv"
 
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/quantGoInfra/infra/observe/log/staticLog"
-	"github.com/hhh500/quantGoInfra/infra/observe/notify/notifyTg"
-	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
-	"github.com/hhh500/quantGoInfra/pkg/container/ring/ringBuf"
-	"github.com/hhh500/quantGoInfra/pkg/utils/idGen"
-	"github.com/hhh500/quantGoInfra/pkg/utils/timeUtils"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/exchangeEnum"
-	"github.com/hhh500/upbitBnServer/internal/utils/algorithms"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/infra/observe/log/staticLog"
+	"upbitBnServer/internal/infra/observe/notify/notifyTg"
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
+	"upbitBnServer/internal/utils/algorithms"
+	"upbitBnServer/pkg/container/map/myMap"
+	"upbitBnServer/pkg/container/ring/ringBuf"
+	"upbitBnServer/pkg/utils/idGen"
+	"upbitBnServer/pkg/utils/timeUtils"
+
 	"github.com/shopspring/decimal"
 )
 

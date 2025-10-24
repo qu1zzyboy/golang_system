@@ -1,8 +1,8 @@
 package latency
 
 import (
-	"github.com/hhh500/quantGoInfra/resource/resourceEnum"
-	"github.com/hhh500/upbitBnServer/internal/infra/observe/metric/metricIndex"
+	"upbitBnServer/internal/infra/observe/metric/metricIndex"
+	"upbitBnServer/internal/resource/resourceEnum"
 )
 
 type LatencyType uint8

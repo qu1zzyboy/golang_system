@@ -1,11 +1,11 @@
 package symbolDynamic
 
 import (
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/debugx"
-	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/debugx"
+	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
+	"upbitBnServer/pkg/container/map/myMap"
+	"upbitBnServer/pkg/singleton"
 )
 
 const SYMBOL_INFO_DYNAMIC_MANAGER = "symbol_info_dynamic_manager"

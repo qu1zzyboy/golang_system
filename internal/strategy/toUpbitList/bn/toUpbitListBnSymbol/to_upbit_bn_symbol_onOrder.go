@@ -1,10 +1,11 @@
 package toUpbitListBnSymbol
 
 import (
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/binance/bnConst"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/pkg/utils/convertx"
+
 	"github.com/tidwall/gjson"
 )
 

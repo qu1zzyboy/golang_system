@@ -1,14 +1,15 @@
 package toUpbitListBnSymbol
 
 import (
-	"github.com/hhh500/quantGoInfra/infra/observe/notify/notifyTg"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/binance/bnConst"
-	"github.com/hhh500/upbitBnServer/internal/cal/u64Cal"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderModel"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/cal/u64Cal"
+	"upbitBnServer/internal/infra/observe/notify/notifyTg"
+	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
+	"upbitBnServer/internal/quant/execute"
+	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
+	"upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+
 	"github.com/shopspring/decimal"
 )
 

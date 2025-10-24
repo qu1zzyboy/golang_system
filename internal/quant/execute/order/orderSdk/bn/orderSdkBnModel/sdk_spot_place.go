@@ -3,8 +3,9 @@ package orderSdkBnModel
 import (
 	"net/url"
 
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/pkg/utils/convertx"
+
 	"github.com/shopspring/decimal"
 )
 

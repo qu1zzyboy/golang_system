@@ -3,10 +3,10 @@ package toUpbitListBnSymbol
 import (
 	"time"
 
-	"github.com/hhh500/upbitBnServer/internal/quant/execute"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderModel"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/quant/execute"
+	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
+	"upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 )
 
 func (s *Single) monitorPer(accountIndex uint8) {

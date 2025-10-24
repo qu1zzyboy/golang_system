@@ -3,10 +3,11 @@ package toUpbitListBnSymbol
 import (
 	"time"
 
-	"github.com/hhh500/quantGoInfra/pkg/container/pool/byteBufPool"
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/binance/bnConst"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
+	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
+	"upbitBnServer/pkg/container/pool/byteBufPool"
+	"upbitBnServer/pkg/utils/convertx"
+
 	"github.com/tidwall/gjson"
 )
 

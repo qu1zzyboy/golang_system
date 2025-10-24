@@ -3,11 +3,12 @@ package toUpbitListBnSymbol
 import (
 	"time"
 
-	"github.com/hhh500/quantGoInfra/infra/safex"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderModel"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/infra/safex"
+	"upbitBnServer/internal/quant/execute"
+	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
+	"upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+
 	"github.com/shopspring/decimal"
 )
 

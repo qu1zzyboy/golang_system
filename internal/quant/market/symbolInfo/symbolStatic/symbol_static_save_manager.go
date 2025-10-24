@@ -1,13 +1,13 @@
 package symbolStatic
 
 import (
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/debugx"
-	"github.com/hhh500/quantGoInfra/infra/errorx"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errCode"
-	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/exchangeEnum"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/debugx"
+	"upbitBnServer/internal/infra/errorx"
+	"upbitBnServer/internal/infra/errorx/errCode"
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
+	"upbitBnServer/pkg/container/map/myMap"
+	"upbitBnServer/pkg/singleton"
 )
 
 const SYMBOL_INFO_STATIC_MANAGER = "symbol_info_static_manager"

@@ -1,6 +1,6 @@
 package coinMesh
 
-import "github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
+import "upbitBnServer/internal/infra/observe/log/dynamicLog"
 
 // 要求先获取cmc信息
 func (m *Manager) SetBnFuUsdtNameCheck(cmcId uint32, tradeAsset, bnFutureUsdtName string) {

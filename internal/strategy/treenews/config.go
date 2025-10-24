@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hhh500/quantGoInfra/conf"
+	"upbitBnServer/internal/conf"
 )
 
 // Config 汇总 Tree News WebSocket 客户端相关的运行时参数。

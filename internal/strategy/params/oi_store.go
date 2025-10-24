@@ -8,10 +8,11 @@ import (
 	"sync"
 	"time"
 
+	"upbitBnServer/internal/infra/redisx"
+	"upbitBnServer/internal/infra/redisx/redisConfig"
+	"upbitBnServer/internal/infra/safex"
+
 	"github.com/go-redis/redis/v8"
-	"github.com/hhh500/quantGoInfra/infra/redisx"
-	"github.com/hhh500/quantGoInfra/infra/redisx/redisConfig"
-	"github.com/hhh500/quantGoInfra/infra/safex"
 )
 
 // OIConfig 描述 OI 快照的刷新策略。

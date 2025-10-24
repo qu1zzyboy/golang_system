@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
-	"github.com/hhh500/upbitBnServer/internal/quant/account/accountConfig"
-	"github.com/hhh500/upbitBnServer/internal/quant/account/universalTransfer"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnRest"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/quant/account/accountConfig"
+	"upbitBnServer/internal/quant/account/universalTransfer"
+	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
+	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnRest"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/pkg/singleton"
+
 	"github.com/shopspring/decimal"
 	"github.com/tidwall/gjson"
 )

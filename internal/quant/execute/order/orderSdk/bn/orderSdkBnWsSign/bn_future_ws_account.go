@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/quantGoInfra/pkg/utils/jsonUtils"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderBelongEnum"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/wsRequestCache"
+	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
+	"upbitBnServer/internal/quant/execute/order/wsRequestCache"
+	"upbitBnServer/pkg/utils/convertx"
+	"upbitBnServer/pkg/utils/jsonUtils"
 )
 
 // 生成 HMAC-SHA256 签名

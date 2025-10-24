@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/hhh500/quantGoInfra/infra/errorx"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errCode"
-	"github.com/hhh500/quantGoInfra/infra/ws/wsDefine"
-	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
+	"upbitBnServer/internal/infra/errorx"
+	"upbitBnServer/internal/infra/errorx/errCode"
+	"upbitBnServer/internal/infra/ws/wsDefine"
+	"upbitBnServer/pkg/container/map/myMap"
+	"upbitBnServer/pkg/singleton"
 )
 
 var (

@@ -3,9 +3,9 @@ package grpcLowLatencyServer
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/pkg/container/pool/antPool"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolInfoLoad"
-	"github.com/hhh500/upbitBnServer/internal/strategy/treenews"
+	"upbitBnServer/internal/quant/market/symbolInfo/symbolInfoLoad"
+	"upbitBnServer/internal/strategy/treenews"
+	"upbitBnServer/pkg/container/pool/antPool"
 )
 
 const ModuleId = "grpc_lowLatency_server"

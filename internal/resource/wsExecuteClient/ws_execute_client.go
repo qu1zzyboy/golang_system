@@ -3,13 +3,13 @@ package wsExecuteClient
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/infra/ws/wsDefine"
-	"github.com/hhh500/quantGoInfra/infra/ws/wsReConn"
-	"github.com/hhh500/quantGoInfra/infra/ws/wsSub"
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/quantGoInfra/pkg/utils/idGen"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/exchangeEnum"
-	"github.com/hhh500/quantGoInfra/resource/resourceEnum"
+	"upbitBnServer/internal/infra/ws/wsDefine"
+	"upbitBnServer/internal/infra/ws/wsReConn"
+	"upbitBnServer/internal/infra/ws/wsSub"
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
+	"upbitBnServer/internal/resource/resourceEnum"
+	"upbitBnServer/pkg/utils/convertx"
+	"upbitBnServer/pkg/utils/idGen"
 )
 
 type Execute struct {

@@ -3,7 +3,7 @@ package params
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/infra/redisx/redisConfig"
+	"upbitBnServer/internal/infra/redisx/redisConfig"
 )
 
 type Boot struct{}

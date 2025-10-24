@@ -1,10 +1,10 @@
 package orderSdkBnWsSign
 
 import (
-	"github.com/hhh500/quantGoInfra/pkg/container/pool/byteBufPool"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderBelongEnum"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/wsRequestCache"
+	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
+	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
+	"upbitBnServer/internal/quant/execute/order/wsRequestCache"
+	"upbitBnServer/pkg/container/pool/byteBufPool"
 )
 
 func (s *FutureClient) CreateOrder(reqFrom orderBelongEnum.Type, api *orderSdkBnModel.FuturePlaceLimitSdk) error {

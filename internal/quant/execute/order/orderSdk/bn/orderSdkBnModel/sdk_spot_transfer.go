@@ -1,9 +1,10 @@
 package orderSdkBnModel
 
 import (
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/quantGoInfra/pkg/utils/timeUtils"
-	"github.com/hhh500/upbitBnServer/internal/quant/account/universalTransfer"
+	"upbitBnServer/internal/quant/account/universalTransfer"
+	"upbitBnServer/pkg/utils/convertx"
+	"upbitBnServer/pkg/utils/timeUtils"
+
 	"github.com/shopspring/decimal"
 )
 

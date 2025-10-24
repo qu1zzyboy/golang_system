@@ -1,8 +1,8 @@
 package symbolStatic
 
 import (
-	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
+	"upbitBnServer/pkg/container/map/myMap"
+	"upbitBnServer/pkg/singleton"
 )
 
 type SymbolId struct {

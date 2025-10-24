@@ -3,14 +3,14 @@ package instanceCenter
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errDefine"
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/upbitBnServer/internal/resource/registerHandler"
-	"github.com/hhh500/upbitBnServer/server/instance"
-	"github.com/hhh500/upbitBnServer/server/serverInstanceEnum"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/errorx/errDefine"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/resource/registerHandler"
+	"upbitBnServer/pkg/singleton"
+	"upbitBnServer/pkg/utils/convertx"
+	"upbitBnServer/server/instance"
+	"upbitBnServer/server/serverInstanceEnum"
 )
 
 type Manager struct {

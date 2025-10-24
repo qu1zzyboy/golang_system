@@ -3,8 +3,8 @@ package bnOrderAppManager
 import (
 	"context"
 
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 )
 
 func (s *TradeManager) SetBnLeverage(leverage uint8, symbolName string) error {

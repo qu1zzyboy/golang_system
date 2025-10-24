@@ -1,13 +1,13 @@
 package orderSdkBnModel
 
 import (
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errDefine"
-	"github.com/hhh500/quantGoInfra/pkg/container/pool/byteBufPool"
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/quantGoInfra/pkg/utils/timeUtils"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderModel"
-	"github.com/hhh500/upbitBnServer/internal/utils/myCrypto"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/errorx/errDefine"
+	"upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/internal/utils/myCrypto"
+	"upbitBnServer/pkg/container/pool/byteBufPool"
+	"upbitBnServer/pkg/utils/convertx"
+	"upbitBnServer/pkg/utils/timeUtils"
 )
 
 type FutureQuerySdk struct {

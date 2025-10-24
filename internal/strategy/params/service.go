@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/pkg/singleton"
 )
 
 const (

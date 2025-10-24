@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hhh500/quantGoInfra/infra/safex"
+	"upbitBnServer/internal/infra/safex"
 )
 
 // BTCConfig 对应 Python 版本的可调参数。

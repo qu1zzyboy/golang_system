@@ -1,11 +1,10 @@
-module github.com/hhh500/upbitBnServer
+module upbitBnServer
 
 go 1.25.1
 
 require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gorilla/websocket v1.5.3
-	github.com/hhh500/quantGoInfra v0.0.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/shopspring/decimal v1.4.0
 	github.com/tidwall/gjson v1.18.0
@@ -74,4 +73,3 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 )
 
-replace github.com/hhh500/quantGoInfra => ./libs/quantGoInfra

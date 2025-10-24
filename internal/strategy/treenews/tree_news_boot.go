@@ -3,7 +3,7 @@ package treenews
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/conf"
+	"upbitBnServer/internal/conf"
 )
 
 const MODULE_ID = "treenews_service"

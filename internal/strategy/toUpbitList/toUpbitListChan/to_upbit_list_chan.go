@@ -1,7 +1,8 @@
 package toUpbitListChan
 
 import (
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
+
 	"github.com/shopspring/decimal"
 )
 

@@ -3,12 +3,12 @@ package symbolInfoLoad
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/infra/observe/log/staticLog"
-	"github.com/hhh500/quantGoInfra/infra/redisx"
-	"github.com/hhh500/quantGoInfra/infra/redisx/redisConfig"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
+	"upbitBnServer/internal/infra/observe/log/staticLog"
+	"upbitBnServer/internal/infra/redisx"
+	"upbitBnServer/internal/infra/redisx/redisConfig"
+	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
+	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
+	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
 )
 
 const MODULE_ID = "symbol_info_load"

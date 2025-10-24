@@ -5,9 +5,9 @@ import (
 	"os"
 	"sort"
 
-	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
+	"upbitBnServer/pkg/container/map/myMap"
+	"upbitBnServer/pkg/singleton"
+	"upbitBnServer/pkg/utils/convertx"
 )
 
 const REDIS_KEY_COIN_MESH_ALL = "COIN_MESH_ALL"

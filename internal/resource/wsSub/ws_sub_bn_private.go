@@ -7,13 +7,14 @@ import (
 	"sync"
 	"time"
 
+	"upbitBnServer/internal/define/defineEmoji"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/infra/safex"
+	"upbitBnServer/internal/infra/ws/wsDefine"
+	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnRest"
+
 	"github.com/gorilla/websocket"
-	"github.com/hhh500/quantGoInfra/define/defineEmoji"
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/quantGoInfra/infra/safex"
-	"github.com/hhh500/quantGoInfra/infra/ws/wsDefine"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnRest"
 )
 
 const listenKeyRefreshInterval = 20 * time.Minute //  listenKey刷新间隔

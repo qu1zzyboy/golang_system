@@ -1,11 +1,12 @@
 package toUpbitListBnSymbol
 
 import (
-	"github.com/hhh500/quantGoInfra/infra/safex"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderBelongEnum"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnAccount"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/infra/safex"
+	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
+	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnAccount"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+
 	"github.com/shopspring/decimal"
 )
 

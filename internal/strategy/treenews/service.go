@@ -14,11 +14,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/infra/observe/log/staticLog"
+	"upbitBnServer/internal/infra/safex"
+	"upbitBnServer/pkg/utils/timeUtils"
+
 	"github.com/gorilla/websocket"
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/quantGoInfra/infra/observe/log/staticLog"
-	"github.com/hhh500/quantGoInfra/infra/safex"
-	"github.com/hhh500/quantGoInfra/pkg/utils/timeUtils"
 )
 
 var (
