@@ -2,6 +2,7 @@ package toUpbitParam
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"time"
 
@@ -125,6 +126,18 @@ type ComputeResponse struct {
 	GainPct float64
 	TwapSec float64
 	Diag    Diagnostics
+}
+
+func (s ComputeResponse) PrintMe() {
+	fmt.Printf("GainPct:%.2f,TwapSec:%.2f\n", s.GainPct, s.TwapSec)
+	fmt.Printf("OI:%.2f OITimestamp:%d\n", s.Diag.OI, s.Diag.OITimestamp)
+	fmt.Printf("S:%.8f,SNorm:%.8f\n", s.Diag.S, s.Diag.SNorm)
+	fmt.Printf("GainBase:%.8f,GainOIAdd:%.8f,GainFinal:%.8f\n", s.Diag.GainBase, s.Diag.GainOIAdd, s.Diag.GainFinal)
+	fmt.Printf("TwapBase:%.8f,TwapOIAdd:%.8f,TwapFinal:%.8f\n", s.Diag.TwapBase, s.Diag.TwapOIAdd, s.Diag.TwapFinal)
+	fmt.Printf("FGI:%.8f\n", s.Diag.FGI)
+	fmt.Printf("BTC1D:%.8f BTC7D:%.8f\n", s.Diag.BTC1D, s.Diag.BTC7D)
+	fmt.Printf("AsOf:%s\n", s.Diag.AsOf)
+	fmt.Printf("StalenessSeconds:%d\n", s.Diag.StalenessSeconds)
 }
 
 // Compute 复刻 Python 的策略流程：

@@ -161,7 +161,9 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 				logError.GetLog().Error("特有参数json解析失败:", err)
 				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
 			}
-			fmt.Println(toUpbitParam.GetService().Compute(ctx, req))
+			res, err := toUpbitParam.GetService().Compute(ctx, req)
+			fmt.Println(err)
+			res.PrintMe()
 		}
 	case grpcEvent.TO_UPBIT_CFG:
 		{

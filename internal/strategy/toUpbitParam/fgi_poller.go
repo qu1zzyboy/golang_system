@@ -67,6 +67,7 @@ func (p *FGIPoller) LoadValue() (float64, bool) {
 }
 
 func (p *FGIPoller) Start() error {
+	p.fetchLoop()
 	_, err := globalCron.AddFunc(defineTime.DayBeginStr, func() {
 		p.fetchLoop()
 	})
