@@ -56,7 +56,7 @@ func (s *Single) receiveStop(stopType StopType) {
 		return
 	}
 	s.hasReceiveStop = true
-	toUpBitListDataStatic.DyLog.GetLog().Infof("收到停止信号: %s", stopReasonArr[stopType])
+	toUpBitListDataStatic.DyLog.GetLog().Infof("收到停止信号==> %s", stopReasonArr[stopType])
 	s.cancel()
 	//开启平仓线程
 	safex.SafeGo("to_upbit_bn_close", func() {

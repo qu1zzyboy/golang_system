@@ -48,10 +48,10 @@ thisOrderAccountId:
 */
 
 func (s *Single) PlacePostOnlyOrder(limit decimal.Decimal) {
-	s.posTotalNeed = qtyTotal.Div(limit).Truncate(s.pScale)
+	s.posTotalNeed = qtyTotal.Div(limit).Truncate(s.qScale)
 
 	// maker抽奖金额为 min(单账户单品种最大开仓上限,需开参数价值)
-	orderNum := decimal.Min(s.maxNotional, qtyTotal.Mul(dec03)).Div(limit).Truncate(s.pScale)
+	orderNum := decimal.Min(s.maxNotional, qtyTotal.Mul(dec03)).Div(limit).Truncate(s.qScale)
 
 	safex.SafeGo("to_upbit_bn_limit_maker", func() {
 		s.secondArr[0].start()

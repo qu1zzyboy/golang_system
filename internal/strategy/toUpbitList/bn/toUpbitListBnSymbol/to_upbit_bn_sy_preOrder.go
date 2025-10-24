@@ -43,7 +43,8 @@ func (s *Single) checkPreOrder(markPrice_8 uint64) {
 		modifySmallPrice := thisMarkPriceDec.Mul(s.smallPercent).Truncate(s.pScale)
 		s.lastMarkPrice_8 = markPrice_8
 		if _, ok := clientOrders.Load(s.clientOrderIdSmall); ok {
-			toUpBitListDataStatic.DyLog.GetLog().Infof("[%d,%s] 触发[%d,%d,%d],准备更新预挂单:%s", s.preAccountKeyId, symbolKey, s.lastMarkPrice_8, markPrice_8, s.pScale, modifySmallPrice)
+			toUpBitListDataStatic.DyLog.GetLog().Infof("[%d,%s] 触发[%d,%d,%d_%d],准备更新预挂单:%s",
+				s.preAccountKeyId, symbolKey, s.lastMarkPrice_8, markPrice_8, s.pScale, s.qScale, modifySmallPrice)
 			//更新订单价格
 			if err := bnOrderAppManager.GetTradeManager().SendModifyOrder(ws_req_from, s.preAccountKeyId,
 				&orderModel.MyModifyOrderReq{

@@ -38,7 +38,6 @@ type BTCMetrics struct {
 	startOnce sync.Once
 	stopOnce  sync.Once
 	cancel    context.CancelFunc
-
 	mu        sync.RWMutex
 	h1Bars    []h1Bar
 	nowPrice  float64

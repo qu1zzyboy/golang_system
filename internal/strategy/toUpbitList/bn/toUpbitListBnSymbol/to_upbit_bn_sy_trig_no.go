@@ -17,15 +17,15 @@ func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
 	// minBId>=0.95*markPrice
 	if float64(s.minPriceAfterMp) >= toUpBitListDataStatic.OrderRiceTrig*float64(s.markPrice_8) {
 		toUpBitListDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
-			"msg":  "orderPrice快速上涨",
-			"bn品种": s.StMeta.SymbolName,
+			"msg":      "orderPrice快速上涨",
+			"bn品种":   s.StMeta.SymbolName,
 			"上涨幅度": fmt.Sprintf("%.2f%%", s.lastRiseValue*100),
 		})
 		s.IntoExecuteNoCheck(tradeTs, "preOrder", priceU64_8)
 	} else {
 		toUpBitListDataStatic.SendToUpBitMsg("成交但不满足上市check消息失败", map[string]string{
-			"msg":  fmt.Sprintf("成交但不满足上市check,成交价:%d", priceU64_8),
-			"bn品种": s.StMeta.SymbolName,
+			"msg":      fmt.Sprintf("成交但不满足上市check,成交价:%d", priceU64_8),
+			"bn品种":   s.StMeta.SymbolName,
 			"上涨幅度": fmt.Sprintf("%.2f%%", s.lastRiseValue*100),
 		})
 	}
@@ -75,7 +75,7 @@ func (s *Single) calParam() {
 	last2MinCloseF64 := float64(s.last2MinClose_8) / 1e8
 	cap2Min := mesh.SupplyNow * last2MinCloseF64
 	//计算止盈止损参数
-	gainPct, twapSec, err := GetParam(mesh.IsMeMe, cap2Min/1_000_000, symbolName)
+	gainPct, twapSec, err := GetParam(mesh.IsMeMe, s.symbolIndex, cap2Min/1_000_000)
 	if err != nil {
 		toUpBitListDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] 获取止盈止损失败: %v", symbolName, err)
 		s.receiveStop(StopByGetRemoteFailure)
