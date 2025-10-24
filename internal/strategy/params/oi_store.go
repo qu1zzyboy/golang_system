@@ -2,50 +2,43 @@ package params
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"sync"
 	"time"
+	"upbitBnServer/internal/define/defineTime"
+	"upbitBnServer/internal/infra/global/globalCron"
 
-	"upbitBnServer/internal/infra/redisx"
-	"upbitBnServer/internal/infra/redisx/redisConfig"
-	"upbitBnServer/internal/infra/safex"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/pkg/container/map/myMap"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/tidwall/gjson"
 )
+
+const bn_open_interest = "BN_OPEN_INTEREST"
 
 // OIConfig 描述 OI 快照的刷新策略。
 type OIConfig struct {
-	RedisKey     string
 	RefreshEvery time.Duration
 	Timeout      time.Duration
 }
 
 // OIRecord 为按交易对整理后的结构化数据。
 type OIRecord struct {
-	Symbol       string
-	OpenInterest *float64
-	OpenQty      *float64
+	OpenInterest float64
+	OpenQty      float64
 	Timestamp    int64
-	TimeStr      string
 }
 
 type OIStore struct {
-	cfg       OIConfig
-	startOnce sync.Once
-	stopOnce  sync.Once
-	cancel    context.CancelFunc
-
-	mu     sync.RWMutex
-	data   map[string]OIRecord
-	client *redis.Client
+	cfg      OIConfig
+	data     myMap.MySyncMap[uint64, *OIRecord]
+	redisCfg *redis.Client
 }
 
-func NewOIStore(cfg OIConfig) *OIStore {
-	if cfg.RedisKey == "" {
-		cfg.RedisKey = "BN_OPEN_INTEREST"
-	}
+func (p *OIStore) LoadBySymbolIndex(symbolIndex int) (*OIRecord, bool) {
+	return p.data.Load(uint64(symbolIndex))
+}
+
+func NewOIStore(cfg OIConfig, redisCfg *redis.Client) *OIStore {
 	if cfg.RefreshEvery <= 0 {
 		cfg.RefreshEvery = 60 * time.Second
 	}
@@ -53,184 +46,52 @@ func NewOIStore(cfg OIConfig) *OIStore {
 		cfg.Timeout = 1500 * time.Millisecond
 	}
 	return &OIStore{
-		cfg:  cfg,
-		data: make(map[string]OIRecord),
+		cfg:      cfg,
+		data:     myMap.NewMySyncMap[uint64, *OIRecord](),
+		redisCfg: redisCfg,
 	}
 }
 
-func (s *OIStore) Start(ctx context.Context) error {
-	var startErr error
-	s.startOnce.Do(func() {
-		client, err := redisx.LoadClient(redisConfig.CONFIG_ALL_KEY)
-		if err != nil {
-			startErr = fmt.Errorf("load redis client failed: %w", err)
-			return
-		}
-		s.client = client
-
-		ctxRun, cancel := context.WithCancel(context.Background())
-		s.cancel = cancel
-		if ctx != nil {
-			safex.SafeGo("oi_store_cancel", func() {
-				select {
-				case <-ctx.Done():
-					cancel()
-				case <-ctxRun.Done():
-				}
-			})
-		}
-
-		if err := s.refresh(ctxRun); err != nil {
-			startErr = err
-			return
-		}
-
-		safex.SafeGo("oi_store_loop", func() {
-			s.loop(ctxRun)
-		})
-	})
-	return startErr
-}
-
-func (s *OIStore) Stop(ctx context.Context) error {
-	s.stopOnce.Do(func() {
-		if s.cancel != nil {
-			s.cancel()
+func (p *OIStore) Start() error {
+	_, err := globalCron.AddFunc(defineTime.MinEndStr_59, func() {
+		if err := p.fetchOnce(); err != nil {
+			logError.GetLog().Errorf("刷新OI信息出错,%v", err)
 		}
 	})
-	return nil
-}
-
-func (s *OIStore) loop(ctx context.Context) {
-	ticker := time.NewTicker(s.cfg.RefreshEvery)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			if err := s.refresh(ctx); err != nil {
-				// 保留上一份数据，仅记录告警日志。
-				logError.GetLog().Errorf("oi refresh failed: %v", err)
-			}
-		}
-	}
-}
-
-// Get 返回目标交易对的最新 OI 数据。
-func (s *OIStore) Get(symbol string) (OIRecord, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	rec, ok := s.data[symbol]
-	return rec, ok
-}
-
-func (s *OIStore) refresh(ctx context.Context) error {
-	if s.client == nil {
-		return errors.New("redis client not initialized")
-	}
-	ctx, cancel := context.WithTimeout(ctx, s.cfg.Timeout)
-	defer cancel()
-
-	res, err := s.client.HGetAll(ctx, s.cfg.RedisKey).Result()
 	if err != nil {
-		return fmt.Errorf("redis HGetAll key=%s: %w", s.cfg.RedisKey, err)
-	}
-	if len(res) == 0 {
-		// 若没有哈希结构，则尝试读取整块 JSON。
-		str, err := s.client.Get(ctx, s.cfg.RedisKey).Result()
-		if err != nil {
-			return fmt.Errorf("redis GET key=%s: %w", s.cfg.RedisKey, err)
-		}
-		return s.refreshFromJSON(str)
-	}
-	return s.refreshFromHash(res)
-}
-
-func (s *OIStore) refreshFromHash(raw map[string]string) error {
-	updated := make(map[string]OIRecord, len(raw))
-	for _, v := range raw {
-		rec, err := parseOIRecord(v)
-		if err != nil {
-			continue
-		}
-		if rec.Symbol == "" {
-			continue
-		}
-		if existing, ok := updated[rec.Symbol]; ok {
-			if rec.Timestamp > existing.Timestamp {
-				updated[rec.Symbol] = rec
-			}
-		} else {
-			updated[rec.Symbol] = rec
-		}
-	}
-	s.mu.Lock()
-	s.data = updated
-	s.mu.Unlock()
-	return nil
-}
-
-func (s *OIStore) refreshFromJSON(raw string) error {
-	var obj map[string]json.RawMessage
-	if err := json.Unmarshal([]byte(raw), &obj); err != nil {
 		return err
 	}
-	updated := make(map[string]OIRecord, len(obj))
-	for _, payload := range obj {
-		rec, err := parseOIRecordBytes(payload)
-		if err != nil {
-			continue
-		}
-		if rec.Symbol == "" {
-			continue
-		}
-		if existing, ok := updated[rec.Symbol]; ok {
-			if rec.Timestamp > existing.Timestamp {
-				updated[rec.Symbol] = rec
-			}
-		} else {
-			updated[rec.Symbol] = rec
-		}
-	}
-	s.mu.Lock()
-	s.data = updated
-	s.mu.Unlock()
 	return nil
 }
 
-func parseOIRecord(raw string) (OIRecord, error) {
-	return parseOIRecordBytes(json.RawMessage(raw))
+func (p *OIStore) fetchOnce() error {
+	res := p.redisCfg.HGetAll(context.Background(), bn_open_interest)
+	if res.Err() != nil {
+		return res.Err()
+	}
+	data, err := res.Result()
+	if err != nil {
+		return err
+	}
+	for _, jsonStr := range data {
+		symbolName := gjson.Get(jsonStr, "symbol").String()
+		symbolIndex, ok := toUpBitListDataStatic.SymbolIndex.Load(symbolName)
+		if !ok {
+			continue
+		}
+		var temp OIRecord
+		temp.Timestamp = gjson.Get(jsonStr, "time").Int()
+		temp.OpenInterest = gjson.Get(jsonStr, "open_interest").Float()
+		temp.OpenQty = gjson.Get(jsonStr, "open_qty").Float()
+		p.data.Store(uint64(symbolIndex), &temp)
+	}
+	return nil
 }
 
-func parseOIRecordBytes(raw json.RawMessage) (OIRecord, error) {
-	var obj map[string]any
-	if err := json.Unmarshal(raw, &obj); err != nil {
-		return OIRecord{}, err
-	}
-	rec := OIRecord{}
-	if v, ok := obj["symbol"].(string); ok {
-		rec.Symbol = v
-	}
-	if oi, ok := numericPointer(obj["open_interest"]); ok {
-		rec.OpenInterest = oi
-	}
-	if oq, ok := numericPointer(obj["open_qty"]); ok {
-		rec.OpenQty = oq
-	}
-	if t, ok := toInt64(obj["time"]); ok {
-		rec.Timestamp = t
-	}
-	if s, ok := obj["time_str"].(string); ok {
-		rec.TimeStr = s
-	}
-	return rec, nil
-}
-
-func numericPointer(v any) (*float64, bool) {
-	value, ok := toFloat64(v)
-	if !ok {
-		return nil, false
-	}
-	return &value, true
-}
+// {
+//   "symbol": "1000RATSUSDT",
+//   "time_str": "2025-10-24 14:29:32.119",
+//   "open_interest": 200626085,
+//   "open_qty": 5788062.55225,
+//   "time": 1761287372119
+// }

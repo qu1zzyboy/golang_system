@@ -144,19 +144,19 @@ const (
 	twapOiMaxSecs = 10.0
 )
 
-func computeOIContribs(oiNotional *float64, marketCapM float64) (gainAdd, twapAdd float64, strength, norm *float64) {
-	if oiNotional == nil {
-		return 0, 0, nil, nil
+func computeOIContribs(oiNotional float64, marketCapM float64) (gainAdd, twapAdd float64, strength, norm float64) {
+	if oiNotional <= 0 {
+		return 0, 0, 0, 0
 	}
 	marketCapUSD := marketCapM * 1e6
 	if marketCapUSD <= 0 {
-		return 0, 0, nil, nil
+		return 0, 0, 0, 0
 	}
-	s := *oiNotional / marketCapUSD
+	s := oiNotional / marketCapUSD
 	n := normalizeS(s)
 	gain := gainOiMax * n
 	twap := twapOiMaxSecs * n
-	return gain, twap, &s, &n
+	return gain, twap, s, n
 }
 
 func normalizeS(s float64) float64 {
