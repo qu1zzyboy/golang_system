@@ -93,7 +93,7 @@ OUTER:
 			if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(order_from, accountIndex, s.symbolIndex,
 				&orderModel.MyPlaceOrderReq{
 					OrigPrice:     priceBuy,
-					OrigVol:       num.Truncate(s.pScale),
+					OrigVol:       num.Truncate(s.qScale),
 					ClientOrderId: toUpBitListDataStatic.GetClientOrderIdBy("second"),
 					StaticMeta:    s.StMeta,
 					OrderType:     orderType,

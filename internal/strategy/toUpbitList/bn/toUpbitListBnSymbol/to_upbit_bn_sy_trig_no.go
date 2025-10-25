@@ -91,5 +91,5 @@ func (s *Single) calParam() {
 	}
 	// 返回值格式 15.5 30
 	toUpBitListDataStatic.DyLog.GetLog().Infof("远程参数:%t,市值:%f,%s,远程响应:[%f,%f]", mesh.IsMeMe, cap2Min/1_000_000, symbolName, gainPct, twapSec)
-	s.setExecuteParam(last2MinCloseF64*(1+0.01*gainPct), twapSec)
+	s.setExecuteParam(last2MinCloseF64*(1+0.01*(gainPct+15)), twapSec)
 }
