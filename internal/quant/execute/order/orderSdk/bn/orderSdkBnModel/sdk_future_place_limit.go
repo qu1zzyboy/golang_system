@@ -1,10 +1,6 @@
 package orderSdkBnModel
 
 import (
-	"strconv"
-	"time"
-
-	"upbitBnServer/internal/define/defineJson"
 	"upbitBnServer/internal/infra/errorx/errDefine"
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
@@ -178,47 +174,10 @@ func (api *FuturePlaceLimitSdk) ParseWsReqFast(apiKey string, secretByte []byte)
 	return buildWsReqFast(512, "P"+api.ClientOrderId, "order.place", m, placeSortedKeyFast, signRes), nil
 }
 
-// ParseWsReqFastNoSign
-// 性能说明: 261.7 ns/op	     560 B/op	       8 allocs/op
-func (api *FuturePlaceLimitSdk) ParseWsReqFastNoSign() ([]byte, error) {
-	if api.ClientOrderId == "" {
-		return nil, errDefine.ClientOrderIdEmpty.WithMetadata(map[string]string{defineJson.ReqType: "ParseWsReqFastNoSign"})
-	}
-	buf := make([]byte, 0, 512)
-	buf = append(buf, `{"id":"P`...)
-	buf = append(buf, api.ClientOrderId...)
-	buf = append(buf, `","method":"order.place","toUpbitParam":{"newClientOrderId":"`...)
-	buf = append(buf, api.ClientOrderId...)
-	buf = append(buf, `","positionSide":"`...)
-	buf = append(buf, positionSideArr[api.positionSide]...)
-	if api.origPrice != nil {
-		buf = append(buf, `","price":"`...)
-		buf = append(buf, api.origPrice.String()...)
-	}
-	buf = append(buf, `","quantity":"`...)
-	buf = append(buf, api.origVolume.String()...)
-	buf = append(buf, `","side":"`...)
-	buf = append(buf, orderSideArr[api.side]...)
-	buf = append(buf, `","symbol":"`...)
-	buf = append(buf, api.symbolName...)
-	if api.orderType != orderTypeMarket {
-		buf = append(buf, `","timeInForce":"`...)
-		buf = append(buf, timeInForceArr[api.timeInForce]...)
-		buf = append(buf, `","timestamp":"`...)
-		buf = strconv.AppendInt(buf, time.Now().UnixMilli(), 10)
-		buf = append(buf, `","type":"LIMIT"}}`...)
-	} else {
-		buf = append(buf, `","timestamp":"`...)
-		buf = strconv.AppendInt(buf, time.Now().UnixMilli(), 10)
-		buf = append(buf, `","type":"MARKET"}}`...)
-	}
-	return buf, nil
-}
-
 // {
 // 	"id": "Pfu0-u-HEMI7383069262832632231",
 // 	"method": "order.place",
-// 	"toUpbitParam": {
+// 	"params": {
 // 		"apiKey": "c2Y1zMXaZcz85k6MrQY1Qo3FEEy81ookmcI3js0KJrMfT0EL5pgvwSgHKfSbu7aH",
 // 		"newClientOrderId": "fu0-u-HEMI7383069262832632231",
 // 		"newOrderRespType": "ACK",
@@ -231,21 +190,5 @@ func (api *FuturePlaceLimitSdk) ParseWsReqFastNoSign() ([]byte, error) {
 // 		"timestamp": "1760260883052",
 // 		"type": "LIMIT",
 // 		"signature": "a414f80d1d27686d282f14796a2f5286bc140fe1b7669a1d7d579b54ef6b1d8f"
-// 	}
-// }
-
-// {
-// 	"id": "Pfu0-u-HEMI7383069262832632231",
-// 	"method": "order.place",
-// 	"toUpbitParam": {
-// 		"newClientOrderId": "fu0-u-HEMI7383069262832632231",
-// 		"positionSide": "SHORT",
-// 		"price": "0.076831",
-// 		"quantity": "149",
-// 		"side": "SELL",
-// 		"symbol": "HEMIUSDT",
-// 		"timeInForce": "GTC",
-// 		"timestamp": "1760260883052",
-// 		"type": "LIMIT"
 // 	}
 // }

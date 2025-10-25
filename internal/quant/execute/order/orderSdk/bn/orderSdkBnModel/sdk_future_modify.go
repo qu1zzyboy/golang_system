@@ -1,9 +1,6 @@
 package orderSdkBnModel
 
 import (
-	"strconv"
-	"time"
-
 	"upbitBnServer/internal/define/defineJson"
 	"upbitBnServer/internal/infra/errorx/errDefine"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
@@ -93,42 +90,6 @@ func (api *FutureModifySdk) ParseWsReqFast(apiKey string, secretByte []byte) (*[
 }
 
 var modifySortedKeyFast = []string{p_API_KEY, p_ORDER_ID, p_ORIG_CLIENT_ORDER_ID, p_PRICE, p_QUANTITY, p_SIDE, p_SYMBOL, p_TIME_STAMP}
-
-func (api *FutureModifySdk) ParseWsReqFastNoSign() ([]byte, error) {
-	if api.ClientOrderId == "" {
-		return nil, errDefine.ClientOrderIdEmpty.WithMetadata(map[string]string{defineJson.ReqType: "FutureModifySdkWs"})
-	}
-	buf := make([]byte, 0, 512)
-	buf = append(buf, `{"id":"M`...)
-	buf = append(buf, api.ClientOrderId...)
-	buf = append(buf, `","method":"order.modify","toUpbitParam":{"origClientOrderId":"`...)
-	buf = append(buf, api.ClientOrderId...)
-	buf = append(buf, `","price":"`...)
-	buf = append(buf, api.Price.String()...)
-	buf = append(buf, `","quantity":"`...)
-	buf = append(buf, api.Quantity.String()...)
-	buf = append(buf, `","side":"`...)
-	buf = append(buf, orderSideArr[api.side]...)
-	buf = append(buf, `","symbol":"`...)
-	buf = append(buf, api.symbolName...)
-	buf = append(buf, `","timestamp":"`...)
-	buf = strconv.AppendInt(buf, time.Now().UnixMilli(), 10)
-	buf = append(buf, `"}}`...)
-	return buf, nil
-}
-
-// {
-// 	"id": "Mtest123456",
-// 	"method": "order.modify",
-// 	"toUpbitParam": {
-// 		"origClientOrderId": "test123456",
-// 		"price": "4100",
-// 		"quantity": "0.01",
-// 		"side": "0",
-// 		"symbol": "ETHUSDT",
-// 		"timestamp": "1760274958009"
-// 	}
-// }
 
 // NewFutureModifySdk  rest修改订单 (TRADE)
 func NewFutureModifySdk() *FutureModifySdk {

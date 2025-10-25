@@ -29,7 +29,7 @@ var (
 	b_ID_ = []byte(`{"id":"`)
 
 	b_METHOD_ = []byte(`","method":"`)
-	b_PARAMS_ = []byte(`","toUpbitParam":{`)
+	b_PARAMS_ = []byte(`","params":{`)
 	b_WS_STEP = []byte(`":"`)
 	b_WS_END  = []byte("}}")
 )
@@ -61,7 +61,7 @@ func buildWsReqFast(preSize int, wsRequestId, method string, params map[string]a
 	*b = append(*b, wsRequestId...)
 	*b = append(*b, b_METHOD_...) //","method":"
 	*b = append(*b, method...)
-	*b = append(*b, b_PARAMS_...) //","toUpbitParam":{
+	*b = append(*b, b_PARAMS_...) //","params":{
 	for i, k := range keySorted {
 		if val, ok := params[k]; ok {
 			if i > 0 {
@@ -79,29 +79,6 @@ func buildWsReqFast(preSize int, wsRequestId, method string, params map[string]a
 	*b = append(*b, `"signature":"`...)
 	*b = append(*b, *signData...)
 	*b = append(*b, '"')
-	*b = append(*b, b_WS_END...)
-	return b
-}
-
-func buildWsReqFastNoSign(preSize int, wsRequestId, method string, params map[string]any, keySorted []string) *[]byte {
-	b := byteBufPool.AcquireBuffer(preSize)
-	*b = append(*b, b_ID_...) //{"id":"
-	*b = append(*b, wsRequestId...)
-	*b = append(*b, b_METHOD_...) //","method":"
-	*b = append(*b, method...)
-	*b = append(*b, b_PARAMS_...) //","toUpbitParam":{
-	for i, k := range keySorted {
-		if val, ok := params[k]; ok {
-			if i > 0 {
-				*b = append(*b, ',')
-			}
-			*b = append(*b, '"')
-			*b = append(*b, k...)
-			*b = append(*b, b_WS_STEP...)
-			*b = convertx.AppendValueToBytes(*b, val)
-			*b = append(*b, '"')
-		}
-	}
 	*b = append(*b, b_WS_END...)
 	return b
 }

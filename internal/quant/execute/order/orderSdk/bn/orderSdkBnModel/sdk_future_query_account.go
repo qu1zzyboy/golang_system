@@ -2,7 +2,6 @@ package orderSdkBnModel
 
 import (
 	"strconv"
-	"time"
 
 	"upbitBnServer/internal/utils/myCrypto"
 	"upbitBnServer/pkg/container/pool/byteBufPool"
@@ -37,7 +36,7 @@ func (api *FutureQueryAccount) ParseWsReqFast(apiKey, method string, secretByte 
 	buf := make([]byte, 0, 512)
 	buf = append(buf, `{"id":"`...)
 	buf = append(buf, "605a6d20-6588-4cb9-afa0-b0ab087507ba"...)
-	buf = append(buf, `","method":"v2/account.balance","toUpbitParam":{"apiKey":"`...)
+	buf = append(buf, `","method":"v2/account.balance","params":{"apiKey":"`...)
 	buf = append(buf, apiKey...)
 	buf = append(buf, `","signature":"`...)
 	buf = append(buf, (*signRes)...)
@@ -46,16 +45,6 @@ func (api *FutureQueryAccount) ParseWsReqFast(apiKey, method string, secretByte 
 	buf = append(buf, `}}`...)
 	return buf, nil
 	// return buildWsReqFast(512, "605a6d20-6588-4cb9-afa0-b0ab087507ba", method, param, querySortedKeyFast, signRes), nil
-}
-
-func (api *FutureQueryAccount) ParseWsReqFastNoSign(id string) ([]byte, error) {
-	buf := make([]byte, 0, 512)
-	buf = append(buf, `{"id":"`...)
-	buf = append(buf, id...)
-	buf = append(buf, `","method":"v2/account.balance","toUpbitParam":{"timestamp":`...)
-	buf = strconv.AppendInt(buf, time.Now().UnixMilli(), 10)
-	buf = append(buf, `}}`...)
-	return buf, nil
 }
 
 // NewFutureQueryAccount   rest查询订单 (USER_DATA)

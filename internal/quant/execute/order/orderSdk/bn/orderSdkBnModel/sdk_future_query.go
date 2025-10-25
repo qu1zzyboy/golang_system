@@ -73,22 +73,6 @@ func (api *FutureQuerySdk) ParseWsReqFast(firstChar, apiKey, method string, secr
 	return buildWsReqFast(512, firstChar+api.ClientOrderId, method, param, querySortedKeyFast, signRes), nil
 }
 
-var querySortedKeyFastNoSign = []string{p_ORIG_CLIENT_ORDER_ID, p_SYMBOL, p_TIME_STAMP}
-
-func (api *FutureQuerySdk) ParseWsReqFastNoSign(firstChar, method string) (*[]byte, error) {
-	if api.ClientOrderId == "" {
-		return nil, errDefine.ClientOrderIdEmpty.WithMetadata(map[string]string{defineJson.ReqType: "ParseWsReqFastNoSign"})
-	}
-	param := make(map[string]any)
-	param[p_SYMBOL] = api.symbolName
-	param[p_ORIG_CLIENT_ORDER_ID] = api.ClientOrderId
-	if api.orderId != nil {
-		param[p_ORDER_ID] = *api.orderId
-	}
-	param[p_TIME_STAMP] = timeUtils.GetNowTimeUnixMilli()
-	return buildWsReqFastNoSign(512, firstChar+api.ClientOrderId, method, param, querySortedKeyFastNoSign), nil
-}
-
 // NewFutureQuerySdk   rest查询订单 (USER_DATA)
 func NewFutureQuerySdk() *FutureQuerySdk {
 	return &FutureQuerySdk{}
