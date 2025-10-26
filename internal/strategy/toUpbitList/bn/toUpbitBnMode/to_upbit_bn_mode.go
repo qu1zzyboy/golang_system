@@ -40,7 +40,8 @@ func (d DebugMode) IsDynamicStopLossTrig(bid, maxPriceF64 float64) bool {
 	return bid < maxPriceF64*0.86
 }
 
-func (d DebugMode) IsPlacePreOrder() bool                    { return false }
+func (d DebugMode) IsPlacePreOrder() bool { return false }
+
 func (d DebugMode) ShouldExitOnTakeProfit(_, _ float64) bool { return false }
 
 type LiveMode struct{}

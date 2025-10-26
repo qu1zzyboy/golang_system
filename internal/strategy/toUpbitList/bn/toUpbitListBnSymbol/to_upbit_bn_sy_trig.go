@@ -63,7 +63,7 @@ func (s *Single) checkMarket(eventTs int64, trigFlag string, priceU64_8 uint64) 
 	//写入成功就更新两分钟之前的价格
 	if hasWrite {
 		// 涨幅大于0.05并且比上一次递增1%以上
-		if riseValue > toUpBitListDataStatic.OrderRiceTrig && riseValue > 0.01+s.lastRiseValue {
+		if riseValue > 0.05 && riseValue > 0.01+s.lastRiseValue {
 			toUpBitListDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
 				"msg":  trigFlag + "快速上涨",
 				"bn品种": s.StMeta.SymbolName,

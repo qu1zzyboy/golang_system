@@ -16,7 +16,7 @@ import (
 
 func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
 	// minBId>=0.95*markPrice
-	if float64(s.minPriceAfterMp) >= toUpBitListDataStatic.OrderRiceTrig*float64(s.markPrice_8) {
+	if float64(s.minPriceAfterMp) >= toUpBitListDataStatic.PriceRiceTrig*float64(s.markPrice_8) {
 		toUpBitListDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
 			"msg":  "orderPrice快速上涨",
 			"bn品种": s.StMeta.SymbolName,
