@@ -1,6 +1,7 @@
 package toUpbitListBnSymbol
 
 import (
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 )
 
@@ -27,19 +28,10 @@ func (s *Single) onBookTickExecute(f64 float64, ts int64) {
 	// 只在最后100ms判断移动止损
 	if ts >= tsSecond*1000+900 {
 		if markPrice_u10, ok := s.trigPriceMax_10.Load(tsSecond); ok {
-			maxPriceF64 := float64(markPrice_u10) / 1e10
-			if toUpBitListDataStatic.IsDebug {
-				if f64 < maxPriceF64*0.86 {
-					toUpBitListDataStatic.DyLog.GetLog().Infof("测试移动止损触发,价格上限:%d,bid: %.8f", markPrice_u10, f64)
-					s.receiveStop(StopByMoveStopLoss)
-					return
-				}
-			} else {
-				if f64 < maxPriceF64*0.95 {
-					toUpBitListDataStatic.DyLog.GetLog().Infof("实盘移动止损触发,价格上限:%d,bid: %.8f", markPrice_u10, f64)
-					s.receiveStop(StopByMoveStopLoss)
-					return
-				}
+			if toUpbitBnMode.Mode.IsDynamicStopLossTrig(f64, float64(markPrice_u10)/1e10) {
+				toUpBitListDataStatic.DyLog.GetLog().Infof("移动止损触发,价格上限:%d,bid: %.8f", markPrice_u10, f64)
+				s.receiveStop(StopByMoveStopLoss)
+				return
 			}
 		}
 	}

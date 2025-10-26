@@ -34,7 +34,6 @@ type Req struct {
 	Dec003        float64          // dec0.3
 	Dec500        int64            // dec500
 	TickCap       ringBuf.Capacity // bookTick环形缓冲区容量
-	IsDebug       bool
 }
 
 func (s *Req) TypeName() string {
@@ -55,7 +54,7 @@ func newEngine() *Engine {
 }
 
 func (e *Engine) start(ctx context.Context, req *Req) error {
-	toUpBitListDataStatic.SetParam(req.PriceRiceTrig, req.OrderRiceTrig, req.TickCap, req.Dec500, req.IsDebug)
+	toUpBitListDataStatic.SetParam(req.PriceRiceTrig, req.OrderRiceTrig, req.TickCap, req.Dec500)
 	toUpBitListDataStatic.ExType = exchangeEnum.BINANCE
 	toUpBitListDataStatic.AcType = exchangeEnum.FUTURE
 	toUpbitListBnSymbol.SetParam(req.Qty, req.Dec003)

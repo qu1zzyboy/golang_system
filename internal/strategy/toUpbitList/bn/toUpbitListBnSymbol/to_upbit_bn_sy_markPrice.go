@@ -12,6 +12,7 @@ import (
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"upbitBnServer/pkg/container/map/myMap"
@@ -76,9 +77,9 @@ func (s *Single) onMarkPrice(len int, bufPtr *[]byte) {
 		s.markPrice_8 = markPrice_8
 		s.priceMaxBuy_10 = markPrice_8 * s.upLimitPercent_2
 		s.mpLatencyTotal.Record(s.StMeta.SymbolName, float64(time.Now().UnixMicro()-1000*s.markPriceTs))
-		// if toUpBitListDataStatic.IsDebug {
-		// 	return
-		// }
+		if !toUpbitBnMode.Mode.IsPlacePreOrder() {
+			return
+		}
 		// 3、回调函数更新预挂单
 		s.checkPreOrder(markPrice_8)
 	}

@@ -7,6 +7,7 @@ import (
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 
 	"github.com/shopspring/decimal"
@@ -75,12 +76,9 @@ OUTER:
 				post++
 			}
 
-			if !toUpBitListDataStatic.IsDebug {
-				// 超出价格限制,退出
-				if s.takeProfitPrice > 0 && priceBuy.InexactFloat64() > s.takeProfitPrice {
-					toUpBitListDataStatic.DyLog.GetLog().Infof("超出止盈价格:[买入价:%.8f,止盈价:%.8f],退出每秒下单协程", priceBuy.InexactFloat64(), s.takeProfitPrice)
-					return
-				}
+			if toUpbitBnMode.Mode.ShouldExitOnTakeProfit(priceBuy.InexactFloat64(), s.takeProfitPrice) {
+				toUpBitListDataStatic.DyLog.GetLog().Infof("超出止盈价格:[买入价:%.8f,止盈价:%.8f],退出每秒下单协程", priceBuy.InexactFloat64(), s.takeProfitPrice)
+				return
 			}
 
 			//0.3*(总仓位-当前仓位)

@@ -39,15 +39,13 @@ var (
 	TickCap ringBuf.Capacity          // 容量
 	ExType  exchangeEnum.ExchangeType // 交易所类型
 	AcType  exchangeEnum.AccountType  // 账户类型
-	IsDebug bool
 )
 
-func SetParam(priceRiceTrig, orderRiceTrig float64, tickCap ringBuf.Capacity, dec500 int64, isDebug bool) {
+func SetParam(priceRiceTrig, orderRiceTrig float64, tickCap ringBuf.Capacity, dec500 int64) {
 	TickCap = tickCap
 	PriceRiceTrig = priceRiceTrig
 	OrderRiceTrig = orderRiceTrig
 	Dec500 = decimal.NewFromInt(dec500)
-	IsDebug = isDebug
 }
 
 func UpdateParam(priceRiceTrig, orderRiceTrig float64) {
