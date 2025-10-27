@@ -173,7 +173,7 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 				logError.GetLog().Error("特有参数json解析失败:", err)
 				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
 			}
-			toUpBitListDataStatic.UpdateParam(cfg.PriceRiceTrig, cfg.OrderRiceTrig)
+			toUpBitListDataStatic.UpdateParam(cfg.PriceRiceTrig)
 		}
 	default:
 	}
