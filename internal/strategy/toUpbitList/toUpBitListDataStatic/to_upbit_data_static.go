@@ -35,18 +35,25 @@ var (
 		FileName:      "instanceId",
 		Level:         staticLog.INFO_LEVEL,
 	})
+	SigLog = dynamicLog.NewDynamicLogger(staticLog.Config{ // 创建日志记录器
+		NeedErrorHook: true,
+		FileDir:       "toUpBitList",
+		DateStr:       timeUtils.GetNowDateStr(),
+		FileName:      "signal",
+		Level:         staticLog.INFO_LEVEL,
+	})
 	TickCap ringBuf.Capacity          // 容量
 	ExType  exchangeEnum.ExchangeType // 交易所类型
 	AcType  exchangeEnum.AccountType  // 账户类型
 )
 
-func SetParam(priceRiceTrig, orderRiceTrig float64, tickCap ringBuf.Capacity, dec500 int64) {
+func SetParam(priceRiceTrig float64, tickCap ringBuf.Capacity, dec500 int64) {
 	TickCap = tickCap
 	PriceRiceTrig = priceRiceTrig
 	Dec500 = decimal.NewFromInt(dec500)
 }
 
-func UpdateParam(priceRiceTrig, orderRiceTrig float64) {
+func UpdateParam(priceRiceTrig float64) {
 	PriceRiceTrig = priceRiceTrig
 }
 

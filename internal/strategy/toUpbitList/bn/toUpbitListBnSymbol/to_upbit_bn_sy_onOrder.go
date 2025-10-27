@@ -22,7 +22,7 @@ func (s *Single) onPayloadOrder(data []byte) {
 		/*********************上币还未触发**************************/
 		eventTs := gjson.GetBytes(data, jsonEvent).Int()
 		go func() {
-			toUpBitListDataStatic.DyLog.GetLog().Infof("[%d]触发前成交,%s", s.preAccountKeyId, string(data))
+			toUpBitListDataStatic.SigLog.GetLog().Infof("[%d]触发前成交,%s", s.preAccountKeyId, string(data))
 			toUpBitListDataStatic.SendToUpBitMsg("发送bn预挂单成交失败", map[string]string{
 				"symbol": s.StMeta.SymbolName,
 				"op":     "ORDER_UPDATE预挂单成交",

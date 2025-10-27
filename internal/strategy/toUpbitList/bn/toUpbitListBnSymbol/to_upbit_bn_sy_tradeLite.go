@@ -22,7 +22,7 @@ func (s *Single) onTradeLite(data []byte) {
 		/*********************上币还未触发**************************/
 		tradeTs := gjson.GetBytes(data, jsonT).Int()
 		go func() {
-			toUpBitListDataStatic.DyLog.GetLog().Infof("[%d]触发前成交,%s", s.preAccountKeyId, string(data))
+			toUpBitListDataStatic.SigLog.GetLog().Infof("[%d]触发前成交,%s", s.preAccountKeyId, string(data))
 			toUpBitListDataStatic.SendToUpBitMsg("发送bn预挂单成交失败", map[string]string{
 				"symbol": s.StMeta.SymbolName,
 				"op":     "bn_TRADE_LITE预挂单成交",
