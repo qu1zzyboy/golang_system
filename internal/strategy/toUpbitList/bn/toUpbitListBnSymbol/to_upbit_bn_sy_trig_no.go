@@ -2,6 +2,7 @@ package toUpbitListBnSymbol
 
 import (
 	"fmt"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitDefine"
 
 	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
@@ -63,7 +64,7 @@ func (s *Single) calParam() {
 	mesh, ok := coinMesh.GetManager().Get(s.StMeta.TradeId)
 	if !ok {
 		toUpBitListDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] not found for tradeId: %d", symbolName, s.StMeta.TradeId)
-		s.receiveStop(StopByGetCmcFailure)
+		s.receiveStop(toUpbitDefine.StopByGetCmcFailure)
 		toUpBitListDataStatic.SendToUpBitMsg("获取cmc_id失败", map[string]string{
 			"symbol": symbolName,
 			"op":     "获取cmc_id失败",
@@ -77,7 +78,7 @@ func (s *Single) calParam() {
 	gainPct, twapSec, err := toUpbitBnMode.Mode.GetTakeProfitParam(mesh.IsMeMe, s.symbolIndex, cap2Min/1_000_000)
 	if err != nil {
 		toUpBitListDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] 获取止盈止损失败: %v", symbolName, err)
-		s.receiveStop(StopByGetRemoteFailure)
+		s.receiveStop(toUpbitDefine.StopByGetRemoteFailure)
 		toUpBitListDataStatic.SendToUpBitMsg("获取止盈止损失败", map[string]string{
 			"symbol": symbolName,
 			"op":     "获取止盈止损失败",

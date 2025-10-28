@@ -10,18 +10,9 @@ import (
 	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitDefine"
 
 	"github.com/shopspring/decimal"
-)
-
-type StopType uint8
-
-const (
-	StopByTreeNews StopType = iota
-	StopByMoveStopLoss
-	StopByBtTakeProfit
-	StopByGetCmcFailure
-	StopByGetRemoteFailure
 )
 
 const (
@@ -35,6 +26,7 @@ var (
 		"BookTick止盈触发",
 		"获取cmc_id失败",
 		"获取远程参数失败",
+		"交易元数据失败",
 	}
 )
 
@@ -51,7 +43,7 @@ func (s *Single) clear() {
 	toUpBitListDataAfter.ClearTrig()
 }
 
-func (s *Single) receiveStop(stopType StopType) {
+func (s *Single) receiveStop(stopType toUpbitDefine.StopType) {
 	if s.hasReceiveStop {
 		return
 	}

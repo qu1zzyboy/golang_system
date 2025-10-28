@@ -2,12 +2,12 @@ package wsPingPong
 
 import (
 	"time"
+	"upbitBnServer/pkg/utils/time2str"
 
 	"upbitBnServer/internal/infra/errorx"
 	"upbitBnServer/internal/infra/errorx/errCode"
 	"upbitBnServer/internal/infra/ws/wsDefine"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
-	"upbitBnServer/pkg/utils/convertx"
 	"upbitBnServer/pkg/utils/jsonUtils"
 
 	"github.com/gorilla/websocket"
@@ -43,7 +43,7 @@ func PongBn(msg string, conn *wsDefine.SafeWrite) error {
 func PingByBit(conn *wsDefine.SafeWrite) error {
 	pingByte, err := jsonUtils.MarshalStructToByteArray(map[string]string{
 		"op":     "ping",
-		"req_id": convertx.GetNowTimeStampMilliStr(),
+		"req_id": time2str.GetNowTimeStampMilliStr(),
 	})
 	if err != nil {
 		return errorx.Newf(errCode.CodeWsParamError, "BYBIT_PING_MARSHAL", "bybit ws ping参数序列化错误").WithCause(err)

@@ -7,10 +7,10 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+	"upbitBnServer/pkg/utils/time2str"
 
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/wsRequestCache"
-	"upbitBnServer/pkg/utils/convertx"
 	"upbitBnServer/pkg/utils/jsonUtils"
 )
 
@@ -42,7 +42,7 @@ func (s *FutureClient) accountPositionInfo(reqId string) map[string]interface{} 
 }
 
 func (s *FutureClient) QueryAccount(reqFrom orderBelongEnum.Type) error {
-	reqId := "qab" + convertx.GetNowTimeStampMilliStr()
+	reqId := "qab" + time2str.GetNowTimeStampMilliStr()
 	msg := s.accountPositionInfo(reqId)
 	rawData, err := jsonUtils.MarshalStructToByteArray(msg)
 	if rawData == nil || err != nil {

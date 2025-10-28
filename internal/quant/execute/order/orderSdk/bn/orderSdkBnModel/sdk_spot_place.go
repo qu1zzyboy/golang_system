@@ -2,9 +2,9 @@ package orderSdkBnModel
 
 import (
 	"net/url"
+	"upbitBnServer/pkg/utils/time2str"
 
 	"upbitBnServer/internal/quant/execute/order/orderModel"
-	"upbitBnServer/pkg/utils/convertx"
 
 	"github.com/shopspring/decimal"
 )
@@ -82,7 +82,7 @@ func (api *SpotPlaceSdk) ParseRestRequest() string {
 	if api.orderRespType != nil {
 		param.Set(p_NEW_ORDER_RESP_TYPE, *api.orderRespType)
 	}
-	param.Set(p_TIME_STAMP, convertx.GetNowTimeStampMilliStr())
+	param.Set(p_TIME_STAMP, time2str.GetNowTimeStampMilliStr())
 	// 编码 query & form
 	return param.Encode()
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitDefine"
 )
 
 func (s *Single) checkTreeNews() {
@@ -13,7 +14,7 @@ func (s *Single) checkTreeNews() {
 		if s.hasTreeNews {
 			return
 		}
-		s.receiveStop(StopByTreeNews)
+		s.receiveStop(toUpbitDefine.StopByTreeNews)
 		toUpBitListDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
 			"symbol": s.StMeta.SymbolName,
 			"op":     "TreeNews未确认",
@@ -31,7 +32,7 @@ func (s *Single) ReceiveTreeNews() {
 
 func (s *Single) ReceiveNoTreeNews() {
 	s.hasTreeNews = false
-	s.receiveStop(StopByTreeNews)
+	s.receiveStop(toUpbitDefine.StopByTreeNews)
 	toUpBitListDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
 		"symbol": s.StMeta.SymbolName,
 		"op":     "TreeNews未确认",

@@ -59,7 +59,7 @@ func (s *Single) checkPreOrder(markPrice_8 uint64) {
 					"op":     "更新5%订单失败",
 					"error":  err.Error(),
 				})
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("%s修改小订单错误: %s", symbolKey, err.Error())
+				toUpBitListDataStatic.DyLog.GetLog().Errorf("[%d] %s修改小订单错误: %s", s.preAccountKeyId, symbolKey, err.Error())
 			}
 		} else {
 			toUpBitListDataStatic.DyLog.GetLog().Infof("[%d,%s] 触发[%d,%d,%d],准备重下预挂单:%s", s.preAccountKeyId, symbolKey, s.lastMarkPrice_8, markPrice_8, s.pScale, modifySmallPrice)

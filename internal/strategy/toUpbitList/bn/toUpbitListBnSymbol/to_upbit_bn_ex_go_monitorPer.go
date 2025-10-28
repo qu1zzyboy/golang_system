@@ -5,28 +5,29 @@ import (
 
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
+	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 )
 
-func (s *Single) monitorPer(accountIndex uint8) {
-	var i int
+func (s *Single) monitorPer(i int32, accountIndex uint8) {
+	var j int
 	defer func() {
-		toUpBitListDataStatic.DyLog.GetLog().Infof("账户[%d],探测[%d]次,协程结束", accountIndex, i)
+		toUpBitListDataStatic.DyLog.GetLog().Infof("账户[%d],探测[%d]次,协程结束", accountIndex, j)
 	}()
 	price := s.firstPriceBuy.Mul(dec2).Truncate(s.pScale)
 OUTER:
-	for i = 0; i <= 230; i++ {
+	for j = 0; j <= 230; j++ {
 		select {
 		case <-s.ctxStop.Done():
-			toUpBitListDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出探测协程")
+			toUpBitListDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出[%d]探测协程", i)
 			break OUTER
 		default:
 			//有成交或者本轮挂单成功
 			if s.secondArr[accountIndex].loadStop() || s.hasAllFilled.Load() {
 				break OUTER
 			}
-			if err := bnOrderAppManager.GetMonitorManager().SendMonitorOrder(order_from, accountIndex, s.symbolIndex,
+			if err := bnOrderAppManager.GetMonitorManager().SendMonitorOrder(orderBelongEnum.TO_UPBIT_LIST_MONITOR, accountIndex, s.symbolIndex,
 				&orderModel.MyPlaceOrderReq{
 					OrigPrice:     price,
 					OrigVol:       s.posTotalNeed,

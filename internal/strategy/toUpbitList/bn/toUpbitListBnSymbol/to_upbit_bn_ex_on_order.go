@@ -5,6 +5,7 @@ import (
 
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitDefine"
 
 	"github.com/shopspring/decimal"
 )
@@ -13,6 +14,10 @@ func (s *Single) onFailureOrder(accountKeyId uint8, errCode int64) {
 	// {"code":-2019,"msg":"Margin is insufficient."},账户没钱,停止这一秒抽奖
 	if errCode == -2019 {
 		s.secondArr[accountKeyId].receiveStop(accountKeyId)
+	}
+	// "code":-4014,"msg":"Price not increased by tick size."
+	if errCode == -4014 {
+		s.receiveStop(toUpbitDefine.StopByMoveStopLoss)
 	}
 }
 

@@ -98,6 +98,13 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 				}
 			}
 
+		case orderBelongEnum.TO_UPBIT_LIST_MONITOR:
+			{
+				if gjson.GetBytes(data, "error.code").Int() == (-4016) {
+					toUpbitListChan.SendMonitorData(symbolIndex, data)
+					return
+				}
+			}
 		case orderBelongEnum.TO_UPBIT_LIST_LOOP:
 			{
 				// 需要判断是不是触发的币种
