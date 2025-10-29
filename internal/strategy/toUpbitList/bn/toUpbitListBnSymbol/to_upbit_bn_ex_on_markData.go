@@ -12,6 +12,12 @@ func (s *Single) onBookTickExecute(f64 float64, ts int64) {
 	if s.hasReceiveStop {
 		return
 	}
+
+	// 还不允许移动止损
+	if !s.isStopLossAble.Load() {
+		return
+	}
+
 	//价格涨到位,触发平仓
 	if s.hasTreeNews && s.takeProfitPrice > 0 && f64 > s.takeProfitPrice {
 		toUpBitListDataStatic.DyLog.GetLog().Infof("触发平仓价格: %.8f,当前价格: %.8f", s.takeProfitPrice, f64)
@@ -19,10 +25,6 @@ func (s *Single) onBookTickExecute(f64 float64, ts int64) {
 		return
 	}
 
-	// 还不允许移动止损
-	if !s.isStopLossAble.Load() {
-		return
-	}
 	// 止损判定
 	tsSecond := ts / 1000
 	// 只在最后100ms判断移动止损

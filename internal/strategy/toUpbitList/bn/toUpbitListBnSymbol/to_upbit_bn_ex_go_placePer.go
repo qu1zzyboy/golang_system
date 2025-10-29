@@ -26,8 +26,8 @@ func (s *Single) placePer(i int32, accountIndex uint8) {
 		}
 	}
 	defer func() {
-		toUpBitListDataStatic.DyLog.GetLog().Infof("账户[%d],抽奖[总:%d,maker:%d,limit:%d,market:%d]次,上限[%s],协程结束",
-			accountIndex, j, post, limit, market, maxNotional)
+		toUpBitListDataStatic.DyLog.GetLog().Infof("账户[%d_%d],抽奖[总:%d,maker:%d,limit:%d,market:%d]次,上限[%s],协程结束",
+			accountIndex, i, j, post, limit, market, maxNotional)
 	}()
 	tsSec := time.Now().Unix()   //该秒的开始时间戳,1760516599
 	hasReceive := false          //没有收到标记价格
@@ -74,6 +74,10 @@ OUTER:
 				}
 			} else {
 				post++
+			}
+
+			if i == 1 {
+				orderType = execute.ORDER_TYPE_POST_ONLY
 			}
 
 			if toUpbitBnMode.Mode.ShouldExitOnTakeProfit(priceBuy.InexactFloat64(), s.takeProfitPrice) {
