@@ -110,6 +110,7 @@ type Single struct {
 	cancel             context.CancelFunc                     // 关闭函数
 	pos                *toUpbitListPos.PosCal                 // 持仓计算对象
 	twapSec            float64                                // twap下单间隔秒数
+	globalStopLoss     float64                                // 全局止损价格
 	closeDuration      time.Duration                          // 平仓持续时间
 	thisOrderAccountId atomic.Int32                           // 当前订单使用的资金账户ID
 	toAccountId        atomic.Int32                           // 准备接收资金的账户id

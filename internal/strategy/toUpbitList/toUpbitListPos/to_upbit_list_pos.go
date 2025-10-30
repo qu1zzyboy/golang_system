@@ -8,9 +8,11 @@ import (
 )
 
 type PosCal struct {
-	posRw          sync.RWMutex              // 仓位读写锁
-	posMap         map[uint8]decimal.Decimal // 各个账户仓位情况
-	posTotalAmount decimal.Decimal           // 累计仓位情况
+	posRw       sync.RWMutex              // 仓位读写锁
+	posMap      map[uint8]decimal.Decimal // 各个账户仓位情况
+	totalAmount decimal.Decimal           // 累计 num 情况
+	totalQty    decimal.Decimal           // 累计 qty 情况
+	totalAvg    decimal.Decimal           // 累计 avg 情况
 }
 
 func NewPosCal() *PosCal {
@@ -19,38 +21,40 @@ func NewPosCal() *PosCal {
 	}
 }
 
-func (s *PosCal) OpenFilled(accountKeyId uint8, volume decimal.Decimal) decimal.Decimal {
+func (s *PosCal) OpenFilled(accountKeyId uint8, avg, volume decimal.Decimal) (decimal.Decimal, float64) {
 	s.posRw.Lock()
 	defer s.posRw.Unlock()
-	s.posTotalAmount = s.posTotalAmount.Add(volume)
+	s.totalAmount = s.totalAmount.Add(volume)
+	s.totalQty = s.totalQty.Add(avg.Mul(volume)) //qty=avg*vol
+	s.totalAvg = s.totalQty.Div(s.totalAmount)   //avg=qty/vol
 	if pos, ok := s.posMap[accountKeyId]; ok {
 		s.posMap[accountKeyId] = pos.Add(volume)
 	} else {
 		s.posMap[accountKeyId] = volume
 	}
-	return s.posTotalAmount
+	return s.totalAmount, s.totalAvg.InexactFloat64()
 }
 
 func (s *PosCal) CloseFilled(accountKeyId uint8, volume decimal.Decimal) decimal.Decimal {
 	s.posRw.Lock()
 	defer s.posRw.Unlock()
-	s.posTotalAmount = s.posTotalAmount.Sub(volume)
+	s.totalAmount = s.totalAmount.Sub(volume)
 	if pos, ok := s.posMap[accountKeyId]; ok {
 		s.posMap[accountKeyId] = pos.Sub(volume)
 	}
-	return s.posTotalAmount
+	return s.totalAmount
 }
 
-func (s *PosCal) GetTotal() decimal.Decimal {
+func (s *PosCal) GetTotalVol() decimal.Decimal {
 	s.posRw.RLock()
 	defer s.posRw.RUnlock()
-	return s.posTotalAmount
+	return s.totalAmount
 }
 
 func (s *PosCal) Clear() {
 	s.posRw.Lock()
 	defer s.posRw.Unlock()
-	s.posTotalAmount = decimal.Zero
+	s.totalAmount = decimal.Zero
 	s.posMap = make(map[uint8]decimal.Decimal)
 }
 

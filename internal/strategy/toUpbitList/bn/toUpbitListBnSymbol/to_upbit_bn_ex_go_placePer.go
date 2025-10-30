@@ -86,7 +86,7 @@ OUTER:
 			}
 
 			//0.3*(总仓位-当前仓位)
-			num := (s.posTotalNeed.Sub(s.pos.GetTotal()).Mul(dec03))
+			num := (s.posTotalNeed.Sub(s.pos.GetTotalVol()).Mul(dec03))
 			if i >= 3 {
 				num = decimal.Min(num, maxNotional.Div(priceBuy))
 			}

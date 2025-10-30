@@ -13,12 +13,14 @@ import (
 )
 
 var (
-	dec03    decimal.Decimal                     //首次下 0.3
-	dec103   = decimal.RequireFromString("1.03") //第一次下单价格1.03倍
-	qtyTotal decimal.Decimal                     //单次下单总金额
+	dec03               decimal.Decimal                     //首次下 0.3
+	dec103              = decimal.RequireFromString("1.03") //第一次下单价格1.03倍
+	qtyTotal            decimal.Decimal                     //单次下单总金额
+	globalStopLossRatio float64
 )
 
-func SetParam(qty, dec003 float64) {
+func SetParam(qty, dec003 float64, globalStopLossRatio_ float64) {
+	globalStopLossRatio = globalStopLossRatio_
 	qtyTotal = decimal.NewFromFloat(qty)
 	dec03 = decimal.NewFromFloat(dec003)
 }

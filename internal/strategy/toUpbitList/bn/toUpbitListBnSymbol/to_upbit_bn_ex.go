@@ -19,17 +19,6 @@ const (
 	order_from = orderBelongEnum.TO_UPBIT_LIST_LOOP
 )
 
-var (
-	stopReasonArr = []string{
-		"未触发TreeNews",
-		"%5移动止损触发",
-		"BookTick止盈触发",
-		"获取cmc_id失败",
-		"获取远程参数失败",
-		"交易元数据失败",
-	}
-)
-
 func (s *Single) clear() {
 	s.posTotalNeed = decimal.Zero
 	s.pos.Clear() //清空持仓统计
@@ -47,7 +36,7 @@ func (s *Single) receiveStop(stopType toUpbitDefine.StopType) {
 		return
 	}
 	s.hasReceiveStop = true
-	toUpBitListDataStatic.DyLog.GetLog().Infof("收到停止信号==> %s", stopReasonArr[stopType])
+	toUpBitListDataStatic.DyLog.GetLog().Infof("收到停止信号==> %s", toUpbitDefine.StopReasonArr[stopType])
 	s.cancel()
 	//开启平仓线程
 	safex.SafeGo("to_upbit_bn_close", func() {
@@ -66,7 +55,7 @@ func (s *Single) receiveStop(stopType toUpbitDefine.StopType) {
 		})
 
 		// 判断有没有持仓
-		use := s.pos.GetTotal()
+		use := s.pos.GetTotalVol()
 		if use.LessThanOrEqual(decimal.Zero) {
 			toUpBitListDataStatic.DyLog.GetLog().Infof("没有可用的平仓数量,取消平仓")
 			return
@@ -93,8 +82,8 @@ func (s *Single) receiveStop(stopType toUpbitDefine.StopType) {
 						continue
 					}
 					priceDec := decimal.NewFromFloat(val.(float64)).Truncate(s.pScale)
-					posLeft := s.pos.GetTotal()
-					if s.pos.GetTotal().Mul(priceDec).LessThanOrEqual(toUpBitListDataStatic.Dec500) {
+					posLeft := s.pos.GetTotalVol()
+					if s.pos.GetTotalVol().Mul(priceDec).LessThanOrEqual(toUpBitListDataStatic.Dec500) {
 						toUpBitListDataStatic.DyLog.GetLog().Infof("平仓完全成交,开始清理资源")
 						ticker.Stop()
 						return

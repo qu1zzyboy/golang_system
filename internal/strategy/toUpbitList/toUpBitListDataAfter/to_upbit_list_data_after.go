@@ -12,6 +12,7 @@ import (
 
 type OnSuccessEvt struct {
 	ClientOrderId string
+	Avg           decimal.Decimal
 	Volume        decimal.Decimal
 	SortPrice     float64
 	TimeStamp     int64

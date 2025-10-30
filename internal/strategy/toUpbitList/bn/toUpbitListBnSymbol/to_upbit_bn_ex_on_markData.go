@@ -14,6 +14,11 @@ func (s *Single) onBookTickExecute(f64 float64, ts int64) {
 		return
 	}
 
+	if f64 < s.globalStopLoss {
+		s.receiveStop(toUpbitDefine.StopByGlobalStopLoss)
+		return
+	}
+
 	// 还不允许移动止损和止盈
 	if !s.isStopLossAble.Load() {
 		return

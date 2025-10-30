@@ -29,7 +29,8 @@ func (s *Single) onSuccessOrder(evt toUpBitListDataAfter.OnSuccessEvt) {
 		if evt.Volume.GreaterThan(decimal.Zero) {
 			// 有成交更新可用仓位
 			if evt.OrderMode.IsOpen() {
-				posTotalAmount := s.pos.OpenFilled(accountKeyId, evt.Volume)
+				posTotalAmount, avgBuyPrice := s.pos.OpenFilled(accountKeyId, evt.Avg, evt.Volume)
+				s.globalStopLoss = avgBuyPrice * globalStopLossRatio
 				// 判断是否完全开满
 				left := s.posTotalNeed.Sub(posTotalAmount).Abs()
 

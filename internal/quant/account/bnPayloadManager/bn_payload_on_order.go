@@ -87,6 +87,9 @@ func (s *Payload) onPayloadOrder(data []byte) {
 			}
 			if !isOnline {
 				evt.Volume = decimal.RequireFromString(gjson.GetBytes(data, "o.z").String())
+				if evt.Volume.GreaterThan(decimal.Zero) {
+					evt.Avg = decimal.RequireFromString(gjson.GetBytes(data, "o.ap").String())
+				}
 			} else {
 				evt.TimeStamp = gjson.GetBytes(data, "T").Int()
 			}

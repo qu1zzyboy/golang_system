@@ -28,11 +28,12 @@ import (
 const limit = 30
 
 type Req struct {
-	PriceRiceTrig float64          // 价格触发阈值,当价格变化超过该值时触发
-	Qty           float64          // 开仓金额
-	Dec003        float64          // dec0.3
-	Dec500        int64            // dec500
-	TickCap       ringBuf.Capacity // bookTick环形缓冲区容量
+	PriceRiceTrig       float64          // 价格触发阈值,当价格变化超过该值时触发
+	GlobalStopLossRatio float64          //全局止损比例
+	Qty                 float64          // 开仓金额
+	Dec003              float64          // dec0.3
+	Dec500              int64            // dec500
+	TickCap             ringBuf.Capacity // bookTick环形缓冲区容量
 }
 
 func (s *Req) TypeName() string {
@@ -56,7 +57,7 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 	toUpBitListDataStatic.SetParam(req.PriceRiceTrig, req.TickCap, req.Dec500)
 	toUpBitListDataStatic.ExType = exchangeEnum.BINANCE
 	toUpBitListDataStatic.AcType = exchangeEnum.FUTURE
-	toUpbitListBnSymbol.SetParam(req.Qty, req.Dec003)
+	toUpbitListBnSymbol.SetParam(req.Qty, req.Dec003, req.GlobalStopLossRatio)
 	// --- IGNORE ---
 	toUpBitListDataAfter.ClearTrig()
 	//获取初始化要订阅的品种
