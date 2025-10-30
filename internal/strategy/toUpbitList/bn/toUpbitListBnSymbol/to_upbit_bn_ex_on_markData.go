@@ -25,7 +25,6 @@ func (s *Single) onBookTickExecute(f64 float64, ts int64) {
 		s.receiveStop(toUpbitDefine.StopByBtTakeProfit)
 		return
 	}
-
 	// 止损判定
 	tsSecond := ts / 1000
 	// 只在最后100ms判断移动止损

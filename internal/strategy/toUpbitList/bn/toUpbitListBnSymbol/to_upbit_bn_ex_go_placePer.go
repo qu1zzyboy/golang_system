@@ -76,6 +76,10 @@ OUTER:
 				post++
 			}
 
+			if i == 1 {
+				orderType = execute.ORDER_TYPE_POST_ONLY
+			}
+
 			if toUpbitBnMode.Mode.ShouldExitOnTakeProfit(priceBuy.InexactFloat64(), s.takeProfitPrice) {
 				toUpBitListDataStatic.DyLog.GetLog().Infof("超出止盈价格:[买入价:%.8f,止盈价:%.8f],退出每秒下单协程", priceBuy.InexactFloat64(), s.takeProfitPrice)
 				return
@@ -99,7 +103,7 @@ OUTER:
 				}); err != nil {
 				toUpBitListDataStatic.DyLog.GetLog().Errorf("每秒创建订单失败: %v", err)
 			}
-			time.Sleep(300 * time.Microsecond) // 休眠 300 微秒
+			time.Sleep(150 * time.Microsecond) // 休眠 300 微秒
 		}
 	}
 }

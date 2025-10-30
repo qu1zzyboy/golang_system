@@ -10,7 +10,7 @@ import (
 
 var (
 	Mode   ModeBehavior
-	dec200 = decimal.NewFromFloat(200)
+	dec200 = decimal.NewFromFloat(600)
 )
 
 type ModeBehavior interface {

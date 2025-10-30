@@ -33,7 +33,6 @@ var (
 func (s *Single) clear() {
 	s.posTotalNeed = decimal.Zero
 	s.pos.Clear() //清空持仓统计
-	s.StMeta = nil
 	s.takeProfitPrice = 0
 	for i := range s.secondArr {
 		s.secondArr[i].clear()

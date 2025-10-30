@@ -177,7 +177,10 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 		switch wsMeta.ReqFrom {
 		case orderBelongEnum.TO_UPBIT_LIST_LOOP_CANCEL_TRANSFER:
 			{
-				toUpbitListChan.SendSpecial(toUpBitListDataAfter.TrigSymbolIndex, decimal.Zero, 0, toUpbitListChan.CancelOrderReturn, s.accountKeyId)
+				symbolIndex := toUpBitListDataAfter.TrigSymbolIndex
+				if symbolIndex > 0 {
+					toUpbitListChan.SendSpecial(toUpBitListDataAfter.TrigSymbolIndex, decimal.Zero, 0, toUpbitListChan.CancelOrderReturn, s.accountKeyId)
+				}
 			}
 		case orderBelongEnum.TO_UPBIT_LIST_LOOP, orderBelongEnum.TO_UPBIT_LIST_PRE:
 			{
@@ -207,10 +210,13 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 				{
 					value := gjson.GetBytes(data, `result.#(asset=="USDT").maxWithdrawAmount`)
 					if value.Exists() {
-						toUpbitListChan.SendSpecial(toUpBitListDataAfter.TrigSymbolIndex,
-							decimal.RequireFromString(value.String()), 0, toUpbitListChan.QUERY_ACCOUNT_RETURN, s.accountKeyId)
+						symbolIndex := toUpBitListDataAfter.TrigSymbolIndex
+						if symbolIndex > 0 {
+							toUpbitListChan.SendSpecial(toUpBitListDataAfter.TrigSymbolIndex,
+								decimal.RequireFromString(value.String()), 0, toUpbitListChan.QUERY_ACCOUNT_RETURN, s.accountKeyId)
+						}
 					} else {
-						dynamicLog.Error.GetLog().Errorf("QUERY_AC_BALANCE: json异常 %s", string(data))
+						dynamicLog.Error.GetLog().Errorf("QUERY_AC_BALANCE: req:%s,json异常 %s", wsMeta.Json, string(data))
 					}
 				}
 			default:
