@@ -3,7 +3,7 @@ package grpcAuth
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/conf"
+	"upbitBnServer/internal/conf"
 )
 
 type ClientTokenAuth struct {

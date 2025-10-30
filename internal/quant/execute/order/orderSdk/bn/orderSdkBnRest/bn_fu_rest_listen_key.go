@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/errorx"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errCode"
-	"github.com/hhh500/quantGoInfra/infra/httpx"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/binance/bnConst"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/errorx"
+	"upbitBnServer/internal/infra/errorx/errCode"
+	"upbitBnServer/internal/infra/httpx"
+	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
+
 	"github.com/tidwall/gjson"
 )
 

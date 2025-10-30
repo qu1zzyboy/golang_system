@@ -1,11 +1,11 @@
 package symbolStatic
 
 import (
-	"github.com/hhh500/quantGoInfra/infra/errorx"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errCode"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errDefine"
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/exchangeEnum"
+	"upbitBnServer/internal/infra/errorx"
+	"upbitBnServer/internal/infra/errorx/errCode"
+	"upbitBnServer/internal/infra/errorx/errDefine"
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
+	"upbitBnServer/pkg/utils/convertx"
 )
 
 type StaticSave struct {

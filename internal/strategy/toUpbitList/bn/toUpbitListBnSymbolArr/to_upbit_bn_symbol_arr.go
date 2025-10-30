@@ -1,7 +1,7 @@
 package toUpbitListBnSymbolArr
 
 import (
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
 )
 
 var (

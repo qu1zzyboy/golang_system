@@ -1,6 +1,6 @@
 package coinMesh
 
-import "github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
+import "upbitBnServer/internal/infra/observe/log/dynamicLog"
 
 func (m *Manager) SetUpbitSpotKrwNameCheck(cmcId uint32, tradeAsset, upbitSpotKrwName string) {
 	if mesh, ok := m.coinMap.Load(cmcId); ok {

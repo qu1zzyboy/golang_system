@@ -3,13 +3,13 @@ package wsSubParam
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/infra/errorx"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errCode"
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/quantGoInfra/infra/ws/wsDefine"
-	"github.com/hhh500/quantGoInfra/infra/ws/wsSub"
-	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
-	"github.com/hhh500/quantGoInfra/resource/resourceEnum"
+	"upbitBnServer/internal/infra/errorx"
+	"upbitBnServer/internal/infra/errorx/errCode"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/infra/ws/wsDefine"
+	"upbitBnServer/internal/infra/ws/wsSub"
+	"upbitBnServer/internal/resource/resourceEnum"
+	"upbitBnServer/pkg/container/map/myMap"
 )
 
 var buildFuncNilErr = errorx.Newf(errCode.POINTER_NIL, "ws订阅参数构建函数为nil")

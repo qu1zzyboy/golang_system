@@ -3,7 +3,8 @@ package metricIndex
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/define/defineJson"
+	"upbitBnServer/internal/define/defineJson"
+
 	"go.opentelemetry.io/otel"
 )
 

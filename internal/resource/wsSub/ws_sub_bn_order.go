@@ -3,10 +3,11 @@ package wsSub
 import (
 	"context"
 
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/infra/ws/wsDefine"
+
 	"github.com/gorilla/websocket"
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/quantGoInfra/infra/ws/wsDefine"
 )
 
 type BnOrder struct {

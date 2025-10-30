@@ -1,6 +1,6 @@
 package orderModel
 
-import "github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
+import "upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
 
 type MyCancelOrderBatchReq struct {
 	ApiFrom    string //打印字段,api来源

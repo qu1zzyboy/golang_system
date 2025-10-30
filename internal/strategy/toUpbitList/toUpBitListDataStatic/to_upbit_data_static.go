@@ -3,15 +3,16 @@ package toUpBitListDataStatic
 import (
 	"strconv"
 
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/quantGoInfra/infra/observe/log/staticLog"
-	"github.com/hhh500/quantGoInfra/infra/observe/notify/notifyTg"
-	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
-	"github.com/hhh500/quantGoInfra/pkg/container/ring/ringBuf"
-	"github.com/hhh500/quantGoInfra/pkg/utils/idGen"
-	"github.com/hhh500/quantGoInfra/pkg/utils/timeUtils"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/exchangeEnum"
-	"github.com/hhh500/upbitBnServer/internal/utils/algorithms"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/infra/observe/log/staticLog"
+	"upbitBnServer/internal/infra/observe/notify/notifyTg"
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
+	"upbitBnServer/internal/utils/algorithms"
+	"upbitBnServer/pkg/container/map/myMap"
+	"upbitBnServer/pkg/container/ring/ringBuf"
+	"upbitBnServer/pkg/utils/idGen"
+	"upbitBnServer/pkg/utils/timeUtils"
+
 	"github.com/shopspring/decimal"
 )
 
@@ -27,7 +28,6 @@ var (
 	SymbolMaxNotional = myMap.NewMySyncMap[int, decimal.Decimal]()    //symbolIndex-->最大仓位上限
 	Dec500            = decimal.NewFromInt(500)                       // 小于这个数全部平仓
 	PriceRiceTrig     float64                                         // 价格触发阈值,当价格变化超过该值时触发
-	OrderRiceTrig     float64                                         // 下单触发阈值,当价格变化超过该值时下单
 	DyLog             = dynamicLog.NewDynamicLogger(staticLog.Config{ // 创建日志记录器
 		NeedErrorHook: true,
 		FileDir:       "toUpBitList",
@@ -35,23 +35,26 @@ var (
 		FileName:      "instanceId",
 		Level:         staticLog.INFO_LEVEL,
 	})
+	SigLog = dynamicLog.NewDynamicLogger(staticLog.Config{ // 创建日志记录器
+		NeedErrorHook: true,
+		FileDir:       "toUpBitList",
+		DateStr:       timeUtils.GetNowDateStr(),
+		FileName:      "signal",
+		Level:         staticLog.INFO_LEVEL,
+	})
 	TickCap ringBuf.Capacity          // 容量
 	ExType  exchangeEnum.ExchangeType // 交易所类型
 	AcType  exchangeEnum.AccountType  // 账户类型
-	IsDebug bool
 )
 
-func SetParam(priceRiceTrig, orderRiceTrig float64, tickCap ringBuf.Capacity, dec500 int64, isDebug bool) {
+func SetParam(priceRiceTrig float64, tickCap ringBuf.Capacity, dec500 int64) {
 	TickCap = tickCap
 	PriceRiceTrig = priceRiceTrig
-	OrderRiceTrig = orderRiceTrig
 	Dec500 = decimal.NewFromInt(dec500)
-	IsDebug = isDebug
 }
 
-func UpdateParam(priceRiceTrig, orderRiceTrig float64) {
+func UpdateParam(priceRiceTrig float64) {
 	PriceRiceTrig = priceRiceTrig
-	OrderRiceTrig = orderRiceTrig
 }
 
 func getClientOrderId(acType exchangeEnum.AccountType, flag string) string {

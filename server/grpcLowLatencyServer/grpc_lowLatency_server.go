@@ -2,27 +2,29 @@ package grpcLowLatencyServer
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/quantGoInfra/pkg/utils/jsonUtils"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/exchangeEnum"
-	strategyV1 "github.com/hhh500/upbitBnServer/api/strategy/v1"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBn"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnExecute"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpbitMesh"
-	"github.com/hhh500/upbitBnServer/server/grpcEvent"
-	"github.com/hhh500/upbitBnServer/server/instance"
-	"github.com/hhh500/upbitBnServer/server/instance/instanceCenter"
-	"github.com/hhh500/upbitBnServer/server/serverInstanceEnum"
+	strategyV1 "upbitBnServer/api/strategy/v1"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
+	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
+	"upbitBnServer/internal/quant/market/symbolInfo"
+	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
+	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
+	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBn"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitMesh"
+	"upbitBnServer/internal/strategy/toUpbitParam"
+	"upbitBnServer/pkg/utils/jsonUtils"
+	"upbitBnServer/server/grpcEvent"
+	"upbitBnServer/server/instance"
+	"upbitBnServer/server/instance/instanceCenter"
+	"upbitBnServer/server/serverInstanceEnum"
+
 	"github.com/tidwall/gjson"
 )
 
@@ -132,14 +134,36 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 	case grpcEvent.TO_UPBIT_RECEIVE_NEWS:
 		{
 			Asset := gjson.Get(in.JsonData, "events.0.symbols.0").String()
-			symbolIndex, _ := toUpBitListDataStatic.SymbolIndex.Load(Asset + "USDT")
-			toUpBitListBnExecute.GetExecute().ReceiveTreeNews(symbolIndex)
-			toUpBitListDataAfter.UpdateTreeNewsFlag(symbolIndex)
+			symbolName := Asset + "USDT"
+			symbolIndexTrue, ok := toUpBitListDataStatic.SymbolIndex.Load(symbolName)
+			if !ok {
+				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, "TreeNews品种不在品种池内", nil)
+			}
+
+			// 触发品种和TreeNews品种一致
+			if symbolIndexTrue == toUpBitListDataAfter.TrigSymbolIndex {
+				toUpbitListBnSymbolArr.GetSymbolObj(symbolIndexTrue).ReceiveTreeNews()
+			} else {
+				toUpbitListBnSymbolArr.GetSymbolObj(toUpBitListDataAfter.TrigSymbolIndex).ReceiveNoTreeNews()
+			}
 		}
 	case grpcEvent.TO_UPBIT_TEST:
 		{
 			symbolIndex, _ := toUpBitListDataStatic.SymbolIndex.Load("XPINUSDT")
-			toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex).IntoExecuteCheck(time.Now().UnixMilli(), "test", 0.05, 200000000)
+			obj := toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex)
+			go obj.ReceiveTreeNews()
+			obj.IntoExecuteNoCheck(time.Now().UnixMilli(), "test", 200000000)
+		}
+	case grpcEvent.TO_UPBIT_PARAM_TEST:
+		{
+			var req toUpbitParam.ComputeRequest
+			if err = jsonUtils.UnmarshalFromString(in.JsonData, &req); err != nil {
+				logError.GetLog().Error("特有参数json解析失败:", err)
+				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
+			}
+			res, err := toUpbitParam.GetService().Compute(ctx, req)
+			fmt.Println(err)
+			res.PrintMe()
 		}
 	case grpcEvent.TO_UPBIT_CFG:
 		{
@@ -149,7 +173,7 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 				logError.GetLog().Error("特有参数json解析失败:", err)
 				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
 			}
-			toUpBitListDataStatic.UpdateParam(cfg.PriceRiceTrig, cfg.OrderRiceTrig)
+			toUpBitListDataStatic.UpdateParam(cfg.PriceRiceTrig)
 		}
 	default:
 	}

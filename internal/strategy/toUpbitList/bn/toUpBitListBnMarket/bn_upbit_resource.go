@@ -3,10 +3,10 @@ package toUpBitListBnMarket
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/aggTrade/aggTradeSubBn"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/bookTick/bookTickSubBn"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/markPrice/markPriceSubBn"
+	"upbitBnServer/internal/quant/market/aggTrade/aggTradeSubBn"
+	"upbitBnServer/internal/quant/market/bookTick/bookTickSubBn"
+	"upbitBnServer/internal/quant/market/markPrice/markPriceSubBn"
+	"upbitBnServer/pkg/singleton"
 )
 
 type Market struct {

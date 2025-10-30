@@ -1,8 +1,8 @@
 package myCrypto
 
 import (
-	"github.com/hhh500/quantGoInfra/infra/errorx"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errCode"
+	"upbitBnServer/internal/infra/errorx"
+	"upbitBnServer/internal/infra/errorx/errCode"
 )
 
 const (

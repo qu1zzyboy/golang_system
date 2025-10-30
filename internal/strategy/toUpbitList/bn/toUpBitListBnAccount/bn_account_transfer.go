@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
-	"github.com/hhh500/upbitBnServer/internal/quant/account/accountConfig"
-	"github.com/hhh500/upbitBnServer/internal/quant/account/universalTransfer"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnRest"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/quant/account/accountConfig"
+	"upbitBnServer/internal/quant/account/universalTransfer"
+	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
+	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnRest"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/pkg/singleton"
+
 	"github.com/shopspring/decimal"
 	"github.com/tidwall/gjson"
 )
@@ -38,13 +40,7 @@ type BnAccountManager struct {
 
 func (s *BnAccountManager) TransferIn(from int32, amount decimal.Decimal) error {
 	out := accountConfig.Trades[from]
-	var usdtAmount decimal.Decimal
-	if toUpBitListDataStatic.IsDebug {
-		usdtAmount = amount
-	} else {
-		// 留200u作为挂单保证金
-		usdtAmount = amount.Sub(decimal.NewFromInt(200))
-	}
+	usdtAmount := toUpbitBnMode.Mode.GetTransferAmount(amount)
 	if usdtAmount.LessThan(decimal.Zero) {
 		toUpBitListDataStatic.DyLog.GetLog().Infof("账户[%d]余额不足200u,不划转", out.AccountId)
 		return nil

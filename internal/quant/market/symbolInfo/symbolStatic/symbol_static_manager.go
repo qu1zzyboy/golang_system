@@ -1,12 +1,12 @@
 package symbolStatic
 
 import (
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/debugx"
-	"github.com/hhh500/quantGoInfra/infra/errorx"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errCode"
-	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/debugx"
+	"upbitBnServer/internal/infra/errorx"
+	"upbitBnServer/internal/infra/errorx/errCode"
+	"upbitBnServer/pkg/container/map/myMap"
+	"upbitBnServer/pkg/singleton"
 )
 
 type TradeManager struct {

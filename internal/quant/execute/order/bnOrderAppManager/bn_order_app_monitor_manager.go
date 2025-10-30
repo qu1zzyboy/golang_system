@@ -3,12 +3,12 @@ package bnOrderAppManager
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
-	"github.com/hhh500/upbitBnServer/internal/quant/account/accountConfig"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderBelongEnum"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderModel"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderStatic"
+	"upbitBnServer/internal/quant/account/accountConfig"
+	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
+	"upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
+	"upbitBnServer/internal/quant/execute/order/orderStatic"
+	"upbitBnServer/pkg/singleton"
 )
 
 var monitorSingleton = singleton.NewSingleton(func() *MonitorManager {

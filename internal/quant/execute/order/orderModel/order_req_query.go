@@ -1,9 +1,9 @@
 package orderModel
 
 import (
-	"github.com/hhh500/quantGoInfra/infra/errorx/errDefine"
-	"github.com/hhh500/quantGoInfra/resource/resourceEnum"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
+	"upbitBnServer/internal/infra/errorx/errDefine"
+	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
+	"upbitBnServer/internal/resource/resourceEnum"
 )
 
 type MyQueryOrderReq struct {

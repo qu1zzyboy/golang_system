@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = ".;params";
+option go_package = ".;toUpbitParam";
 package params;
 
 // ===== Service =====

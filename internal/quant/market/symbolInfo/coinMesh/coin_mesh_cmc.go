@@ -3,7 +3,7 @@ package coinMesh
 import (
 	"time"
 
-	"github.com/hhh500/quantGoInfra/define/defineTime"
+	"upbitBnServer/internal/define/defineTime"
 )
 
 //必须先获取cmc信息,因为要做check

@@ -1,10 +1,11 @@
 package orderStatic
 
 import (
-	"github.com/hhh500/quantGoInfra/pkg/container/map/myMap"
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderBelongEnum"
+	"upbitBnServer/internal/quant/execute"
+	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
+	"upbitBnServer/pkg/container/map/myMap"
+	"upbitBnServer/pkg/singleton"
+
 	"github.com/shopspring/decimal"
 )
 

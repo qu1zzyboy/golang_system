@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/upbitBnServer/internal/infra/observe/metric/metricx"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/observe/metric/metricx"
 )
 
 func TestSystemMetrics(t *testing.T) {

@@ -1,0 +1,105 @@
+package skipList
+
+import (
+	"unsafe"
+)
+
+type Element struct {
+	elementHeader
+	Value        uint32
+	Key          uint32
+	prev         *Element  // Points to previous adjacent elem.
+	prevTopLevel *Element  // Points to previous element which points to this element's top most level.
+	list         *SkipList // The list contains this elem.
+}
+
+// elementHeader 是 Node 或 SkipList 的头部，
+// 用来存储不同层级的 forward 指针。
+// 它必须是匿名字段并且排在第一个，
+// 这样才能通过 unsafe 做零开销的类型转换。
+type elementHeader struct {
+	levels []*Element // 每一层的下一个节点指针
+}
+
+// Go 的嵌入规则下,elementHeader 在内存布局的开头(必须保证匿名字段是第一个),所以它的地址和整个 Element 地址是一致的
+
+func (header *elementHeader) Element() *Element {
+	return (*Element)(unsafe.Pointer(header))
+}
+
+// newNode 创建一个新节点，指定层数、key 和 value
+func newElement(list *SkipList, level int, key, value uint32) *Element {
+	return &Element{
+		elementHeader: elementHeader{
+			levels: make([]*Element, level),
+		},
+		Value: value,
+		Key:   key,
+		list:  list,
+	}
+}
+
+// Next 返回同一层级下的下一个节点。
+// 实际上就是 levels[0]，即最底层的下一个。
+func (elem *Element) Next() *Element {
+	if len(elem.levels) == 0 {
+		return nil
+	}
+
+	return elem.levels[0]
+}
+
+// Prev 返回相邻的前一个节点
+func (elem *Element) Prev() *Element {
+	return elem.prev
+}
+
+// NextLevel 返回指定层的下一个节点。
+// 如果层数无效，返回 nil。
+func (elem *Element) NextLevel(level int) *Element {
+	if level < 0 || level >= len(elem.levels) {
+		return nil
+	}
+
+	return elem.levels[level]
+}
+
+// PrevLevel 返回指定层的前一个节点。
+// 如果层数无效，返回 nil。
+func (elem *Element) PrevLevel(level int) *Element {
+	if level < 0 || level >= len(elem.levels) {
+		return nil
+	}
+
+	if level == 0 {
+		return elem.prev
+	}
+
+	if level == len(elem.levels)-1 {
+		return elem.prevTopLevel
+	}
+
+	prev := elem.prev
+
+	for prev != nil {
+		if level < len(prev.levels) {
+			return prev
+		}
+
+		prev = prev.prevTopLevel
+	}
+
+	return prev
+}
+
+// Level 返回节点的层数
+func (elem *Element) Level() int {
+	return len(elem.levels)
+}
+
+func (elem *Element) reset() {
+	elem.list = nil
+	elem.prev = nil
+	elem.prevTopLevel = nil
+	elem.levels = nil
+}

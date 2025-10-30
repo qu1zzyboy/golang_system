@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"upbitBnServer/pkg/utils/time2str"
 
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/quantGoInfra/pkg/utils/jsonUtils"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/pkg/utils/jsonUtils"
 )
 
 type FutureCancelBatchSdk struct {
@@ -45,7 +45,7 @@ func (api *FutureCancelBatchSdk) ParseRestRequest() string {
 		// 去掉 JSON 生成的多余空格(一般不会有)
 		param.Add(p_ORIG_CLIENT_ORDER_ID_LIST, strings.ReplaceAll(string(data), " ", ""))
 	}
-	param.Set(p_TIME_STAMP, convertx.GetNowTimeStampMilliStr())
+	param.Set(p_TIME_STAMP, time2str.GetNowTimeStampMilliStr())
 	// 编码 query & form
 	return param.Encode()
 }

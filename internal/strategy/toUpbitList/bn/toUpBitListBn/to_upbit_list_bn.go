@@ -3,38 +3,36 @@ package toUpBitListBn
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errDefine"
-	"github.com/hhh500/quantGoInfra/infra/global/globalCron"
-	"github.com/hhh500/quantGoInfra/infra/redisx"
-	"github.com/hhh500/quantGoInfra/infra/redisx/redisConfig"
-	"github.com/hhh500/quantGoInfra/pkg/container/ring/ringBuf"
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/quantGoInfra/pkg/utils/jsonUtils"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/exchangeEnum"
-	strategyV1 "github.com/hhh500/upbitBnServer/api/strategy/v1"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnAccount"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnExecute"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnMarket"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpbitMesh"
-	"github.com/hhh500/upbitBnServer/server/instance/instanceCenter"
-	"github.com/hhh500/upbitBnServer/server/serverInstanceEnum"
+	strategyV1 "upbitBnServer/api/strategy/v1"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/errorx/errDefine"
+	"upbitBnServer/internal/infra/global/globalCron"
+	"upbitBnServer/internal/infra/redisx"
+	"upbitBnServer/internal/infra/redisx/redisConfig"
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnAccount"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnMarket"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitMesh"
+	"upbitBnServer/pkg/container/ring/ringBuf"
+	"upbitBnServer/pkg/utils/convertx"
+	"upbitBnServer/pkg/utils/jsonUtils"
+	"upbitBnServer/server/instance/instanceCenter"
+	"upbitBnServer/server/serverInstanceEnum"
 )
 
 const limit = 30
 
 type Req struct {
 	PriceRiceTrig float64          // 价格触发阈值,当价格变化超过该值时触发
-	OrderRiceTrig float64          // 下单触发阈值,当价格变化超过该值时下单
 	Qty           float64          // 开仓金额
 	Dec003        float64          // dec0.3
 	Dec500        int64            // dec500
 	TickCap       ringBuf.Capacity // bookTick环形缓冲区容量
-	IsDebug       bool
 }
 
 func (s *Req) TypeName() string {
@@ -55,10 +53,10 @@ func newEngine() *Engine {
 }
 
 func (e *Engine) start(ctx context.Context, req *Req) error {
-	toUpBitListDataStatic.SetParam(req.PriceRiceTrig, req.OrderRiceTrig, req.TickCap, req.Dec500, req.IsDebug)
+	toUpBitListDataStatic.SetParam(req.PriceRiceTrig, req.TickCap, req.Dec500)
 	toUpBitListDataStatic.ExType = exchangeEnum.BINANCE
 	toUpBitListDataStatic.AcType = exchangeEnum.FUTURE
-	toUpBitListBnExecute.GetExecute().SetParam(req.Qty, req.Dec003)
+	toUpbitListBnSymbol.SetParam(req.Qty, req.Dec003)
 	// --- IGNORE ---
 	toUpBitListDataAfter.ClearTrig()
 	//获取初始化要订阅的品种

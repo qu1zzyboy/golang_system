@@ -1,13 +1,13 @@
 package orderSdkBnModel
 
 import (
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/infra/errorx/errDefine"
-	"github.com/hhh500/quantGoInfra/pkg/container/pool/byteBufPool"
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/quantGoInfra/pkg/utils/timeUtils"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderModel"
-	"github.com/hhh500/upbitBnServer/internal/utils/myCrypto"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/errorx/errDefine"
+	"upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/internal/utils/myCrypto"
+	"upbitBnServer/pkg/container/pool/byteBufPool"
+	"upbitBnServer/pkg/utils/convertx"
+	"upbitBnServer/pkg/utils/timeUtils"
 )
 
 type FutureQuerySdk struct {
@@ -71,22 +71,6 @@ func (api *FutureQuerySdk) ParseWsReqFast(firstChar, apiKey, method string, secr
 		return nil, err
 	}
 	return buildWsReqFast(512, firstChar+api.ClientOrderId, method, param, querySortedKeyFast, signRes), nil
-}
-
-var querySortedKeyFastNoSign = []string{p_ORIG_CLIENT_ORDER_ID, p_SYMBOL, p_TIME_STAMP}
-
-func (api *FutureQuerySdk) ParseWsReqFastNoSign(firstChar, method string) (*[]byte, error) {
-	if api.ClientOrderId == "" {
-		return nil, errDefine.ClientOrderIdEmpty.WithMetadata(map[string]string{defineJson.ReqType: "ParseWsReqFastNoSign"})
-	}
-	param := make(map[string]any)
-	param[p_SYMBOL] = api.symbolName
-	param[p_ORIG_CLIENT_ORDER_ID] = api.ClientOrderId
-	if api.orderId != nil {
-		param[p_ORDER_ID] = *api.orderId
-	}
-	param[p_TIME_STAMP] = timeUtils.GetNowTimeUnixMilli()
-	return buildWsReqFastNoSign(512, firstChar+api.ClientOrderId, method, param, querySortedKeyFastNoSign), nil
 }
 
 // NewFutureQuerySdk   rest查询订单 (USER_DATA)

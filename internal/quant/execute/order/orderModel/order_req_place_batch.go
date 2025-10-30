@@ -1,6 +1,6 @@
 package orderModel
 
-import "github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
+import "upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
 
 type MyPlaceOrderBatchReq struct {
 	StaticMeta *symbolStatic.StaticTrade

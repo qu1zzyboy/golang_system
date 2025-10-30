@@ -3,12 +3,12 @@ package aggTradeSubBn
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/infra/ws/wsDefine"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/exchangeEnum"
-	"github.com/hhh500/quantGoInfra/resource/resourceEnum"
-	"github.com/hhh500/upbitBnServer/internal/resource/wsMarketClient"
-	"github.com/hhh500/upbitBnServer/internal/resource/wsSub"
-	"github.com/hhh500/upbitBnServer/internal/resource/wsSubParam"
+	"upbitBnServer/internal/infra/ws/wsDefine"
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
+	"upbitBnServer/internal/resource/resourceEnum"
+	"upbitBnServer/internal/resource/wsMarketClient"
+	"upbitBnServer/internal/resource/wsSub"
+	"upbitBnServer/internal/resource/wsSubParam"
 )
 
 type BnAggTrade struct {

@@ -3,8 +3,8 @@ package orderSdkBnModel
 import (
 	"fmt"
 
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/quantGoInfra/pkg/utils/timeUtils"
+	"upbitBnServer/pkg/utils/convertx"
+	"upbitBnServer/pkg/utils/timeUtils"
 )
 
 // FutureLeverage

@@ -3,11 +3,11 @@ package toUpbitMesh
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/define/defineJson"
-	"github.com/hhh500/quantGoInfra/pkg/singleton"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
-	"github.com/hhh500/upbitBnServer/internal/resource/registerHandler"
-	"github.com/hhh500/upbitBnServer/server/serverInstanceEnum"
+	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
+	"upbitBnServer/internal/resource/registerHandler"
+	"upbitBnServer/pkg/singleton"
+	"upbitBnServer/server/serverInstanceEnum"
 )
 
 type UpBitListDelta interface {

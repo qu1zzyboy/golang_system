@@ -1,20 +1,17 @@
 package bnPayloadManager
 
 import (
-	"github.com/hhh500/quantGoInfra/infra/observe/log/dynamicLog"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderBelongEnum"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderStatic"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/quant/execute"
+	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
+	"upbitBnServer/internal/quant/execute/order/orderStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
+
 	"github.com/shopspring/decimal"
 	"github.com/tidwall/gjson"
-)
-
-var (
-	fnSuccess toUpBitListDataAfter.OnSuccessOrder // 下单成功回调函数
 )
 
 /*
@@ -26,10 +23,6 @@ func (s *Payload) onPayloadOrder(data []byte) {
 	orderFrom, orderMode, symbolIndex, ok := orderStatic.GetService().GetOrderInstanceIdAndSymbolId(clientOrderId)
 
 	if !ok {
-		// 可能是手动平仓单
-		if gjson.GetBytes(data, "o.s").String() == toUpBitListDataAfter.TrigSymbolName {
-			return
-		}
 		// 可能是手动平仓单
 		if clientOrderId[0:3] == "ios" || clientOrderId[0:3] == "web" {
 			return
@@ -45,6 +38,7 @@ func (s *Payload) onPayloadOrder(data []byte) {
 			if orderMode != execute.ORDER_SELL_OPEN {
 				return
 			}
+			// 订单状态异常
 			orderStatus := execute.ParseBnOrderStatus(gjson.GetBytes(data, "o.X").String())
 			if orderStatus == execute.UNKNOWN_ORDER_STATUS {
 				toUpBitListDataStatic.DyLog.GetLog().Errorf("[%d]ORDER_UPDATE: unknown order status, json: %s", s.accountKeyId, string(data))
@@ -52,9 +46,9 @@ func (s *Payload) onPayloadOrder(data []byte) {
 			}
 			switch orderStatus {
 			case execute.NEW:
-				{
-
-				}
+				toUpbitListBnSymbol.OnOrderUpdate(true, clientOrderId)
+			case execute.CANCELED:
+				toUpbitListBnSymbol.OnOrderUpdate(false, clientOrderId)
 			default:
 
 			}
@@ -76,11 +70,13 @@ func (s *Payload) onPayloadOrder(data []byte) {
 				toUpBitListDataStatic.DyLog.GetLog().Errorf("触发后异常订单:%s", string(data))
 				return
 			}
+			// 订单状态异常
 			orderStatus := execute.ParseBnOrderStatus(gjson.GetBytes(data, "o.X").String())
 			if orderStatus == execute.UNKNOWN_ORDER_STATUS {
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("[%d]parsePayloadOrder: unknown order status, json: %s", s.accountKeyId, string(data))
+				toUpBitListDataStatic.DyLog.GetLog().Errorf("[%d]ORDER_UPDATE: unknown order status, json: %s", s.accountKeyId, string(data))
 				return
 			}
+
 			isOnline := execute.IsOrderOnLine(orderStatus)
 			evt := toUpBitListDataAfter.OnSuccessEvt{
 				ClientOrderId: clientOrderId,
@@ -94,9 +90,9 @@ func (s *Payload) onPayloadOrder(data []byte) {
 			} else {
 				evt.TimeStamp = gjson.GetBytes(data, "T").Int()
 			}
-			fnSuccess(evt)
+			toUpbitListChan.SendSuOrder(symbolIndex, evt)
 		}
 	default:
-		dynamicLog.Error.GetLog().Errorf("ORDER_TRADE_UPDATE: unknown orderFrom %v", orderFrom)
+		dynamicLog.Error.GetLog().Errorf("ORDER_UPDATE: unknown orderFrom %v", orderFrom)
 	}
 }

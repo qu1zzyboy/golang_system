@@ -3,13 +3,13 @@ package orderMonitorSdkBnWs
 import (
 	"context"
 
-	"github.com/hhh500/quantGoInfra/infra/ws/wsDefine"
-	"github.com/hhh500/quantGoInfra/pkg/container/pool/byteBufPool"
-	"github.com/hhh500/quantGoInfra/quant/exchanges/exchangeEnum"
-	"github.com/hhh500/quantGoInfra/resource/resourceEnum"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
-	"github.com/hhh500/upbitBnServer/internal/resource/wsExecuteClient"
-	"github.com/hhh500/upbitBnServer/internal/resource/wsSub"
+	"upbitBnServer/internal/infra/ws/wsDefine"
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
+	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
+	"upbitBnServer/internal/resource/resourceEnum"
+	"upbitBnServer/internal/resource/wsExecuteClient"
+	"upbitBnServer/internal/resource/wsSub"
+	"upbitBnServer/pkg/container/pool/byteBufPool"
 )
 
 type FutureMonitorClient struct {

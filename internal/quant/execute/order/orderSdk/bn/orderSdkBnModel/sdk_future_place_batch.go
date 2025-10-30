@@ -2,10 +2,10 @@ package orderSdkBnModel
 
 import (
 	"net/url"
+	"upbitBnServer/pkg/utils/time2str"
 
-	"github.com/hhh500/quantGoInfra/pkg/utils/convertx"
-	"github.com/hhh500/quantGoInfra/pkg/utils/jsonUtils"
-	"github.com/hhh500/upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/pkg/utils/jsonUtils"
 )
 
 type paramBatch map[string]any
@@ -61,7 +61,7 @@ func (s *FuturePlaceBatchSdk) ParseRestRequest() (string, error) {
 	}
 	param := url.Values{}
 	param.Set(p_BATCH_ORDERS, string(b))
-	param.Set(p_TIME_STAMP, convertx.GetNowTimeStampMilliStr())
+	param.Set(p_TIME_STAMP, time2str.GetNowTimeStampMilliStr())
 	// 编码 query & form
 	return param.Encode(), nil
 }

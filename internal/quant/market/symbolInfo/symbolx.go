@@ -1,6 +1,6 @@
 package symbolInfo
 
-import "github.com/hhh500/quantGoInfra/quant/exchanges/exchangeEnum"
+import "upbitBnServer/internal/quant/exchanges/exchangeEnum"
 
 const (
 	ReasonSymbolInfoHttpError = "SYMBOL_INFO_HTTP_ERROR" // 获取交易对信息HTTP错误

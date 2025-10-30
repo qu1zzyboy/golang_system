@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/hhh500/upbitBnServer/internal/quant/market/aggTrade/aggTradeSubBn"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/bookTick/bookTickSubBn"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/markPrice/markPriceSubBn"
-	"github.com/hhh500/upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
-	"github.com/hhh500/upbitBnServer/server/instance"
+	"upbitBnServer/internal/quant/market/aggTrade/aggTradeSubBn"
+	"upbitBnServer/internal/quant/market/bookTick/bookTickSubBn"
+	"upbitBnServer/internal/quant/market/markPrice/markPriceSubBn"
+	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/server/instance"
 )
 
 func (e *Engine) onSymbolList(ctx context.Context, s *coinMesh.CoinMesh) error {

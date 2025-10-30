@@ -1,9 +1,10 @@
 package toUpBitListBnMarket
 
 import (
-	"github.com/hhh500/quantGoInfra/pkg/container/pool/byteBufPool"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
-	"github.com/hhh500/upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
+	"upbitBnServer/pkg/container/pool/byteBufPool"
+
 	"github.com/tidwall/gjson"
 )
 

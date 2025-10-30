@@ -1,0 +1,264 @@
+package skipList
+
+import (
+	"math/rand"
+	"time"
+)
+
+var DefaultMaxLevel = 16
+
+// SkipList is the header of a skip list.
+type SkipList struct {
+	elementHeader
+	rand     *rand.Rand // 随机数生成器，用于决定节点层数
+	maxLevel int        // 当前最大层数
+	length   int        // 节点数
+	back     *Element   // 尾节点,O(1) 访问
+}
+
+// NewSkipList 创建一个新的跳表。
+// 参数 maxLevel 控制最大层数，建议设为 log₂(n) 附近
+func New(maxLevel int) *SkipList {
+	source := rand.NewSource(time.Now().UnixNano())
+	return &SkipList{
+		elementHeader: elementHeader{
+			levels: make([]*Element, maxLevel),
+		},
+		rand:     rand.New(source),
+		maxLevel: maxLevel,
+	}
+}
+
+// 允许用户替换随机数源(例如用固定种子,保证测试可复现；或者换掉全局锁的 rand)
+func (list *SkipList) SetRandSource(source rand.Source) {
+	list.rand = rand.New(source)
+}
+
+// 返回跳表的头节点(最小 key，或者在买盘/卖盘里就是最优价) O(1).
+func (list *SkipList) Front() *Element {
+	return list.levels[0]
+}
+
+// 返回跳表的尾节点(最大 key) O(1).
+func (list *SkipList) Back() *Element {
+	return list.back
+}
+
+// The complexity is O(1).
+func (list *SkipList) Len() int {
+	return list.length
+}
+
+// Set 插入或更新 key 对应的值。平均复杂度 O(logN)。
+func (list *SkipList) Set(key, value uint32) (elem *Element) {
+	// 空表的情况
+	if list.length == 0 {
+		level := list.randLevel()
+		elem = newElement(list, level, key, value)
+
+		for i := range level {
+			list.levels[i] = elem
+		}
+
+		list.back = elem
+		list.length++
+		return
+	}
+
+	// 查找插入位置
+	max := len(list.levels)
+	prevHeader := &list.elementHeader
+	prevElemHeaders := make([]*elementHeader, max)
+
+	for i := max - 1; i >= 0; {
+		prevElemHeaders[i] = prevHeader
+		for next := prevHeader.levels[i]; next != nil; next = prevHeader.levels[i] {
+			if key <= next.Key {
+				// 更新已存在的 key
+				if key == next.Key {
+					next.Value = value
+					return next
+				}
+				break
+			}
+			prevHeader = &next.elementHeader
+			prevElemHeaders[i] = prevHeader
+		}
+		topLevel := prevHeader.levels[i]
+		for i--; i >= 0 && prevHeader.levels[i] == topLevel; i-- {
+			prevElemHeaders[i] = prevHeader
+		}
+	}
+
+	// 创建新节点
+	level := list.randLevel()
+	elem = newElement(list, level, key, value)
+
+	// 设置前驱指针
+	if prev := prevElemHeaders[0]; prev != &list.elementHeader {
+		elem.prev = prev.Element()
+	}
+	if prev := prevElemHeaders[level-1]; prev != &list.elementHeader {
+		elem.prevTopLevel = prev.Element()
+	}
+
+	// 建立 forward 指针
+	for i := 0; i < level; i++ {
+		elem.levels[i] = prevElemHeaders[i].levels[i]
+		prevElemHeaders[i].levels[i] = elem
+	}
+
+	// 更新 back
+	if elem.Next() == nil {
+		list.back = elem
+	}
+	list.length++
+	return elem
+}
+
+func (list *SkipList) findNext(start *Element, key uint32) (elem *Element) {
+	if list.length == 0 {
+		return
+	}
+
+	if start == nil && key <= list.Front().Key {
+		return list.Front()
+	}
+	if start != nil && key <= start.Key {
+		return start
+	}
+	if key > list.Back().Key {
+		return nil
+	}
+
+	var prevHeader *elementHeader
+	if start == nil {
+		prevHeader = &list.elementHeader
+	} else {
+		prevHeader = &start.elementHeader
+	}
+	i := len(prevHeader.levels) - 1
+
+	for i >= 0 {
+		for next := prevHeader.levels[i]; next != nil; next = prevHeader.levels[i] {
+			if key <= next.Key {
+				return next
+			}
+			prevHeader = &next.elementHeader
+		}
+		topLevel := prevHeader.levels[i]
+		for i--; i >= 0 && prevHeader.levels[i] == topLevel; i-- {
+		}
+	}
+	return
+}
+
+// 查找 第一个大于等于 key 的节点 O(log(N)).
+func (list *SkipList) Find(key uint32) (elem *Element) {
+	return list.findNext(nil, key)
+}
+
+// Get 查找指定 key 的节点。平均复杂度 O(logN)。
+func (list *SkipList) Get(key uint32) (elem *Element) {
+	if list.length == 0 {
+		return nil
+	}
+	n := list.findNext(nil, key)
+	if n == nil || n.Key != key {
+		return nil
+	}
+	return n
+}
+
+// Remove 删除指定 key 的节点。平均复杂度 O(logN)。
+func (list *SkipList) Remove(key uint32) (elem *Element) {
+	elem = list.Get(key)
+
+	if elem == nil {
+		return
+	}
+
+	list.RemoveElement(elem)
+	return
+}
+
+// RemoveFront 删除并返回表头节点（O(1)）。
+func (list *SkipList) RemoveFront() (front *Element) {
+	if list.length == 0 {
+		return
+	}
+
+	front = list.Front()
+	list.RemoveElement(front)
+	return
+}
+
+// RemoveBack 删除并返回表尾节点 O(logN)
+func (list *SkipList) RemoveBack() (back *Element) {
+	if list.length == 0 {
+		return
+	}
+
+	back = list.back
+	list.RemoveElement(back)
+	return
+}
+
+// RemoveElement removes the elem from the list.
+//
+// The complexity is O(log(N)).
+func (list *SkipList) RemoveElement(elem *Element) {
+	if elem == nil || elem.list != list {
+		return
+	}
+
+	level := elem.Level()
+	max := 0
+	prevElems := make([]*Element, level)
+	prev := elem.prev
+
+	// 找到所有前驱节点
+	for prev != nil && max < level {
+		prevLevel := len(prev.levels)
+
+		for ; max < prevLevel && max < level; max++ {
+			prevElems[max] = prev
+		}
+
+		for prev = prev.prevTopLevel; prev != nil && prev.Level() == prevLevel; prev = prev.prevTopLevel {
+		}
+	}
+
+	// 更新前驱指针
+	for i := 0; i < max; i++ {
+		prevElems[i].levels[i] = elem.levels[i]
+	}
+	for i := max; i < level; i++ {
+		list.levels[i] = elem.levels[i]
+	}
+
+	// 更新后继节点的 prev
+	if next := elem.Next(); next != nil {
+		next.prev = elem.prev
+	}
+	if list.back == elem {
+		list.back = elem.prev
+	}
+	list.length--
+	elem.reset()
+}
+
+func (list *SkipList) randLevel() int {
+	estimated := list.maxLevel
+	const prob = 1 << 30 // Half of 2^31.
+	rand := list.rand
+	i := 1
+
+	for ; i < estimated; i++ {
+		if rand.Int31() < prob {
+			break
+		}
+	}
+
+	return i
+}
