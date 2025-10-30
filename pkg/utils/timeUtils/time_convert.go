@@ -20,3 +20,10 @@ func GetHourKey(ts int64) int64 {
 	t := time.UnixMilli(ts)
 	return int64(t.Year()*1000000 + int(t.Month())*10000 + t.Day()*100 + t.Hour())
 }
+
+// 将毫秒级时间戳转为该小时起始时间的毫秒级时间戳
+func ConvertMillTs2HourStartMill(msTimestamp int64) int64 {
+	t := time.UnixMilli(msTimestamp)
+	startOfHour := t.Truncate(time.Hour)
+	return startOfHour.UnixMilli()
+}

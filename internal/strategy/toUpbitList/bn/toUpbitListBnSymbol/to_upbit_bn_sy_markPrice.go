@@ -12,6 +12,7 @@ import (
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"upbitBnServer/pkg/container/map/myMap"
@@ -24,6 +25,7 @@ import (
 )
 
 var (
+	dec12              = decimal.RequireFromString("12.00")     //2倍最小下单金额
 	dec2               = decimal.RequireFromString("2.00")      //2倍最小下单金额
 	dec5               = decimal.RequireFromString("0.33")      //小订单比例
 	dec1               = decimal.RequireFromString("1.0")       //1.0
@@ -76,9 +78,9 @@ func (s *Single) onMarkPrice(len int, bufPtr *[]byte) {
 		s.markPrice_8 = markPrice_8
 		s.priceMaxBuy_10 = markPrice_8 * s.upLimitPercent_2
 		s.mpLatencyTotal.Record(s.StMeta.SymbolName, float64(time.Now().UnixMicro()-1000*s.markPriceTs))
-		// if toUpBitListDataStatic.IsDebug {
-		// 	return
-		// }
+		if !toUpbitBnMode.Mode.IsPlacePreOrder() {
+			return
+		}
 		// 3、回调函数更新预挂单
 		s.checkPreOrder(markPrice_8)
 	}
@@ -128,7 +130,7 @@ func (s *Single) initPreOrder() error {
 	lastMarkPriceDec := decimal.New(int64(s.lastMarkPrice_8), -bnConst.PScale_8)
 
 	//挂单量=最大(最小下单量,2*最小下单金额/最新标记价格)
-	s.orderNum = decimal.Max(dyMeta.LotSize, dec2.Mul(dyMeta.MinQty).Div(lastMarkPriceDec)).Truncate(dyMeta.QScale)
+	s.orderNum = decimal.Max(dyMeta.LotSize, dec12.Mul(dyMeta.MinQty).Div(lastMarkPriceDec)).Truncate(dyMeta.QScale)
 	s.clientOrderIdSmall = toUpBitListDataStatic.GetClientOrderIdBy(mesh.CmcAsset) //小订单id
 	//1.0+0.33*(1.15-1.0)
 	s.smallPercent = dec5.Mul(dyMeta.UpLimitPercent.Sub(dec1)).Add(dec1)

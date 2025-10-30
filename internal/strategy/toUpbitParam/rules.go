@@ -1,4 +1,4 @@
-package params
+package toUpbitParam
 
 import (
 	"math"
@@ -19,8 +19,11 @@ type twapBucket struct {
 }
 
 var gainBuckets = []gainBucket{
-	{lower: 0, upper: 5, baseline: 30, cap: 40},
-	{lower: 5, upper: 50, baseline: 30, cap: 40},
+	{lower: 0, upper: 5, baseline: 40, cap: 55},
+	{lower: 5, upper: 20, baseline: 40, cap: 55},
+	{lower: 20, upper: 30, baseline: 40, cap: 55},
+	{lower: 30, upper: 40, baseline: 30, cap: 40},
+	{lower: 40, upper: 50, baseline: 29, cap: 38},
 	{lower: 50, upper: 60, baseline: 28, cap: 36},
 	{lower: 60, upper: 70, baseline: 26, cap: 31},
 	{lower: 70, upper: 80, baseline: 24, cap: 28},
@@ -144,19 +147,19 @@ const (
 	twapOiMaxSecs = 10.0
 )
 
-func computeOIContribs(oiNotional *float64, marketCapM float64) (gainAdd, twapAdd float64, strength, norm *float64) {
-	if oiNotional == nil {
-		return 0, 0, nil, nil
+func computeOIContribs(oiNotional float64, marketCapM float64) (gainAdd, twapAdd float64, strength, norm float64) {
+	if oiNotional <= 0 {
+		return 0, 0, 0, 0
 	}
 	marketCapUSD := marketCapM * 1e6
 	if marketCapUSD <= 0 {
-		return 0, 0, nil, nil
+		return 0, 0, 0, 0
 	}
-	s := *oiNotional / marketCapUSD
+	s := oiNotional / marketCapUSD
 	n := normalizeS(s)
 	gain := gainOiMax * n
 	twap := twapOiMaxSecs * n
-	return gain, twap, &s, &n
+	return gain, twap, s, n
 }
 
 func normalizeS(s float64) float64 {

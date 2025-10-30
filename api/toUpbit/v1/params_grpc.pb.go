@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.31.1
-// source: api/toUpbit/v1/params.proto
+// source: api/toUpbit/v1/toUpbitParam.proto
 
 package params
 
@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ParamsService_GetParams_FullMethodName   = "/params.ParamsService/GetParams"
-	ParamsService_HealthCheck_FullMethodName = "/params.ParamsService/HealthCheck"
+	ParamsService_GetParams_FullMethodName   = "/toUpbitParam.ParamsService/GetParams"
+	ParamsService_HealthCheck_FullMethodName = "/toUpbitParam.ParamsService/HealthCheck"
 )
 
 // ParamsServiceClient is the client API for ParamsService service.
@@ -146,7 +146,7 @@ func _ParamsService_HealthCheck_Handler(srv interface{}, ctx context.Context, de
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ParamsService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "params.ParamsService",
+	ServiceName: "toUpbitParam.ParamsService",
 	HandlerType: (*ParamsServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -159,5 +159,5 @@ var ParamsService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/toUpbit/v1/params.proto",
+	Metadata: "api/toUpbit/v1/toUpbitParam.proto",
 }

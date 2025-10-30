@@ -41,9 +41,11 @@ func (s *Single) checkPreOrder(markPrice_8 uint64) {
 		thisMarkPriceDec := decimal.New(int64(markPrice_8), -bnConst.PScale_8)
 		symbolKey := symbolStatic.GetSymbol().GetSymbolKey(s.StMeta.SymbolKeyId)
 		modifySmallPrice := thisMarkPriceDec.Mul(s.smallPercent).Truncate(s.pScale)
+		lastMarkPrice_8 := s.lastMarkPrice_8
 		s.lastMarkPrice_8 = markPrice_8
 		if _, ok := clientOrders.Load(s.clientOrderIdSmall); ok {
-			toUpBitListDataStatic.DyLog.GetLog().Infof("[%d,%s] 触发[%d,%d,%d],准备更新预挂单:%s", s.preAccountKeyId, symbolKey, s.lastMarkPrice_8, markPrice_8, s.pScale, modifySmallPrice)
+			toUpBitListDataStatic.DyLog.GetLog().Infof("[%d,%s] 触发[%d,%d,%d_%d],准备更新预挂单:%s",
+				s.preAccountKeyId, symbolKey, lastMarkPrice_8, markPrice_8, s.pScale, s.qScale, modifySmallPrice)
 			//更新订单价格
 			if err := bnOrderAppManager.GetTradeManager().SendModifyOrder(ws_req_from, s.preAccountKeyId,
 				&orderModel.MyModifyOrderReq{
@@ -58,7 +60,7 @@ func (s *Single) checkPreOrder(markPrice_8 uint64) {
 					"op":     "更新5%订单失败",
 					"error":  err.Error(),
 				})
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("%s修改小订单错误: %s", symbolKey, err.Error())
+				toUpBitListDataStatic.DyLog.GetLog().Errorf("[%d] %s修改小订单错误: %s", s.preAccountKeyId, symbolKey, err.Error())
 			}
 		} else {
 			toUpBitListDataStatic.DyLog.GetLog().Infof("[%d,%s] 触发[%d,%d,%d],准备重下预挂单:%s", s.preAccountKeyId, symbolKey, s.lastMarkPrice_8, markPrice_8, s.pScale, modifySmallPrice)

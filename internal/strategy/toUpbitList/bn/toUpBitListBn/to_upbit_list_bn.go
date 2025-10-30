@@ -29,12 +29,10 @@ const limit = 30
 
 type Req struct {
 	PriceRiceTrig float64          // 价格触发阈值,当价格变化超过该值时触发
-	OrderRiceTrig float64          // 下单触发阈值,当价格变化超过该值时下单
 	Qty           float64          // 开仓金额
 	Dec003        float64          // dec0.3
 	Dec500        int64            // dec500
 	TickCap       ringBuf.Capacity // bookTick环形缓冲区容量
-	IsDebug       bool
 }
 
 func (s *Req) TypeName() string {
@@ -55,7 +53,7 @@ func newEngine() *Engine {
 }
 
 func (e *Engine) start(ctx context.Context, req *Req) error {
-	toUpBitListDataStatic.SetParam(req.PriceRiceTrig, req.OrderRiceTrig, req.TickCap, req.Dec500, req.IsDebug)
+	toUpBitListDataStatic.SetParam(req.PriceRiceTrig, req.TickCap, req.Dec500)
 	toUpBitListDataStatic.ExType = exchangeEnum.BINANCE
 	toUpBitListDataStatic.AcType = exchangeEnum.FUTURE
 	toUpbitListBnSymbol.SetParam(req.Qty, req.Dec003)

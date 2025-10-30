@@ -16,6 +16,7 @@ const (
 	TO_UPBIT_RECEIVE_NEWS //
 	TO_UPBIT_CFG          // upbit配置更新
 	TO_UPBIT_TEST
+	TO_UPBIT_PARAM_TEST
 	GET_NOT_REASON //
 
 	//观测服务

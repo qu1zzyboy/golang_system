@@ -1,8 +1,4 @@
-package convertx
-
-import (
-	"time"
-)
+package time2str
 
 const (
 	TSNano  = 0      //= 0,二进制:0000
@@ -11,7 +7,7 @@ const (
 	TSMicro = 1 << 2 //= 4,二进制:0100
 )
 
-func GetNumDigits(v uint64) int {
+func GetNumDigits(v int64) int {
 	n := 1
 	if v >= 100000000000000000 {
 		v /= 100000000000000000
@@ -35,37 +31,8 @@ func GetNumDigits(v uint64) int {
 	return n
 }
 
-// 高性能固定 13 位 Uint64 到字符串（适用于毫秒级时间戳）
-func Utoa13(buf []byte, v uint64) {
-	buf[12] = '0' + byte(v%10)
-	v /= 10
-	buf[11] = '0' + byte(v%10)
-	v /= 10
-	buf[10] = '0' + byte(v%10)
-	v /= 10
-	buf[9] = '0' + byte(v%10)
-	v /= 10
-	buf[8] = '0' + byte(v%10)
-	v /= 10
-	buf[7] = '0' + byte(v%10)
-	v /= 10
-	buf[6] = '0' + byte(v%10)
-	v /= 10
-	buf[5] = '0' + byte(v%10)
-	v /= 10
-	buf[4] = '0' + byte(v%10)
-	v /= 10
-	buf[3] = '0' + byte(v%10)
-	v /= 10
-	buf[2] = '0' + byte(v%10)
-	v /= 10
-	buf[1] = '0' + byte(v%10)
-	v /= 10
-	buf[0] = '0' + byte(v%10)
-}
-
 // Utoa fallthrough 让所有case连续执行,实现从n执行到1,连续无分支指令,极大减少 CPU 跳转、循环开销
-func Utoa(buf []byte, n int, v uint64) {
+func Utoa(buf []byte, n int, v int64) {
 	if len(buf) < n {
 		panic("buffer too small")
 	}
@@ -185,11 +152,11 @@ func Utoa(buf []byte, n int, v uint64) {
 	// p:0,v:1,res:1741594630553
 }
 
-func Uint64ToString(v uint64) string {
+func Uint64ToString(v int64) string {
 	n := GetNumDigits(v)
 	if n == 13 {
 		var buf [13]byte
-		Utoa13(buf[:], v)
+		i2slice13(buf[:], v)
 		return string(buf[:])
 	}
 	var buf [21]byte
@@ -198,7 +165,7 @@ func Uint64ToString(v uint64) string {
 }
 
 // TimestampToChars 将时间戳转换为十进制字符串,写入buf中,返回写入的长度
-func TimestampToChars(buf []byte, ts uint64, flag int) int {
+func TimestampToChars(buf []byte, ts int64, flag int) int {
 	//按位与比较,二进制数都为1则为1,否则为0
 	switch {
 	case flag&TSMicro != 0:
@@ -214,24 +181,8 @@ func TimestampToChars(buf []byte, ts uint64, flag int) int {
 }
 
 // TimestampToString 返回时间戳的字符串表示(string 类型)
-func TimestampToString(ts uint64, flag int) string {
+func TimestampToString(ts int64, flag int) string {
 	var buf [21]byte // uint64 最大 20 位 + \0
 	n := TimestampToChars(buf[:], ts, flag)
 	return string(buf[:n])
-}
-
-//	我的:19.33 ns/op           16 B/op          1 allocs/op
-//	获取时间戳 2.217 ns/op           0 B/op          0 allocs/op
-//
-// 标准库:21.25 ns/op           16 B/op          1 allocs/op
-func GetNowTimeStampMilliStr() string {
-	var buf [13]byte
-	Utoa13(buf[:], uint64(time.Now().UnixMilli()))
-	return string(buf[:])
-}
-
-func GetTimeStampMilliStrBy(timeStamp int64) string {
-	var buf [13]byte
-	Utoa13(buf[:], uint64(timeStamp))
-	return string(buf[:])
 }

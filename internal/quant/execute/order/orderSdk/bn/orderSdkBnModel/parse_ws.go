@@ -83,29 +83,6 @@ func buildWsReqFast(preSize int, wsRequestId, method string, params map[string]a
 	return b
 }
 
-func buildWsReqFastNoSign(preSize int, wsRequestId, method string, params map[string]any, keySorted []string) *[]byte {
-	b := byteBufPool.AcquireBuffer(preSize)
-	*b = append(*b, b_ID_...) //{"id":"
-	*b = append(*b, wsRequestId...)
-	*b = append(*b, b_METHOD_...) //","method":"
-	*b = append(*b, method...)
-	*b = append(*b, b_PARAMS_...) //","params":{
-	for i, k := range keySorted {
-		if val, ok := params[k]; ok {
-			if i > 0 {
-				*b = append(*b, ',')
-			}
-			*b = append(*b, '"')
-			*b = append(*b, k...)
-			*b = append(*b, b_WS_STEP...)
-			*b = convertx.AppendValueToBytes(*b, val)
-			*b = append(*b, '"')
-		}
-	}
-	*b = append(*b, b_WS_END...)
-	return b
-}
-
 func buildQueryBytePool(preSize int, params map[string]any, keySorted []string) *[]byte {
 	b := byteBufPool.AcquireBuffer(preSize)
 	for i, k := range keySorted {

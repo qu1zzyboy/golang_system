@@ -1,31 +1,30 @@
-package params
+package toUpbitBnMode
 
 import (
 	"context"
-
-	"upbitBnServer/internal/infra/redisx/redisConfig"
 )
+
+const MODULE_ID = "to_upbit_bn_mode"
 
 type Boot struct{}
 
-func NewBoot() *Boot {
+func NewBoot(mode ModeBehavior) *Boot {
+	Mode = mode
 	return &Boot{}
 }
 
 func (b *Boot) ModuleId() string {
-	return ModuleId
+	return MODULE_ID
 }
 
 func (b *Boot) DependsOn() []string {
-	return []string{
-		redisConfig.MODULE_ID,
-	}
+	return []string{}
 }
 
 func (b *Boot) Start(ctx context.Context) error {
-	return GetService().Start(ctx)
+	return nil
 }
 
 func (b *Boot) Stop(ctx context.Context) error {
-	return GetService().Stop(ctx)
+	return nil
 }

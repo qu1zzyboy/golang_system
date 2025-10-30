@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolInfoLoad"
+	"upbitBnServer/internal/strategy/toUpbitParam"
 	"upbitBnServer/internal/strategy/treenews"
 	"upbitBnServer/pkg/container/pool/antPool"
 )
@@ -26,6 +27,7 @@ func (s *Boot) DependsOn() []string {
 		symbolInfoLoad.MODULE_ID, // 从redis加载交易规范
 		antPool.MODULE_ID,        // 协程池
 		treenews.MODULE_ID,       // treeNews模块
+		toUpbitParam.ModuleId,
 	}
 }
 

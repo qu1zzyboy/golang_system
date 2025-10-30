@@ -2,6 +2,7 @@ package grpcLowLatencyServer
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	strategyV1 "upbitBnServer/api/strategy/v1"
@@ -17,6 +18,7 @@ import (
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitMesh"
+	"upbitBnServer/internal/strategy/toUpbitParam"
 	"upbitBnServer/pkg/utils/jsonUtils"
 	"upbitBnServer/server/grpcEvent"
 	"upbitBnServer/server/instance"
@@ -152,6 +154,17 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 			go obj.ReceiveTreeNews()
 			obj.IntoExecuteNoCheck(time.Now().UnixMilli(), "test", 200000000)
 		}
+	case grpcEvent.TO_UPBIT_PARAM_TEST:
+		{
+			var req toUpbitParam.ComputeRequest
+			if err = jsonUtils.UnmarshalFromString(in.JsonData, &req); err != nil {
+				logError.GetLog().Error("特有参数json解析失败:", err)
+				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
+			}
+			res, err := toUpbitParam.GetService().Compute(ctx, req)
+			fmt.Println(err)
+			res.PrintMe()
+		}
 	case grpcEvent.TO_UPBIT_CFG:
 		{
 			var cfg toUpBitListDataStatic.ConfigVir
@@ -160,7 +173,7 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 				logError.GetLog().Error("特有参数json解析失败:", err)
 				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
 			}
-			toUpBitListDataStatic.UpdateParam(cfg.PriceRiceTrig, cfg.OrderRiceTrig)
+			toUpBitListDataStatic.UpdateParam(cfg.PriceRiceTrig)
 		}
 	default:
 	}

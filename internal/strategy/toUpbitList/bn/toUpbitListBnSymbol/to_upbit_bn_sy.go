@@ -57,7 +57,7 @@ type cache_line_2 struct {
 
 type cache_line_3 struct {
 	StMeta          *symbolStatic.StaticTrade // 交易对静态信息
-	bidPrice        atomic.Value              // 买一价
+	bidPrice        atomic.Value              // 买一价,平仓和计算仓位价值用到
 	takeProfitPrice float64                   // 止盈价格
 	symbolIndex     int                       // 交易对下标
 	pScale          int32                     // 价格小数位

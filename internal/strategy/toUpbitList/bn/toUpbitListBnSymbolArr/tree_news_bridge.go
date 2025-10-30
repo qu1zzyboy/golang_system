@@ -24,7 +24,7 @@ func treeNewsHandler(_ context.Context, evt treenews.Event) {
 		}
 		symbolIndexTrue, ok := toUpBitListDataStatic.SymbolIndex.Load(symbolName)
 		if !ok {
-			toUpBitListDataStatic.DyLog.GetLog().Errorf("%s treeNews品种不在品种池内")
+			toUpBitListDataStatic.DyLog.GetLog().Errorf("%s treeNews品种不在品种池内", symbolName)
 			continue
 		}
 		toUpBitListDataStatic.DyLog.GetLog().Infof("received tree news: symbol=%s id=%s", symbolName, evt.ID)

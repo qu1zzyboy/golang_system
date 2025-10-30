@@ -2,9 +2,11 @@ package toUpbitListBnSymbol
 
 import (
 	"fmt"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitDefine"
 
 	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 
@@ -15,7 +17,7 @@ import (
 
 func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
 	// minBId>=0.95*markPrice
-	if float64(s.minPriceAfterMp) >= toUpBitListDataStatic.OrderRiceTrig*float64(s.markPrice_8) {
+	if float64(s.minPriceAfterMp) >= toUpBitListDataStatic.PriceRiceTrig*float64(s.markPrice_8) {
 		toUpBitListDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
 			"msg":  "orderPrice快速上涨",
 			"bn品种": s.StMeta.SymbolName,
@@ -32,13 +34,11 @@ func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
 }
 
 func (s *Single) IntoExecuteNoCheck(eventTs int64, trigFlag string, priceTrig_8 uint64) {
-	s.hasTreeNews = false
-	if toUpBitListDataStatic.IsDebug {
-		s.hasTreeNews = true
-	}
+	s.hasTreeNews = toUpbitBnMode.Mode.GetTreeNewsFlag()
 	toUpBitListDataAfter.Trig(s.symbolIndex)
 	s.startTrig()
 	limit := decimal.New(int64(s.priceMaxBuy_10), -bnConst.PScale_10).Truncate(s.pScale)
+	// debug版默认为true,不会收到消息也不会退出
 	s.checkTreeNews()
 	s.PlacePostOnlyOrder(limit)
 	s.TryBuyLoop(20)
@@ -64,7 +64,7 @@ func (s *Single) calParam() {
 	mesh, ok := coinMesh.GetManager().Get(s.StMeta.TradeId)
 	if !ok {
 		toUpBitListDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] not found for tradeId: %d", symbolName, s.StMeta.TradeId)
-		s.receiveStop(StopByGetCmcFailure)
+		s.receiveStop(toUpbitDefine.StopByGetCmcFailure)
 		toUpBitListDataStatic.SendToUpBitMsg("获取cmc_id失败", map[string]string{
 			"symbol": symbolName,
 			"op":     "获取cmc_id失败",
@@ -75,21 +75,17 @@ func (s *Single) calParam() {
 	last2MinCloseF64 := float64(s.last2MinClose_8) / 1e8
 	cap2Min := mesh.SupplyNow * last2MinCloseF64
 	//计算止盈止损参数
-	gainPct, twapSec, err := GetParam(mesh.IsMeMe, cap2Min/1_000_000, symbolName)
+	gainPct, twapSec, err := toUpbitBnMode.Mode.GetTakeProfitParam(mesh.IsMeMe, s.symbolIndex, cap2Min/1_000_000)
 	if err != nil {
 		toUpBitListDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] 获取止盈止损失败: %v", symbolName, err)
-		s.receiveStop(StopByGetRemoteFailure)
+		s.receiveStop(toUpbitDefine.StopByGetRemoteFailure)
 		toUpBitListDataStatic.SendToUpBitMsg("获取止盈止损失败", map[string]string{
 			"symbol": symbolName,
 			"op":     "获取止盈止损失败",
 		})
 		return
 	}
-	if toUpBitListDataStatic.IsDebug {
-		gainPct = 7
-		twapSec = 10
-	}
 	// 返回值格式 15.5 30
 	toUpBitListDataStatic.DyLog.GetLog().Infof("远程参数:%t,市值:%f,%s,远程响应:[%f,%f]", mesh.IsMeMe, cap2Min/1_000_000, symbolName, gainPct, twapSec)
-	s.setExecuteParam(last2MinCloseF64*(1+0.01*gainPct), twapSec)
+	s.setExecuteParam(last2MinCloseF64*(1+0.01*(gainPct+15)), twapSec)
 }

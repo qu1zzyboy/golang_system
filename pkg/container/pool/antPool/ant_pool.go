@@ -20,6 +20,7 @@ var (
 func SubmitToCpuPool(protectId string, task func()) error {
 	return cpuPool.Submit(safex.SafeGoWrap(protectId, task))
 }
+
 func SubmitToIoPool(protectId string, task func()) error {
 	return ioPool.Submit(safex.SafeGoWrap(protectId, task))
 }

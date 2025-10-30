@@ -88,7 +88,7 @@ func (s *Single) TryBuyLoop(max int32) {
 			}
 			select {
 			case <-s.ctxStop.Done():
-				toUpBitListDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出每秒抽奖协程")
+				toUpBitListDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出每秒抽奖总协程")
 				return
 			default:
 				// 睡到下一秒的5毫秒后
@@ -116,7 +116,7 @@ func (s *Single) TryBuyLoop(max int32) {
 				go s.cancelAndTransfer(i, fromAccountId)
 
 				//探测逻辑
-				go s.monitorPer(placeIndex)
+				go s.monitorPer(i, placeIndex)
 
 				//真实下单逻辑
 				go s.placePer(i, placeIndex)

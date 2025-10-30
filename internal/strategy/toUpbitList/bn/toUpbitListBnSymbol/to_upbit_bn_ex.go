@@ -10,18 +10,9 @@ import (
 	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitDefine"
 
 	"github.com/shopspring/decimal"
-)
-
-type StopType uint8
-
-const (
-	StopByTreeNews StopType = iota
-	StopByMoveStopLoss
-	StopByBtTakeProfit
-	StopByGetCmcFailure
-	StopByGetRemoteFailure
 )
 
 const (
@@ -35,13 +26,13 @@ var (
 		"BookTick止盈触发",
 		"获取cmc_id失败",
 		"获取远程参数失败",
+		"交易元数据失败",
 	}
 )
 
 func (s *Single) clear() {
 	s.posTotalNeed = decimal.Zero
 	s.pos.Clear() //清空持仓统计
-	s.StMeta = nil
 	s.takeProfitPrice = 0
 	for i := range s.secondArr {
 		s.secondArr[i].clear()
@@ -51,12 +42,12 @@ func (s *Single) clear() {
 	toUpBitListDataAfter.ClearTrig()
 }
 
-func (s *Single) receiveStop(stopType StopType) {
+func (s *Single) receiveStop(stopType toUpbitDefine.StopType) {
 	if s.hasReceiveStop {
 		return
 	}
 	s.hasReceiveStop = true
-	toUpBitListDataStatic.DyLog.GetLog().Infof("收到停止信号: %s", stopReasonArr[stopType])
+	toUpBitListDataStatic.DyLog.GetLog().Infof("收到停止信号==> %s", stopReasonArr[stopType])
 	s.cancel()
 	//开启平仓线程
 	safex.SafeGo("to_upbit_bn_close", func() {

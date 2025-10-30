@@ -1,7 +1,7 @@
 package toUpbitListBnSymbol
 
 import (
-	"time"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListPos"
 
 	"upbitBnServer/internal/infra/safex"
 	"upbitBnServer/internal/quant/execute"
@@ -23,21 +23,6 @@ func SetParam(qty, dec003 float64) {
 	dec03 = decimal.NewFromFloat(dec003)
 }
 
-/**
-limit_maker协程,用到成员变量
-posTotalNeed:在这里赋值,后面都只读
-pScale: 多线程读安全
-maxNotional: 初始化赋值之后都只读不写
-secondArr: 不修改指针就安全
-ctxStop:
-hasAllFilled:
-symbolIndex:
-StMeta: 多线程读安全
-firstPriceBuy:
-thisOrderAccountId:
-
-**/
-
 /*
 限制1: maxNotional 单账户单品种最大开仓上限
 限制2：qtyTotal*0.3
@@ -47,10 +32,10 @@ thisOrderAccountId:
 */
 
 func (s *Single) PlacePostOnlyOrder(limit decimal.Decimal) {
-	s.posTotalNeed = qtyTotal.Div(limit).Truncate(s.pScale)
+	s.posTotalNeed = qtyTotal.Div(limit).Truncate(s.qScale)
 
 	// maker抽奖金额为 min(单账户单品种最大开仓上限,需开参数价值)
-	orderNum := decimal.Min(s.maxNotional, qtyTotal.Mul(dec03)).Div(limit).Truncate(s.pScale)
+	orderNum := decimal.Min(s.maxNotional, qtyTotal.Mul(dec03)).Div(limit).Truncate(s.qScale)
 
 	safex.SafeGo("to_upbit_bn_limit_maker", func() {
 		s.secondArr[0].start()
@@ -81,10 +66,11 @@ func (s *Single) PlacePostOnlyOrder(limit decimal.Decimal) {
 						}); err != nil {
 						toUpBitListDataStatic.DyLog.GetLog().Errorf("每秒limit_maker订单失败: %v", err)
 					}
-					time.Sleep(40 * time.Microsecond) // 休眠 40 微秒
+					// time.Sleep(40 * time.Microsecond) // 休眠 40 微秒
 				}
 			}
 		}
 	})
+	s.pos = toUpbitListPos.NewPosCal()
 	s.firstPriceBuy = limit.Mul(dec103).Truncate(s.pScale)
 }
