@@ -1,7 +1,6 @@
 package toUpbitListBnSymbol
 
 import (
-	"time"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListPos"
 
 	"upbitBnServer/internal/infra/safex"
@@ -82,7 +81,7 @@ func (s *Single) PlacePostOnlyOrder(limit decimal.Decimal) {
 						}); err != nil {
 						toUpBitListDataStatic.DyLog.GetLog().Errorf("每秒limit_maker订单失败: %v", err)
 					}
-					time.Sleep(40 * time.Microsecond) // 休眠 40 微秒
+					// time.Sleep(40 * time.Microsecond) // 休眠 40 微秒
 				}
 			}
 		}

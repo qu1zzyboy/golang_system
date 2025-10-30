@@ -103,7 +103,7 @@ OUTER:
 				}); err != nil {
 				toUpBitListDataStatic.DyLog.GetLog().Errorf("每秒创建订单失败: %v", err)
 			}
-			time.Sleep(300 * time.Microsecond) // 休眠 300 微秒
+			time.Sleep(150 * time.Microsecond) // 休眠 300 微秒
 		}
 	}
 }
