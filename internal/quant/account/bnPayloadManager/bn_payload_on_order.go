@@ -6,8 +6,8 @@ import (
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/orderStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
 
 	"github.com/shopspring/decimal"
@@ -41,7 +41,7 @@ func (s *Payload) onPayloadOrder(data []byte) {
 			// 订单状态异常
 			orderStatus := execute.ParseBnOrderStatus(gjson.GetBytes(data, "o.X").String())
 			if orderStatus == execute.UNKNOWN_ORDER_STATUS {
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("[%d]ORDER_UPDATE: unknown order status, json: %s", s.accountKeyId, string(data))
+				toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]ORDER_UPDATE: unknown order status, json: %s", s.accountKeyId, string(data))
 				return
 			}
 			switch orderStatus {
@@ -67,13 +67,13 @@ func (s *Payload) onPayloadOrder(data []byte) {
 		{
 			// 1、只管触发标的的订单
 			if symbolIndex != toUpBitListDataAfter.TrigSymbolIndex {
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("触发后异常订单:%s", string(data))
+				toUpBitDataStatic.DyLog.GetLog().Errorf("触发后异常订单:%s", string(data))
 				return
 			}
 			// 订单状态异常
 			orderStatus := execute.ParseBnOrderStatus(gjson.GetBytes(data, "o.X").String())
 			if orderStatus == execute.UNKNOWN_ORDER_STATUS {
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("[%d]ORDER_UPDATE: unknown order status, json: %s", s.accountKeyId, string(data))
+				toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]ORDER_UPDATE: unknown order status, json: %s", s.accountKeyId, string(data))
 				return
 			}
 

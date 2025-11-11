@@ -8,7 +8,7 @@ import (
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 
 	"github.com/shopspring/decimal"
 )
@@ -17,7 +17,7 @@ func (s *Single) checkPreOrder(markPrice_8 uint64) {
 	if !s.hasInit {
 		s.lastMarkPrice_8 = markPrice_8
 		if err := s.initPreOrder(); err != nil {
-			toUpBitListDataStatic.DyLog.GetLog().Errorf("%s 初始化交易对失败:  %s", s.StMeta.SymbolName, err.Error())
+			toUpBitDataStatic.DyLog.GetLog().Errorf("%s 初始化交易对失败:  %s", s.StMeta.SymbolName, err.Error())
 			return
 		}
 		//下小订单
@@ -31,7 +31,7 @@ func (s *Single) checkPreOrder(markPrice_8 uint64) {
 				OrderType:     execute.ORDER_TYPE_LIMIT,
 				OrderMode:     execute.ORDER_SELL_OPEN,
 			}); err != nil {
-			toUpBitListDataStatic.DyLog.GetLog().Errorf("创建小订单错误: %s", err.Error())
+			toUpBitDataStatic.DyLog.GetLog().Errorf("创建小订单错误: %s", err.Error())
 		}
 		return
 	}
@@ -44,7 +44,7 @@ func (s *Single) checkPreOrder(markPrice_8 uint64) {
 		lastMarkPrice_8 := s.lastMarkPrice_8
 		s.lastMarkPrice_8 = markPrice_8
 		if _, ok := clientOrders.Load(s.clientOrderIdSmall); ok {
-			toUpBitListDataStatic.DyLog.GetLog().Infof("[%d,%s] 触发[%d,%d,%d_%d],准备更新预挂单:%s",
+			toUpBitDataStatic.DyLog.GetLog().Infof("[%d,%s] 触发[%d,%d,%d_%d],准备更新预挂单:%s",
 				s.preAccountKeyId, symbolKey, lastMarkPrice_8, markPrice_8, s.pScale, s.qScale, modifySmallPrice)
 			//更新订单价格
 			if err := bnOrderAppManager.GetTradeManager().SendModifyOrder(ws_req_from, s.preAccountKeyId,
@@ -60,12 +60,12 @@ func (s *Single) checkPreOrder(markPrice_8 uint64) {
 					"op":     "更新5%订单失败",
 					"error":  err.Error(),
 				})
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("%s修改小订单错误: %s", symbolKey, err.Error())
+				toUpBitDataStatic.DyLog.GetLog().Errorf("%s修改小订单错误: %s", symbolKey, err.Error())
 			}
 		} else {
-			toUpBitListDataStatic.DyLog.GetLog().Infof("[%d,%s] 触发[%d,%d,%d],准备重下预挂单:%s", s.preAccountKeyId, symbolKey, s.lastMarkPrice_8, markPrice_8, s.pScale, modifySmallPrice)
+			toUpBitDataStatic.DyLog.GetLog().Infof("[%d,%s] 触发[%d,%d,%d],准备重下预挂单:%s", s.preAccountKeyId, symbolKey, s.lastMarkPrice_8, markPrice_8, s.pScale, modifySmallPrice)
 			if _, ok := clientOrderSig.Load(s.clientOrderIdSmall); ok {
-				toUpBitListDataStatic.DyLog.GetLog().Infof("订单限流中,无法下单:%s", s.clientOrderIdSmall)
+				toUpBitDataStatic.DyLog.GetLog().Infof("订单限流中,无法下单:%s", s.clientOrderIdSmall)
 				return
 			}
 			//下小订单
@@ -83,7 +83,7 @@ func (s *Single) checkPreOrder(markPrice_8 uint64) {
 					"op":     "预挂5%订单失败",
 					"error":  err.Error(),
 				})
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("%s创建小订单错误: %s", symbolKey, err.Error())
+				toUpBitDataStatic.DyLog.GetLog().Errorf("%s创建小订单错误: %s", symbolKey, err.Error())
 			}
 		}
 	}

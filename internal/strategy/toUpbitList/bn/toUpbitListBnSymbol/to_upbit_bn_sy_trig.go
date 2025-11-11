@@ -3,7 +3,7 @@ package toUpbitListBnSymbol
 import (
 	"fmt"
 
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/pkg/container/ring/ringBuf"
 )
 
@@ -55,7 +55,7 @@ func (s *Single) commit(price uint64, threshold float64, ts int64) (riseValue fl
 
 func (s *Single) checkMarket(eventTs int64, trigFlag string, priceU64_8 uint64) {
 	// 写入价格到环形缓冲区
-	riseValue, _, hasWrite := s.commit(priceU64_8, toUpBitListDataStatic.PriceRiceTrig, eventTs)
+	riseValue, _, hasWrite := s.commit(priceU64_8, toUpBitDataStatic.PriceRiceTrig, eventTs)
 	//涨幅触发,只计算不触发
 	// if hasTrig {
 	// s.IntoExecuteCheck(eventTs, trigFlag, riseValue, priceU64_8)
@@ -64,7 +64,7 @@ func (s *Single) checkMarket(eventTs int64, trigFlag string, priceU64_8 uint64) 
 	if hasWrite {
 		// 涨幅大于0.05并且比上一次递增1%以上
 		if riseValue > 0.05 && riseValue > 0.01+s.lastRiseValue {
-			toUpBitListDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
+			toUpBitDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
 				"msg":  trigFlag + "快速上涨",
 				"bn品种": s.StMeta.SymbolName,
 				"上涨幅度": fmt.Sprintf("%.2f%%", riseValue*100),

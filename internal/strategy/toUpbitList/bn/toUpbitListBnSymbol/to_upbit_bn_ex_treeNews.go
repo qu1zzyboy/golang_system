@@ -3,7 +3,7 @@ package toUpbitListBnSymbol
 import (
 	"time"
 
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 )
 
 func (s *Single) checkTreeNews() {
@@ -14,7 +14,7 @@ func (s *Single) checkTreeNews() {
 			return
 		}
 		s.receiveStop(StopByTreeNews)
-		toUpBitListDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
+		toUpBitDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
 			"symbol": s.StMeta.SymbolName,
 			"op":     "TreeNews未确认",
 		})
@@ -22,9 +22,9 @@ func (s *Single) checkTreeNews() {
 }
 
 func (s *Single) ReceiveTreeNews() {
-	toUpBitListDataStatic.DyLog.GetLog().Info("--------------------TreeNews确认---------------------")
+	toUpBitDataStatic.DyLog.GetLog().Info("--------------------TreeNews确认---------------------")
 	s.hasTreeNews = true
-	toUpBitListDataStatic.SendToUpBitMsg("TreeNews确认", map[string]string{
+	toUpBitDataStatic.SendToUpBitMsg("TreeNews确认", map[string]string{
 		"symbol": s.StMeta.SymbolName,
 		"op":     "TreeNews确认",
 	})
@@ -33,7 +33,7 @@ func (s *Single) ReceiveTreeNews() {
 func (s *Single) ReceiveNoTreeNews() {
 	s.hasTreeNews = false
 	s.receiveStop(StopByTreeNews)
-	toUpBitListDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
+	toUpBitDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
 		"symbol": s.StMeta.SymbolName,
 		"op":     "TreeNews未确认",
 	})

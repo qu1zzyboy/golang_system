@@ -6,8 +6,8 @@ import (
 	"upbitBnServer/internal/quant/account/accountConfig"
 	"upbitBnServer/internal/quant/account/bnPayload"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 
 	"github.com/shopspring/decimal"
 	"github.com/tidwall/gjson"
@@ -59,7 +59,7 @@ func (s *Payload) OnPayload(data []byte) {
 		if eveType == bnPayload.ALGO_UPDATE || eveType == bnPayload.ACCOUNT_CONFIG_UPDATE {
 			return
 		}
-		toUpBitListDataStatic.DyLog.GetLog().Errorf("[%d]未知事件类型: %s", s.accountKeyId, string(data))
+		toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]未知事件类型: %s", s.accountKeyId, string(data))
 	}
 }
 

@@ -2,7 +2,7 @@ package toUpbitBnMode
 
 import (
 	"context"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitParam"
 
 	"github.com/shopspring/decimal"
@@ -60,7 +60,7 @@ func (l LiveMode) GetTakeProfitParam(isMeme bool, symbolIndex int, cap float64) 
 	if err != nil {
 		return 0, 0, err
 	}
-	toUpBitListDataStatic.DyLog.GetLog().Debugf("param service result: symbol=%d gain=%.2f twap=%.2f", symbolIndex, resp.GainPct, resp.TwapSec)
+	toUpBitDataStatic.DyLog.GetLog().Debugf("param service result: symbol=%d gain=%.2f twap=%.2f", symbolIndex, resp.GainPct, resp.TwapSec)
 	return resp.GainPct, resp.TwapSec, nil
 }
 

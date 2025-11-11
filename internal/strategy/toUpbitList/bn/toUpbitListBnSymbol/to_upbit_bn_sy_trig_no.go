@@ -6,8 +6,8 @@ import (
 	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 
 	"github.com/shopspring/decimal"
 )
@@ -16,15 +16,15 @@ import (
 
 func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
 	// minBId>=0.95*markPrice
-	if float64(s.minPriceAfterMp) >= toUpBitListDataStatic.PriceRiceTrig*float64(s.markPrice_8) {
-		toUpBitListDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
+	if float64(s.minPriceAfterMp) >= toUpBitDataStatic.PriceRiceTrig*float64(s.markPrice_8) {
+		toUpBitDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
 			"msg":  "orderPrice快速上涨",
 			"bn品种": s.StMeta.SymbolName,
 			"上涨幅度": fmt.Sprintf("%.2f%%", s.lastRiseValue*100),
 		})
 		s.IntoExecuteNoCheck(tradeTs, "preOrder", priceU64_8)
 	} else {
-		toUpBitListDataStatic.SendToUpBitMsg("成交但不满足上市check消息失败", map[string]string{
+		toUpBitDataStatic.SendToUpBitMsg("成交但不满足上市check消息失败", map[string]string{
 			"msg":  fmt.Sprintf("成交但不满足上市check,成交价:%d", priceU64_8),
 			"bn品种": s.StMeta.SymbolName,
 			"上涨幅度": fmt.Sprintf("%.2f%%", s.lastRiseValue*100),
@@ -43,7 +43,7 @@ func (s *Single) IntoExecuteNoCheck(eventTs int64, trigFlag string, priceTrig_8 
 	s.TryBuyLoop(20)
 	// 获取止盈止损参数
 	s.calParam()
-	toUpBitListDataStatic.DyLog.GetLog().Infof("%s->[%s]价格触发,最新价格: %d,涨幅: %f%%,事件时间:%d",
+	toUpBitDataStatic.DyLog.GetLog().Infof("%s->[%s]价格触发,最新价格: %d,涨幅: %f%%,事件时间:%d",
 		trigFlag, s.StMeta.SymbolName, priceTrig_8, s.lastRiseValue*100, eventTs)
 }
 
@@ -54,7 +54,7 @@ func (s *Single) intoExecuteByMsg() {
 	s.TryBuyLoop(20)
 	// 获取止盈止损参数
 	s.calParam()
-	toUpBitListDataStatic.DyLog.GetLog().Infof("treeNews->[%s]触发,涨幅: %f%%", s.StMeta.SymbolName, s.lastRiseValue*100)
+	toUpBitDataStatic.DyLog.GetLog().Infof("treeNews->[%s]触发,涨幅: %f%%", s.StMeta.SymbolName, s.lastRiseValue*100)
 }
 
 func (s *Single) calParam() {
@@ -62,9 +62,9 @@ func (s *Single) calParam() {
 	//获取流通量
 	mesh, ok := coinMesh.GetManager().Get(s.StMeta.TradeId)
 	if !ok {
-		toUpBitListDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] not found for tradeId: %d", symbolName, s.StMeta.TradeId)
+		toUpBitDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] not found for tradeId: %d", symbolName, s.StMeta.TradeId)
 		s.receiveStop(StopByGetCmcFailure)
-		toUpBitListDataStatic.SendToUpBitMsg("获取cmc_id失败", map[string]string{
+		toUpBitDataStatic.SendToUpBitMsg("获取cmc_id失败", map[string]string{
 			"symbol": symbolName,
 			"op":     "获取cmc_id失败",
 		})
@@ -76,15 +76,15 @@ func (s *Single) calParam() {
 	//计算止盈止损参数
 	gainPct, twapSec, err := toUpbitBnMode.Mode.GetTakeProfitParam(mesh.IsMeMe, s.symbolIndex, cap2Min/1_000_000)
 	if err != nil {
-		toUpBitListDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] 获取止盈止损失败: %v", symbolName, err)
+		toUpBitDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] 获取止盈止损失败: %v", symbolName, err)
 		s.receiveStop(StopByGetRemoteFailure)
-		toUpBitListDataStatic.SendToUpBitMsg("获取止盈止损失败", map[string]string{
+		toUpBitDataStatic.SendToUpBitMsg("获取止盈止损失败", map[string]string{
 			"symbol": symbolName,
 			"op":     "获取止盈止损失败",
 		})
 		return
 	}
 	// 返回值格式 15.5 30
-	toUpBitListDataStatic.DyLog.GetLog().Infof("远程参数:%t,市值:%f,%s,远程响应:[%f,%f]", mesh.IsMeMe, cap2Min/1_000_000, symbolName, gainPct, twapSec)
+	toUpBitDataStatic.DyLog.GetLog().Infof("远程参数:%t,市值:%f,%s,远程响应:[%f,%f]", mesh.IsMeMe, cap2Min/1_000_000, symbolName, gainPct, twapSec)
 	s.setExecuteParam(last2MinCloseF64*(1+0.01*(gainPct+15)), twapSec)
 }

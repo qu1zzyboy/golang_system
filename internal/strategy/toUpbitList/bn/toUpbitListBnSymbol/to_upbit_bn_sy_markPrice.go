@@ -11,10 +11,11 @@ import (
 	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
+	"upbitBnServer/internal/quant/market/symbolInfo/symbolLimit"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"upbitBnServer/pkg/container/map/myMap"
 	"upbitBnServer/pkg/container/pool/antPool"
 	"upbitBnServer/pkg/container/pool/byteBufPool"
@@ -67,7 +68,7 @@ func (s *Single) onMarkPrice(len int, bufPtr *[]byte) {
 		markPrice_u8 := convertx.PriceStringToUint64(results[0].String(), bnConst.PScale_8)
 		markPrice_u10 := markPrice_u8 * s.upLimitPercent_2
 		s.trigPriceMax_10.Store(results[1].Int()/1000, markPrice_u10)
-		toUpBitListDataStatic.DyLog.GetLog().Infof("%s最新[u8:%d,u10:%d]标记价格: %s", s.StMeta.SymbolName, markPrice_u8, markPrice_u10, string(data))
+		toUpBitDataStatic.DyLog.GetLog().Infof("%s最新[u8:%d,u10:%d]标记价格: %s", s.StMeta.SymbolName, markPrice_u8, markPrice_u10, string(data))
 	} else {
 		results := gjson.GetManyBytes(data, "p", jsonEvent)
 		// 1、计算网络接受延迟
@@ -98,7 +99,7 @@ func (s *Single) onPreFilled(clientOrderId string) {
 				&orderModel.MyPlaceOrderReq{
 					OrigPrice:     decimal.New(int64(s.lastMarkPrice_8), -bnConst.PScale_8).Truncate(s.pScale),
 					OrigVol:       s.orderNum,
-					ClientOrderId: toUpBitListDataStatic.GetClientOrderIdBy("close_pre"),
+					ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("close_pre"),
 					StaticMeta:    s.StMeta,
 					OrderType:     execute.ORDER_TYPE_MARKET,
 					OrderMode:     execute.ORDER_BUY_CLOSE,
@@ -108,11 +109,11 @@ func (s *Single) onPreFilled(clientOrderId string) {
 					"symbol": symbolKey,
 					"op":     "下买入平空单失败",
 				})
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("%s下买入平空单错误: %s", symbolKey, err.Error())
+				toUpBitDataStatic.DyLog.GetLog().Errorf("%s下买入平空单错误: %s", symbolKey, err.Error())
 			}
 			// 等待能再次下单
 			time.Sleep(60 * time.Second)
-			toUpBitListDataStatic.DyLog.GetLog().Infof("预挂单成交5秒后,删除订单限流标记:%s", clientOrderId)
+			toUpBitDataStatic.DyLog.GetLog().Infof("预挂单成交5秒后,删除订单限流标记:%s", clientOrderId)
 			clientOrderSig.Delete(clientOrderId)
 		}
 	})
@@ -127,13 +128,19 @@ func (s *Single) initPreOrder() error {
 	if !ok {
 		return errors.New("coinMesh.GetManager().Get not found")
 	}
+
+	limit, err := symbolLimit.GetManager().Get(s.StMeta.SymbolKeyId)
+	if err != nil {
+		toUpBitDataStatic.DyLog.GetLog().Errorf("symbolKeyId %d not found", s.StMeta.SymbolKeyId)
+		return err
+	}
 	lastMarkPriceDec := decimal.New(int64(s.lastMarkPrice_8), -bnConst.PScale_8)
 
 	//挂单量=最大(最小下单量,2*最小下单金额/最新标记价格)
 	s.orderNum = decimal.Max(dyMeta.LotSize, dec12.Mul(dyMeta.MinQty).Div(lastMarkPriceDec)).Truncate(dyMeta.QScale)
-	s.clientOrderIdSmall = toUpBitListDataStatic.GetClientOrderIdBy(mesh.CmcAsset) //小订单id
+	s.clientOrderIdSmall = toUpBitDataStatic.GetClientOrderIdBy(mesh.CmcAsset) //小订单id
 	//1.0+0.33*(1.15-1.0)
-	s.smallPercent = dec5.Mul(dyMeta.UpLimitPercent.Sub(dec1)).Add(dec1)
+	s.smallPercent = dec5.Mul(limit.UpLimitPercent.Sub(dec1)).Add(dec1)
 	s.hasInit = true
 	return nil
 }

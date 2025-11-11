@@ -13,10 +13,11 @@ import (
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/market/symbolInfo"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
+	"upbitBnServer/internal/quant/market/symbolInfo/symbolLimit"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
 	"upbitBnServer/internal/resource/resourceEnum"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListPos"
 	"upbitBnServer/pkg/container/map/myMap"
@@ -116,7 +117,7 @@ type Single struct {
 }
 
 func (s *Single) Clear() {
-	s.newPriceMinWindowU64(toUpBitListDataStatic.TickCap)
+	s.newPriceMinWindowU64(toUpBitDataStatic.TickCap)
 	s.lastRiseValue = 0.0
 }
 
@@ -124,34 +125,41 @@ func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 	s.preAccountKeyId = accountKeyId
 	symbolId, ok := symbolStatic.GetSymbol().GetSymbol(symbolName)
 	if !ok {
-		toUpBitListDataStatic.DyLog.GetLog().Errorf("symbolId not found: %s", symbolName)
-		return toUpBitListDataStatic.ExType.GetNotSupportError("symbolId not found")
+		toUpBitDataStatic.DyLog.GetLog().Errorf("symbolId not found: %s", symbolName)
+		return toUpBitDataStatic.ExType.GetNotSupportError("symbolId not found")
 	}
-	symbolKeyId := symbolInfo.MakeSymbolKey3(toUpBitListDataStatic.ExType, toUpBitListDataStatic.AcType, symbolId)
+	symbolKeyId := symbolInfo.MakeSymbolKey3(toUpBitDataStatic.ExType, toUpBitDataStatic.AcType, symbolId)
 	// 初始化品种静态数据
 	stMeta, err := symbolStatic.GetTrade().Get(symbolKeyId)
 	if err != nil {
-		toUpBitListDataStatic.DyLog.GetLog().Errorf("symbolKeyId %d not found", symbolKeyId)
+		toUpBitDataStatic.DyLog.GetLog().Errorf("symbolKeyId %d not found", symbolKeyId)
 		return err
 	}
 	s.StMeta = &stMeta
 	// 初始化品种动态数据
 	dyMeta, err := symbolDynamic.GetManager().Get(symbolKeyId)
 	if err != nil {
-		toUpBitListDataStatic.DyLog.GetLog().Errorf("symbolKeyId %d not found", symbolKeyId)
+		toUpBitDataStatic.DyLog.GetLog().Errorf("symbolKeyId %d not found", symbolKeyId)
 		return err
 	}
 	s.pScale = dyMeta.PScale
 	s.qScale = dyMeta.QScale
-	switch toUpBitListDataStatic.ExType {
+
+	limit, err := symbolLimit.GetManager().Get(symbolKeyId)
+	if err != nil {
+		toUpBitDataStatic.DyLog.GetLog().Errorf("symbolKeyId %d not found", symbolKeyId)
+		return err
+	}
+
+	switch toUpBitDataStatic.ExType {
 	case exchangeEnum.BINANCE:
 		// 1.15-->115
-		s.upLimitPercent_2 = convertx.PriceStringToUint64(dyMeta.UpLimitPercent.String(), upPercentZoomScale)
+		s.upLimitPercent_2 = convertx.PriceStringToUint64(limit.UpLimitPercent.String(), upPercentZoomScale)
 	case exchangeEnum.BYBIT:
 		// 0.15-->115
-		s.upLimitPercent_2 = 100 + convertx.PriceStringToUint64(dyMeta.UpLimitPercent.String(), upPercentZoomScale)
+		s.upLimitPercent_2 = 100 + convertx.PriceStringToUint64(limit.UpLimitPercent.String(), upPercentZoomScale)
 	}
-	s.newPriceMinWindowU64(toUpBitListDataStatic.TickCap)
+	s.newPriceMinWindowU64(toUpBitDataStatic.TickCap)
 	s.chanBookTick = make(chan toUpbitListChan.Job, 100)
 	s.chanAggTrade = make(chan toUpbitListChan.Job, 10)
 	s.chanMarkPrice = make(chan toUpbitListChan.Job, 10)
@@ -167,7 +175,7 @@ func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 	s.btLatencyTotal = latency.NewHttpMonitor(idGen.BuildName2(latencyPrefix, total), latency.PROCESS_TOTAL, resourceEnum.BOOK_TICK)
 	s.mpLatencyTotal = latency.NewHttpMonitor(idGen.BuildName2(latencyPrefix, total), latency.PROCESS_TOTAL, resourceEnum.MARK_PRICE)
 	s.symbolIndex = index
-	toUpBitListDataStatic.SymbolIndex.Store(symbolName, index)
+	toUpBitDataStatic.SymbolIndex.Store(symbolName, index)
 	for i := range 11 {
 		temp := &secondPerInfo{}
 		temp.clear()
@@ -241,7 +249,7 @@ func (s *Single) onMonitorData(data []byte) {
 	}
 	s.priceMaxBuy_10 = monitor_10
 	s.trigPriceMax_10.Store(time.Now().Unix(), monitor_10)
-	toUpBitListDataStatic.DyLog.GetLog().Infof("最新探测价格[%d]: %s", monitor_10, errMsg)
+	toUpBitDataStatic.DyLog.GetLog().Infof("最新探测价格[%d]: %s", monitor_10, errMsg)
 }
 
 // {

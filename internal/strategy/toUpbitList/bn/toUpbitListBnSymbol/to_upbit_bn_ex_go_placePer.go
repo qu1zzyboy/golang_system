@@ -8,7 +8,7 @@ import (
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 
 	"github.com/shopspring/decimal"
 )
@@ -26,7 +26,7 @@ func (s *Single) placePer(i int32, accountIndex uint8) {
 		}
 	}
 	defer func() {
-		toUpBitListDataStatic.DyLog.GetLog().Infof("账户[%d_%d],抽奖[总:%d,maker:%d,limit:%d,market:%d]次,上限[%s],协程结束",
+		toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d_%d],抽奖[总:%d,maker:%d,limit:%d,market:%d]次,上限[%s],协程结束",
 			accountIndex, i, j, post, limit, market, maxNotional)
 	}()
 	tsSec := time.Now().Unix()   //该秒的开始时间戳,1760516599
@@ -44,7 +44,7 @@ OUTER:
 	for j = 0; j <= 230; j++ {
 		select {
 		case <-s.ctxStop.Done():
-			toUpBitListDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出每秒下单协程")
+			toUpBitDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出每秒下单协程")
 			break OUTER
 		default:
 			//有成交或者本轮挂单成功
@@ -81,7 +81,7 @@ OUTER:
 			}
 
 			if toUpbitBnMode.Mode.ShouldExitOnTakeProfit(priceBuy.InexactFloat64(), s.takeProfitPrice) {
-				toUpBitListDataStatic.DyLog.GetLog().Infof("超出止盈价格:[买入价:%.8f,止盈价:%.8f],退出每秒下单协程", priceBuy.InexactFloat64(), s.takeProfitPrice)
+				toUpBitDataStatic.DyLog.GetLog().Infof("超出止盈价格:[买入价:%.8f,止盈价:%.8f],退出每秒下单协程", priceBuy.InexactFloat64(), s.takeProfitPrice)
 				return
 			}
 
@@ -96,12 +96,12 @@ OUTER:
 				&orderModel.MyPlaceOrderReq{
 					OrigPrice:     priceBuy,
 					OrigVol:       num.Truncate(s.qScale),
-					ClientOrderId: toUpBitListDataStatic.GetClientOrderIdBy("second"),
+					ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("second"),
 					StaticMeta:    s.StMeta,
 					OrderType:     orderType,
 					OrderMode:     execute.ORDER_BUY_OPEN,
 				}); err != nil {
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("每秒创建订单失败: %v", err)
+				toUpBitDataStatic.DyLog.GetLog().Errorf("每秒创建订单失败: %v", err)
 			}
 			time.Sleep(150 * time.Microsecond) // 休眠 300 微秒
 		}

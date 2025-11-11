@@ -9,7 +9,7 @@ import (
 	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
 	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnRest"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/pkg/singleton"
 
 	"github.com/shopspring/decimal"
@@ -42,7 +42,7 @@ func (s *BnAccountManager) TransferIn(from int32, amount decimal.Decimal) error 
 	out := accountConfig.Trades[from]
 	usdtAmount := toUpbitBnMode.Mode.GetTransferAmount(amount)
 	if usdtAmount.LessThan(decimal.Zero) {
-		toUpBitListDataStatic.DyLog.GetLog().Infof("账户[%d]余额不足200u,不划转", out.AccountId)
+		toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d]余额不足200u,不划转", out.AccountId)
 		return nil
 	}
 	var reqIn universalTransfer.UniversalTransferReq
@@ -54,10 +54,10 @@ func (s *BnAccountManager) TransferIn(from int32, amount decimal.Decimal) error 
 	reqIn.Amount = usdtAmount.Truncate(0)
 	resIn, reqParamIn, err := s.sp.DoTransfer(context.Background(), orderSdkBnModel.GetSpotTransferSdk(&reqIn))
 	if err != nil {
-		toUpBitListDataStatic.DyLog.GetLog().Errorf("[%d]划转到母账户[%s]失败,err:%s,请求参数:%s", out.AccountId, reqIn.ToAcType, err.Error(), reqParamIn)
+		toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]划转到母账户[%s]失败,err:%s,请求参数:%s", out.AccountId, reqIn.ToAcType, err.Error(), reqParamIn)
 		return err
 	}
-	toUpBitListDataStatic.DyLog.GetLog().Infof("账户[%d]划转[%s,%s]usdt到母账户[%s]成功:%s", out.AccountId, amount, reqIn.Amount, reqIn.ToAcType, resIn)
+	toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d]划转[%s,%s]usdt到母账户[%s]成功:%s", out.AccountId, amount, reqIn.Amount, reqIn.ToAcType, resIn)
 	return nil
 }
 
@@ -72,11 +72,11 @@ func (s *BnAccountManager) TransferOut(to int32, amount decimal.Decimal) error {
 	reqOut.Amount = amount.Truncate(0)
 	resOut, reqParamOut, err := s.sp.DoTransfer(context.Background(), orderSdkBnModel.GetSpotTransferSdk(&reqOut))
 	if err != nil {
-		toUpBitListDataStatic.DyLog.GetLog().Errorf("母账户划转到[%d]失败,err:%s,请求参数:%s", in.AccountId, err.Error(), reqParamOut)
+		toUpBitDataStatic.DyLog.GetLog().Errorf("母账户划转到[%d]失败,err:%s,请求参数:%s", in.AccountId, err.Error(), reqParamOut)
 		return err
 	}
 	if gjson.Get(resOut, "tranId").Exists() {
-		toUpBitListDataStatic.DyLog.GetLog().Infof("母账户划转[%s]usdt到[%d][%s]成功:%s", reqOut.Amount.String(), in.AccountId, reqOut.ToAcType, resOut)
+		toUpBitDataStatic.DyLog.GetLog().Infof("母账户划转[%s]usdt到[%d][%s]成功:%s", reqOut.Amount.String(), in.AccountId, reqOut.ToAcType, resOut)
 		return nil
 	}
 	return errors.New(resOut)
@@ -89,14 +89,14 @@ func (s *BnAccountManager) RefreshSymbolConfig() error {
 	}
 	// 遍历整个数组
 	gjson.ParseBytes(data).ForEach(func(key, value gjson.Result) bool {
-		symbolIndex, ok := toUpBitListDataStatic.SymbolIndex.Load(value.Get("symbol").String())
+		symbolIndex, ok := toUpBitDataStatic.SymbolIndex.Load(value.Get("symbol").String())
 		if !ok {
 			return true
 		}
-		toUpBitListDataStatic.SymbolMaxNotional.Store(symbolIndex, decimal.RequireFromString(value.Get("maxNotionalValue").String()))
+		toUpBitDataStatic.SymbolMaxNotional.Store(symbolIndex, decimal.RequireFromString(value.Get("maxNotionalValue").String()))
 		return true
 	})
-	toUpBitListDataStatic.DyLog.GetLog().Infof("共刷新%d个交易对开仓上限信息", toUpBitListDataStatic.SymbolMaxNotional.Length())
+	toUpBitDataStatic.DyLog.GetLog().Infof("共刷新%d个交易对开仓上限信息", toUpBitDataStatic.SymbolMaxNotional.Length())
 	return nil
 }
 

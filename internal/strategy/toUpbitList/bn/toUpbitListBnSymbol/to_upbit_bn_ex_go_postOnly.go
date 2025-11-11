@@ -7,7 +7,7 @@ import (
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 
 	"github.com/shopspring/decimal"
 )
@@ -56,13 +56,13 @@ func (s *Single) PlacePostOnlyOrder(limit decimal.Decimal) {
 		s.secondArr[0].start()
 		var i int
 		defer func() {
-			toUpBitListDataStatic.DyLog.GetLog().Infof("账户[%d],下单[%d]次 10ms POST_ONLY 协程结束", 0, i+1)
+			toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d],下单[%d]次 10ms POST_ONLY 协程结束", 0, i+1)
 		}()
 	OUTER:
 		for i = 0; i <= 200; i++ {
 			select {
 			case <-s.ctxStop.Done():
-				toUpBitListDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出POST_ONLY抽奖协程")
+				toUpBitDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出POST_ONLY抽奖协程")
 				break OUTER
 			default:
 				{
@@ -74,12 +74,12 @@ func (s *Single) PlacePostOnlyOrder(limit decimal.Decimal) {
 						&orderModel.MyPlaceOrderReq{
 							OrigPrice:     limit,
 							OrigVol:       orderNum,
-							ClientOrderId: toUpBitListDataStatic.GetMakerClientOrderId(),
+							ClientOrderId: toUpBitDataStatic.GetMakerClientOrderId(),
 							StaticMeta:    s.StMeta,
 							OrderType:     execute.ORDER_TYPE_POST_ONLY,
 							OrderMode:     execute.ORDER_BUY_OPEN,
 						}); err != nil {
-						toUpBitListDataStatic.DyLog.GetLog().Errorf("每秒limit_maker订单失败: %v", err)
+						toUpBitDataStatic.DyLog.GetLog().Errorf("每秒limit_maker订单失败: %v", err)
 					}
 					// time.Sleep(40 * time.Microsecond) // 休眠 40 微秒
 				}

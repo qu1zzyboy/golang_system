@@ -6,7 +6,7 @@ import (
 
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/infra/safex"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 
 	"github.com/shopspring/decimal"
 )
@@ -48,7 +48,7 @@ func (s *secondPerInfo) receiveStop(accountKeyId uint8) {
 	if s.hasInToSecondPerLoop.Load() {
 		if !s.stopThisSecondPer.Load() {
 			s.stopThisSecondPer.Store(true)
-			toUpBitListDataStatic.DyLog.GetLog().Infof("账户[%d]没钱,停止这一秒抽奖", accountKeyId)
+			toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d]没钱,停止这一秒抽奖", accountKeyId)
 		}
 	}
 }
@@ -80,7 +80,7 @@ func (s *Single) TryBuyLoop(max int32) {
 	safex.SafeGo("to_upbit_bn_open_second", func() {
 		var i int32
 		defer func() {
-			toUpBitListDataStatic.DyLog.GetLog().Infof("每秒抽奖协程结束,抽奖次数[当前抽奖序号:%d,max:%d]", i, max)
+			toUpBitDataStatic.DyLog.GetLog().Infof("每秒抽奖协程结束,抽奖次数[当前抽奖序号:%d,max:%d]", i, max)
 		}()
 		for i = 1; i < max; i++ {
 			if i >= 4 {
@@ -88,7 +88,7 @@ func (s *Single) TryBuyLoop(max int32) {
 			}
 			select {
 			case <-s.ctxStop.Done():
-				toUpBitListDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出每秒抽奖协程")
+				toUpBitDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出每秒抽奖协程")
 				return
 			default:
 				// 睡到下一秒的5毫秒后

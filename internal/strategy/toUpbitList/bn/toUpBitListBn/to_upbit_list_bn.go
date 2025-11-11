@@ -14,8 +14,8 @@ import (
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnMarket"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitMesh"
 	"upbitBnServer/pkg/container/ring/ringBuf"
@@ -53,9 +53,9 @@ func newEngine() *Engine {
 }
 
 func (e *Engine) start(ctx context.Context, req *Req) error {
-	toUpBitListDataStatic.SetParam(req.PriceRiceTrig, req.TickCap, req.Dec500)
-	toUpBitListDataStatic.ExType = exchangeEnum.BINANCE
-	toUpBitListDataStatic.AcType = exchangeEnum.FUTURE
+	toUpBitDataStatic.SetParam(req.PriceRiceTrig, req.TickCap, req.Dec500)
+	toUpBitDataStatic.ExType = exchangeEnum.BINANCE
+	toUpBitDataStatic.AcType = exchangeEnum.FUTURE
 	toUpbitListBnSymbol.SetParam(req.Qty, req.Dec003)
 	// --- IGNORE ---
 	toUpBitListDataAfter.ClearTrig()
@@ -79,7 +79,7 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 		if err := jsonUtils.UnmarshalFromString(v, &mesh); err != nil {
 			return err
 		}
-		if mesh.SymbolName == "AI16ZUSDT" || mesh.SymbolName == "SLERFUSDT"  {
+		if mesh.SymbolName == "AI16ZUSDT" || mesh.SymbolName == "SLERFUSDT" {
 			continue
 		}
 		if mesh.IsList {
@@ -87,9 +87,9 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 		}
 	}
 	if len(symbols) == 0 {
-		return toUpBitListDataStatic.ExType.GetNotSupportError("no symbols to subscribe")
+		return toUpBitDataStatic.ExType.GetNotSupportError("no symbols to subscribe")
 	}
-	toUpBitListDataStatic.DyLog.GetLog().Infof("bn初始化订阅币种:%d,max:%d", len(symbols), len(data))
+	toUpBitDataStatic.DyLog.GetLog().Infof("bn初始化订阅币种:%d,max:%d", len(symbols), len(data))
 	needLen := len(symbols) + 100
 	toUpbitListChan.InitUpBit(needLen)
 	toUpbitListBnSymbolArr.Init(needLen)
@@ -111,10 +111,10 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 		return err
 	}
 	// 注册交易时间段
-	if _, err := globalCron.AddFunc(toUpBitListDataStatic.DAY_BEGIN_STR, e.OnDayBegin); err != nil {
+	if _, err := globalCron.AddFunc(toUpBitDataStatic.DAY_BEGIN_STR, e.OnDayBegin); err != nil {
 		return err
 	}
-	if _, err := globalCron.AddFunc(toUpBitListDataStatic.DAY_END_STR, e.OnDayEnd); err != nil {
+	if _, err := globalCron.AddFunc(toUpBitDataStatic.DAY_END_STR, e.OnDayEnd); err != nil {
 		return err
 	}
 	if err := toUpBitListBnAccount.GetBnAccountManager().RefreshSymbolConfig(); err != nil {

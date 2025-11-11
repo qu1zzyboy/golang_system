@@ -1,4 +1,4 @@
-package toUpBitListDataStatic
+package toUpBitDataStatic
 
 import (
 	"strconv"

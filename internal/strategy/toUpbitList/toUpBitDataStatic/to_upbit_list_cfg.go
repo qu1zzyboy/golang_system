@@ -1,4 +1,4 @@
-package toUpBitListDataStatic
+package toUpBitDataStatic
 
 type ConfigVir struct {
 	MaxQty        float64  `json:"max_qty"`         // 最大开仓数量,USDT

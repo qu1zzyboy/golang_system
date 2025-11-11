@@ -5,7 +5,7 @@ import (
 
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 
 	"github.com/shopspring/decimal"
 )
@@ -38,7 +38,7 @@ func LoadTrig() bool {
 }
 
 func ClearTrig() {
-	toUpBitListDataStatic.DyLog.GetLog().Info("===========================清空ClearTrig()===============================")
+	toUpBitDataStatic.DyLog.GetLog().Info("===========================清空ClearTrig()===============================")
 	hasTrig.Store(false)
 	TrigSymbolIndex = -1
 }

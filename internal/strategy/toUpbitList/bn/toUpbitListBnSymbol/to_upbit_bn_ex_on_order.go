@@ -3,8 +3,8 @@ package toUpbitListBnSymbol
 import (
 	"fmt"
 
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 
 	"github.com/shopspring/decimal"
 )
@@ -31,18 +31,18 @@ func (s *Single) onSuccessOrder(evt toUpBitListDataAfter.OnSuccessEvt) {
 				val := s.bidPrice.Load()
 				if val != nil {
 					lastPrice := decimal.NewFromFloat(val.(float64))
-					if left.Mul(lastPrice).LessThan(toUpBitListDataStatic.Dec500) {
+					if left.Mul(lastPrice).LessThan(toUpBitDataStatic.Dec500) {
 						s.hasAllFilled.Store(true)
-						toUpBitListDataStatic.DyLog.GetLog().Infof("完全成交,当前总仓位:%s,需要:%s", posTotalAmount, s.posTotalNeed)
+						toUpBitDataStatic.DyLog.GetLog().Infof("完全成交,当前总仓位:%s,需要:%s", posTotalAmount, s.posTotalNeed)
 					}
 				}
-				toUpBitListDataStatic.SendToUpBitMsg("发送开仓成交失败", map[string]string{
+				toUpBitDataStatic.SendToUpBitMsg("发送开仓成交失败", map[string]string{
 					"symbol": s.StMeta.SymbolName,
 					"op":     fmt.Sprintf("账户[%d][%s]开仓成交:%s,当前总仓位:%s", accountKeyId, evt.ClientOrderId, evt.Volume, posTotalAmount),
 				})
 			} else {
 				posTotalAmount := s.pos.CloseFilled(accountKeyId, evt.Volume)
-				toUpBitListDataStatic.SendToUpBitMsg("发送平仓成交失败", map[string]string{
+				toUpBitDataStatic.SendToUpBitMsg("发送平仓成交失败", map[string]string{
 					"symbol": s.StMeta.SymbolName,
 					"op":     fmt.Sprintf("账户[%d][%s]平仓成交:%s,当前总仓位:%s", accountKeyId, evt.ClientOrderId, evt.Volume, posTotalAmount),
 				})
@@ -50,7 +50,7 @@ func (s *Single) onSuccessOrder(evt toUpBitListDataAfter.OnSuccessEvt) {
 		}
 		// 删除掉这个订单
 		s.clientOrderIds.Delete(evt.ClientOrderId)
-		toUpBitListDataStatic.DyLog.GetLog().Infof("账户[%d][%s]订单完成[%s],剩余挂单数:%d",
+		toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d][%s]订单完成[%s],剩余挂单数:%d",
 			accountKeyId, evt.ClientOrderId, evt.Volume, s.clientOrderIds.Length())
 	}
 }

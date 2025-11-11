@@ -11,8 +11,8 @@ import (
 	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnWsSign"
 	"upbitBnServer/internal/quant/execute/order/orderStatic"
 	"upbitBnServer/internal/quant/execute/order/wsRequestCache"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
 
 	"github.com/shopspring/decimal"
@@ -124,7 +124,7 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 							return
 						}
 					}
-					toUpBitListDataStatic.DyLog.GetLog().Errorf("[%d]触发后异常订单,请求数据:%s,返回数据%s", s.accountKeyId, wsMeta.Json, string(data))
+					toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]触发后异常订单,请求数据:%s,返回数据%s", s.accountKeyId, wsMeta.Json, string(data))
 					return
 				}
 				if ok {
@@ -160,7 +160,7 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 				if errCode == (-2027) {
 					return
 				}
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("账户[%d]下单失败,请求:%s,返回:%s", s.accountKeyId, wsMeta.Json, string(data))
+				toUpBitDataStatic.DyLog.GetLog().Errorf("账户[%d]下单失败,请求:%s,返回:%s", s.accountKeyId, wsMeta.Json, string(data))
 				notify.GetNotify().SendImportantErrorMsg(map[string]string{
 					"msg":           "下单失败",
 					"clientOrderId": clientOrderId,

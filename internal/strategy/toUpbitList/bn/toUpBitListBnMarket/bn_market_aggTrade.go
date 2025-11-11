@@ -1,7 +1,7 @@
 package toUpBitListBnMarket
 
 import (
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
 	"upbitBnServer/pkg/container/pool/byteBufPool"
 
@@ -13,14 +13,14 @@ func (s *Market) OnAggTradePool(len int, bufPtr *[]byte) {
 	result := gjson.GetBytes(data, jsonSymbol)
 	if !result.Exists() {
 		if !gjson.GetBytes(data, "id").Exists() {
-			toUpBitListDataStatic.DyLog.GetLog().Errorf("aggTrade symbol not found: %s", string(data))
+			toUpBitDataStatic.DyLog.GetLog().Errorf("aggTrade symbol not found: %s", string(data))
 		}
 		byteBufPool.ReleaseBuffer(bufPtr)
 		return
 	}
-	symbolIndex, ok := toUpBitListDataStatic.SymbolIndex.Load(result.String())
+	symbolIndex, ok := toUpBitDataStatic.SymbolIndex.Load(result.String())
 	if !ok {
-		toUpBitListDataStatic.DyLog.GetLog().Errorf("aggTrade symbol not found: %s", string(data))
+		toUpBitDataStatic.DyLog.GetLog().Errorf("aggTrade symbol not found: %s", string(data))
 		byteBufPool.ReleaseBuffer(bufPtr)
 		return
 	}

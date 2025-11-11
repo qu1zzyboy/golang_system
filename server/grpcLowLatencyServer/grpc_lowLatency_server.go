@@ -15,8 +15,8 @@ import (
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBn"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitMesh"
 	"upbitBnServer/internal/strategy/toUpbitParam"
 	"upbitBnServer/pkg/utils/jsonUtils"
@@ -135,7 +135,7 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 		{
 			Asset := gjson.Get(in.JsonData, "events.0.symbols.0").String()
 			symbolName := Asset + "USDT"
-			symbolIndexTrue, ok := toUpBitListDataStatic.SymbolIndex.Load(symbolName)
+			symbolIndexTrue, ok := toUpBitDataStatic.SymbolIndex.Load(symbolName)
 			if !ok {
 				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, "TreeNews品种不在品种池内", nil)
 			}
@@ -149,7 +149,7 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 		}
 	case grpcEvent.TO_UPBIT_TEST:
 		{
-			symbolIndex, _ := toUpBitListDataStatic.SymbolIndex.Load("XPINUSDT")
+			symbolIndex, _ := toUpBitDataStatic.SymbolIndex.Load("XPINUSDT")
 			obj := toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex)
 			go obj.ReceiveTreeNews()
 			obj.IntoExecuteNoCheck(time.Now().UnixMilli(), "test", 200000000)
@@ -167,13 +167,13 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 		}
 	case grpcEvent.TO_UPBIT_CFG:
 		{
-			var cfg toUpBitListDataStatic.ConfigVir
+			var cfg toUpBitDataStatic.ConfigVir
 			err = jsonUtils.UnmarshalFromString(in.JsonData, &cfg)
 			if err != nil {
 				logError.GetLog().Error("特有参数json解析失败:", err)
 				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
 			}
-			toUpBitListDataStatic.UpdateParam(cfg.PriceRiceTrig)
+			toUpBitDataStatic.UpdateParam(cfg.PriceRiceTrig)
 		}
 	default:
 	}

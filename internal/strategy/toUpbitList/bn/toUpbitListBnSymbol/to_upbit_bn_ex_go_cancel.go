@@ -5,7 +5,7 @@ import (
 
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 )
 
 /**
@@ -34,12 +34,12 @@ func (s *Single) cancelAndTransfer(i, accountPreId int32) {
 					ClientOrderId: clientOrderId,
 					StaticMeta:    s.StMeta,
 				}); err != nil {
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("撤销订单[%s]失败: %v", clientOrderId, err)
+				toUpBitDataStatic.DyLog.GetLog().Errorf("撤销订单[%s]失败: %v", clientOrderId, err)
 			}
 		}
 		return true
 	})
-	toUpBitListDataStatic.DyLog.GetLog().Infof("%d 开始查询 %d的可划转金额,撤单数:%d", i, accountPreId, count)
+	toUpBitDataStatic.DyLog.GetLog().Infof("%d 开始查询 %d的可划转金额,撤单数:%d", i, accountPreId, count)
 	// 没有撤单,直接查询
 	if count == 0 {
 		bnOrderAppManager.GetTradeManager().SendQueryAccountBalance(tranSpecial, uint8(accountPreId))

@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"upbitBnServer/internal/strategy/treenews"
 )
 
@@ -22,12 +22,12 @@ func treeNewsHandler(_ context.Context, evt treenews.Event) {
 		if !strings.HasSuffix(symbolName, "USDT") {
 			symbolName = symbolName + "USDT"
 		}
-		symbolIndexTrue, ok := toUpBitListDataStatic.SymbolIndex.Load(symbolName)
+		symbolIndexTrue, ok := toUpBitDataStatic.SymbolIndex.Load(symbolName)
 		if !ok {
-			toUpBitListDataStatic.DyLog.GetLog().Errorf("%s treeNews品种不在品种池内", symbolName)
+			toUpBitDataStatic.DyLog.GetLog().Errorf("%s treeNews品种不在品种池内", symbolName)
 			continue
 		}
-		toUpBitListDataStatic.DyLog.GetLog().Infof("received tree news: symbol=%s id=%s", symbolName, evt.ID)
+		toUpBitDataStatic.DyLog.GetLog().Infof("received tree news: symbol=%s id=%s", symbolName, evt.ID)
 		// 触发品种和TreeNews品种一致
 		if symbolIndexTrue == toUpBitListDataAfter.TrigSymbolIndex {
 			GetSymbolObj(symbolIndexTrue).ReceiveTreeNews()

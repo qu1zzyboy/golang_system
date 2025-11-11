@@ -8,8 +8,8 @@ import (
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 
 	"github.com/shopspring/decimal"
 )
@@ -55,12 +55,12 @@ func (s *Single) receiveStop(stopType StopType) {
 		return
 	}
 	s.hasReceiveStop = true
-	toUpBitListDataStatic.DyLog.GetLog().Infof("收到停止信号==> %s", stopReasonArr[stopType])
+	toUpBitDataStatic.DyLog.GetLog().Infof("收到停止信号==> %s", stopReasonArr[stopType])
 	s.cancel()
 	//开启平仓线程
 	safex.SafeGo("to_upbit_bn_close", func() {
 		defer func() {
-			toUpBitListDataStatic.DyLog.GetLog().Infof("当前账户id[%d] 平仓协程结束", s.thisOrderAccountId.Load())
+			toUpBitDataStatic.DyLog.GetLog().Infof("当前账户id[%d] 平仓协程结束", s.thisOrderAccountId.Load())
 			time.Sleep(20 * time.Millisecond)
 			s.clear()
 		}()
@@ -76,11 +76,11 @@ func (s *Single) receiveStop(stopType StopType) {
 		// 判断有没有持仓
 		use := s.pos.GetTotal()
 		if use.LessThanOrEqual(decimal.Zero) {
-			toUpBitListDataStatic.DyLog.GetLog().Infof("没有可用的平仓数量,取消平仓")
+			toUpBitDataStatic.DyLog.GetLog().Infof("没有可用的平仓数量,取消平仓")
 			return
 		}
-		if use.LessThanOrEqual(toUpBitListDataStatic.Dec500) {
-			toUpBitListDataStatic.DyLog.GetLog().Infof("没有足够的平仓数量,取消平仓")
+		if use.LessThanOrEqual(toUpBitDataStatic.Dec500) {
+			toUpBitDataStatic.DyLog.GetLog().Infof("没有足够的平仓数量,取消平仓")
 			return
 		}
 		//每秒平一次
@@ -102,12 +102,12 @@ func (s *Single) receiveStop(stopType StopType) {
 					}
 					priceDec := decimal.NewFromFloat(val.(float64)).Truncate(s.pScale)
 					posLeft := s.pos.GetTotal()
-					if s.pos.GetTotal().Mul(priceDec).LessThanOrEqual(toUpBitListDataStatic.Dec500) {
-						toUpBitListDataStatic.DyLog.GetLog().Infof("平仓完全成交,开始清理资源")
+					if s.pos.GetTotal().Mul(priceDec).LessThanOrEqual(toUpBitDataStatic.Dec500) {
+						toUpBitDataStatic.DyLog.GetLog().Infof("平仓完全成交,开始清理资源")
 						ticker.Stop()
 						return
 					}
-					toUpBitListDataStatic.DyLog.GetLog().Infof("============开始平仓,剩余:%s============", posLeft)
+					toUpBitDataStatic.DyLog.GetLog().Infof("============开始平仓,剩余:%s============", posLeft)
 					// 最新的每个账户的仓位情况
 					copyMap := s.pos.GetAllAccountPos()
 					for accountKeyId, vol := range copyMap {
@@ -125,17 +125,17 @@ func (s *Single) receiveStop(stopType StopType) {
 							&orderModel.MyPlaceOrderReq{
 								OrigPrice:     priceDec,
 								OrigVol:       num,
-								ClientOrderId: toUpBitListDataStatic.GetClientOrderIdBy("close"),
+								ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("close"),
 								StaticMeta:    s.StMeta,
 								OrderType:     execute.ORDER_TYPE_LIMIT,
 								OrderMode:     execute.ORDER_SELL_CLOSE,
 							}); err != nil {
-							toUpBitListDataStatic.DyLog.GetLog().Errorf("每秒平仓创建订单失败: %v", err)
+							toUpBitDataStatic.DyLog.GetLog().Errorf("每秒平仓创建订单失败: %v", err)
 						}
 					}
 				}
 			case <-timeout:
-				toUpBitListDataStatic.DyLog.GetLog().Infof("平仓时间结束,开始清理资源")
+				toUpBitDataStatic.DyLog.GetLog().Infof("平仓时间结束,开始清理资源")
 				ticker.Stop()
 				return
 			}

@@ -9,7 +9,7 @@ import (
 	"upbitBnServer/internal/quant/market/markPrice/markPriceSubBn"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/server/instance"
 )
 
@@ -27,15 +27,15 @@ func (e *Engine) onSymbolList(ctx context.Context, s *coinMesh.CoinMesh) error {
 }
 
 func (e *Engine) OnSymbolList(ctx context.Context, s *coinMesh.CoinMesh) error {
-	toUpBitListDataStatic.DyLog.GetLog().Infof("upbit上币:%v", s)
+	toUpBitDataStatic.DyLog.GetLog().Infof("upbit上币:%v", s)
 	symbolName := s.BnFuUsdtName
 	if symbolName == "" {
 		return nil
 	}
 	// 下标不存在则添加,要不然会出现订阅的品种没有索引
-	if _, ok := toUpBitListDataStatic.SymbolIndex.Load(symbolName); !ok {
+	if _, ok := toUpBitDataStatic.SymbolIndex.Load(symbolName); !ok {
 
-		symbolIndex := toUpBitListDataStatic.SymbolIndex.Length()
+		symbolIndex := toUpBitDataStatic.SymbolIndex.Length()
 		e.thisCalCount++
 		if e.thisCalCount == limit {
 			e.thisAccountKeyId++
@@ -47,7 +47,7 @@ func (e *Engine) OnSymbolList(ctx context.Context, s *coinMesh.CoinMesh) error {
 	}
 	// 再订阅
 	if err := e.onSymbolList(ctx, s); err != nil {
-		toUpBitListDataStatic.DyLog.GetLog().Errorf("bn_upbit上币失败,err:%v", err)
+		toUpBitDataStatic.DyLog.GetLog().Errorf("bn_upbit上币失败,err:%v", err)
 		return err
 	}
 	return nil
@@ -70,9 +70,9 @@ func (e *Engine) onSymbolDel(ctx context.Context, s *coinMesh.CoinMesh) error {
 }
 
 func (e *Engine) OnSymbolDel(ctx context.Context, s *coinMesh.CoinMesh) error {
-	toUpBitListDataStatic.DyLog.GetLog().Infof("upbit下币:%v", s)
+	toUpBitDataStatic.DyLog.GetLog().Infof("upbit下币:%v", s)
 	if err := e.onSymbolDel(ctx, s); err != nil {
-		toUpBitListDataStatic.DyLog.GetLog().Errorf("bn_upbit下币失败,err:%v", err)
+		toUpBitDataStatic.DyLog.GetLog().Errorf("bn_upbit下币失败,err:%v", err)
 		return err
 	}
 	return nil
@@ -99,14 +99,14 @@ func (e *Engine) OnDayBegin() {
 	today := time.Now()
 	weekday := today.Weekday()
 	if weekday == time.Saturday || weekday == time.Sunday {
-		toUpBitListDataStatic.DyLog.GetLog().Info("今天是周末,不交易")
+		toUpBitDataStatic.DyLog.GetLog().Info("今天是周末,不交易")
 		return
 	} else {
 		ctx := context.Background()
 		bookTickSubBn.GetManager().OpenSub(ctx)
 		aggTradeSubBn.GetManager().OpenSub(ctx)
 		markPriceSubBn.GetManager().OpenSub(ctx)
-		toUpBitListDataStatic.DyLog.GetLog().Info("今天交易开始,打开订阅")
+		toUpBitDataStatic.DyLog.GetLog().Info("今天交易开始,打开订阅")
 	}
 }
 
@@ -118,5 +118,5 @@ func (e *Engine) OnDayEnd() {
 	time.Sleep(3 * time.Second)               //等待数据处理完
 	toUpbitListBnSymbolArr.CancelAllOrders()  //撤销所有挂单
 	toUpbitListBnSymbolArr.ClearByDayEnd()    //清理涨幅相关数据
-	toUpBitListDataStatic.DyLog.GetLog().Info("今天交易结束,关闭订阅")
+	toUpBitDataStatic.DyLog.GetLog().Info("今天交易结束,关闭订阅")
 }

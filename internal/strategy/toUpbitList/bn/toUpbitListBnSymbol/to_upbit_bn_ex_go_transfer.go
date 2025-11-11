@@ -5,7 +5,7 @@ import (
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnAccount"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 
 	"github.com/shopspring/decimal"
 )
@@ -37,7 +37,7 @@ func (s *Single) OnTransOut(maxWithdrawAmount decimal.Decimal) {
 				s.secondArr[accountKeyId].maxNotional.Store(decimal.Min(maxWithdrawAmount.Mul(dec4), s.maxNotional))
 				break
 			} else {
-				toUpBitListDataStatic.DyLog.GetLog().Errorf("划转到[%d]失败:%v", accountKeyId, err)
+				toUpBitDataStatic.DyLog.GetLog().Errorf("划转到[%d]失败:%v", accountKeyId, err)
 			}
 		}
 	})
