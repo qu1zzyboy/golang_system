@@ -6,10 +6,10 @@ import (
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/infra/observe/log/staticLog"
 	"upbitBnServer/internal/infra/observe/notify/notifyTg"
+	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/utils/algorithms"
 	"upbitBnServer/pkg/container/map/myMap"
-	"upbitBnServer/pkg/container/ring/ringBuf"
 	"upbitBnServer/pkg/utils/idGen"
 	"upbitBnServer/pkg/utils/timeUtils"
 
@@ -23,12 +23,10 @@ const (
 )
 
 var (
-	GlobalCfg         ConfigVir                                       // 全局配置
-	SymbolIndex       = myMap.NewMySyncMap[string, int]()             // symbolName --> symbolIndex
-	SymbolMaxNotional = myMap.NewMySyncMap[int, decimal.Decimal]()    //symbolIndex-->最大仓位上限
-	Dec500            = decimal.NewFromInt(500)                       // 小于这个数全部平仓
-	PriceRiceTrig     float64                                         // 价格触发阈值,当价格变化超过该值时触发
-	DyLog             = dynamicLog.NewDynamicLogger(staticLog.Config{ // 创建日志记录器
+	GlobalCfg         ConfigVir                                                       // 全局配置
+	SymbolIndex       = myMap.NewMySyncMap[string, systemx.SymbolIndex16I]()          // symbolName --> symbolIndex
+	SymbolMaxNotional = myMap.NewMySyncMap[systemx.SymbolIndex16I, decimal.Decimal]() //symbolIndex-->最大仓位上限
+	DyLog             = dynamicLog.NewDynamicLogger(staticLog.Config{                 // 创建日志记录器
 		NeedErrorHook: true,
 		FileDir:       "toUpBitList",
 		DateStr:       timeUtils.GetNowDateStr(),
@@ -42,20 +40,9 @@ var (
 		FileName:      "signal",
 		Level:         staticLog.INFO_LEVEL,
 	})
-	TickCap ringBuf.Capacity          // 容量
-	ExType  exchangeEnum.ExchangeType // 交易所类型
-	AcType  exchangeEnum.AccountType  // 账户类型
+	ExType exchangeEnum.ExchangeType // 交易所类型
+	AcType exchangeEnum.AccountType  // 账户类型
 )
-
-func SetParam(priceRiceTrig float64, tickCap ringBuf.Capacity, dec500 int64) {
-	TickCap = tickCap
-	PriceRiceTrig = priceRiceTrig
-	Dec500 = decimal.NewFromInt(dec500)
-}
-
-func UpdateParam(priceRiceTrig float64) {
-	PriceRiceTrig = priceRiceTrig
-}
 
 func getClientOrderId(acType exchangeEnum.AccountType, flag string) string {
 	str := ""

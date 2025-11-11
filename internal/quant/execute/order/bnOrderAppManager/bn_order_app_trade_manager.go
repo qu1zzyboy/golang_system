@@ -3,6 +3,7 @@ package bnOrderAppManager
 import (
 	"context"
 
+	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/quant/account/accountConfig"
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
@@ -35,7 +36,7 @@ func (s *TradeManager) init(ctx context.Context) error {
 	return nil
 }
 
-func (s *TradeManager) SendPlaceOrder(reqFrom orderBelongEnum.Type, index uint8, symbolIndex int, req *orderModel.MyPlaceOrderReq) error {
+func (s *TradeManager) SendPlaceOrder(reqFrom orderBelongEnum.Type, index uint8, symbolIndex systemx.SymbolIndex16I, req *orderModel.MyPlaceOrderReq) error {
 	err := s.appArray[index].wsOrderSign.CreateOrder(reqFrom, orderSdkBnModel.GetFuturePlaceLimitSdk(req))
 	if err == nil {
 		orderStatic.GetService().SaveOrderMeta(req.ClientOrderId, orderStatic.StaticMeta{

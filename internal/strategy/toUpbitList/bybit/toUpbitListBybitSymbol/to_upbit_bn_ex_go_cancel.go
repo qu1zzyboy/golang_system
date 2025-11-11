@@ -1,4 +1,4 @@
-package toUpbitListBnSymbol
+package toUpbitListBybitSymbol
 
 import (
 	"time"
@@ -39,7 +39,7 @@ func (s *Single) cancelAndTransfer(i, accountPreId int32) {
 		}
 		return true
 	})
-	toUpBitListDataStatic.DyLog.GetLog().Infof("开始查询账户%d-->%d的可划转金额,撤单数:%d", i, accountPreId, count)
+	toUpBitListDataStatic.DyLog.GetLog().Infof("%d 开始查询 %d的可划转金额,撤单数:%d", i, accountPreId, count)
 	// 没有撤单,直接查询
 	if count == 0 {
 		bnOrderAppManager.GetTradeManager().SendQueryAccountBalance(tranSpecial, uint8(accountPreId))

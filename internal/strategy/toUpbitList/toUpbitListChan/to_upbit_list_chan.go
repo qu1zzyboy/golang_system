@@ -1,6 +1,7 @@
 package toUpbitListChan
 
 import (
+	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 
 	"github.com/shopspring/decimal"
@@ -86,7 +87,7 @@ func SendTradeLite(symbolIndex int, buf []byte) {
 	chanTradeLiteArr[symbolIndex] <- buf
 }
 
-func SendDeltaOrder(symbolIndex int, buf []byte) {
+func SendDeltaOrder(symbolIndex systemx.SymbolIndex16I, buf []byte) {
 	chanOrderUpdateArr[symbolIndex] <- buf
 }
 
