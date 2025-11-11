@@ -2,7 +2,6 @@ package symbolInfoLoad
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"upbitBnServer/internal/quant/market/symbolInfo"
@@ -53,7 +52,6 @@ func loadDynamic(ctx context.Context, redisClient *redis.Client) error {
 		return err
 	}
 	for symbolKeyIdStr, v := range data {
-		fmt.Println(symbolKeyIdStr, v)
 		var dynamic symbolDynamic.DynamicSymbol
 		if err := jsonUtils.UnmarshalFromString(v, &dynamic); err != nil {
 			return err
