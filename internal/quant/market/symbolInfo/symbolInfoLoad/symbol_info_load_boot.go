@@ -8,6 +8,7 @@ import (
 	"upbitBnServer/internal/infra/redisx/redisConfig"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
+	"upbitBnServer/internal/quant/market/symbolInfo/symbolLimit"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
 )
 
@@ -43,6 +44,10 @@ func (s *Boot) Start(ctx context.Context) error {
 		return err
 	}
 	staticLog.Log.Info("动态交易对加载完成,共计:", symbolDynamic.GetManager().GetLength())
+	if err = loadLimit(ctx, redisClient); err != nil {
+		return err
+	}
+	staticLog.Log.Info("限制交易对加载完成,共计:", symbolLimit.GetManager().GetLength())
 	if err := loadCoinMesh(ctx, redisClient); err != nil {
 		return err
 	}

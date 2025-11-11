@@ -3,6 +3,7 @@ package symbolInfoLoad
 import (
 	"context"
 	"strconv"
+	"upbitBnServer/internal/quant/market/symbolInfo/symbolLimit"
 
 	"upbitBnServer/internal/quant/market/symbolInfo"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
@@ -61,6 +62,29 @@ func loadDynamic(ctx context.Context, redisClient *redis.Client) error {
 			return err
 		}
 		symbolDynamic.GetManager().SetDirect(symbolKeyId, dynamic)
+	}
+	return nil
+}
+
+func loadLimit(ctx context.Context, redisClient *redis.Client) error {
+	res := redisClient.HGetAll(ctx, symbolLimit.SYMBOL_INFO_LIMIT_MANAGER)
+	if res.Err() != nil {
+		return res.Err()
+	}
+	data, err := res.Result()
+	if err != nil {
+		return err
+	}
+	for symbolKeyIdStr, v := range data {
+		var limit symbolLimit.LimitSymbol
+		if err = jsonUtils.UnmarshalFromString(v, &limit); err != nil {
+			return err
+		}
+		symbolKeyId, err := strconv.ParseUint(symbolKeyIdStr, 10, 64)
+		if err != nil {
+			return err
+		}
+		symbolLimit.GetManager().SetDirect(symbolKeyId, limit)
 	}
 	return nil
 }
