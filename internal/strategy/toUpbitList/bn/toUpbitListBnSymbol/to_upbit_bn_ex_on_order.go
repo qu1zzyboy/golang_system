@@ -12,7 +12,7 @@ import (
 func (s *Single) onFailureOrder(accountKeyId uint8, errCode int64) {
 	// {"code":-2019,"msg":"Margin is insufficient."},账户没钱,停止这一秒抽奖
 	if errCode == -2019 {
-		s.secondArr[accountKeyId].receiveStop(accountKeyId)
+		// s.secondArr[accountKeyId].receiveStop(accountKeyId)
 	}
 }
 

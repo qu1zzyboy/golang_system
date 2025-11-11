@@ -79,6 +79,9 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 		if err := jsonUtils.UnmarshalFromString(v, &mesh); err != nil {
 			return err
 		}
+		if mesh.SymbolName == "AI16ZUSDT" || mesh.SymbolName == "SLERFUSDT"  {
+			continue
+		}
 		if mesh.IsList {
 			symbols = append(symbols, mesh.SymbolName)
 		}
@@ -98,6 +101,7 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 			e.thisAccountKeyId++
 			e.thisCalCount = 0
 		}
+
 		if err := toUpbitListBnSymbolArr.GetSymbolObj(index).Start(e.thisAccountKeyId, index, symbolName); err != nil {
 			return err
 		}

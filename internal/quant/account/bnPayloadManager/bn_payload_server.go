@@ -46,9 +46,12 @@ func (s *Payload) OnPayload(data []byte) {
 			}
 			wb := gjson.GetBytes(data, `a.B.#(a=="USDT").wb`)
 			if wb.Exists() {
-				max_ := decimal.RequireFromString(wb.String())
-				if max_.GreaterThan(decimal.Zero) {
-					toUpbitListBnSymbolArr.GetSymbolObj(toUpBitListDataAfter.TrigSymbolIndex).OnTransOut(max_)
+				symbolIndex := toUpBitListDataAfter.TrigSymbolIndex
+				if symbolIndex > (-1) {
+					max_ := decimal.RequireFromString(wb.String())
+					if max_.GreaterThan(decimal.Zero) {
+						toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex).OnTransOut(max_)
+					}
 				}
 			}
 		}

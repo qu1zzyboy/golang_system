@@ -100,7 +100,7 @@ func (s *Single) onPreFilled(clientOrderId string) {
 					OrigVol:       s.orderNum,
 					ClientOrderId: toUpBitListDataStatic.GetClientOrderIdBy("close_pre"),
 					StaticMeta:    s.StMeta,
-					OrderType:     execute.ORDER_TYPE_LIMIT,
+					OrderType:     execute.ORDER_TYPE_MARKET,
 					OrderMode:     execute.ORDER_BUY_CLOSE,
 				}); err != nil {
 				symbolKey := symbolStatic.GetSymbol().GetSymbolKey(s.StMeta.SymbolKeyId)
@@ -111,7 +111,7 @@ func (s *Single) onPreFilled(clientOrderId string) {
 				toUpBitListDataStatic.DyLog.GetLog().Errorf("%s下买入平空单错误: %s", symbolKey, err.Error())
 			}
 			// 等待能再次下单
-			time.Sleep(5 * time.Second)
+			time.Sleep(60 * time.Second)
 			toUpBitListDataStatic.DyLog.GetLog().Infof("预挂单成交5秒后,删除订单限流标记:%s", clientOrderId)
 			clientOrderSig.Delete(clientOrderId)
 		}

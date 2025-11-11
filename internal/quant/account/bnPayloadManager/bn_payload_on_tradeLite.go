@@ -16,7 +16,7 @@ func (s *Payload) onTradeLite(data []byte) {
 	orderFrom, orderMode, symbolIndex, ok := orderStatic.GetService().GetOrderInstanceIdAndSymbolId(clientOrderId)
 	if !ok {
 		// 可能是手动平仓单
-		if clientOrderId[0:3] == "ios" || clientOrderId[0:3] == "web" {
+		if clientOrderId[0:3] == "ios" || clientOrderId[0:3] == "web" || clientOrderId[0:3] == "ele" {
 			return
 		}
 		dynamicLog.Error.GetLog().Errorf("[%d]TRADE_LITE: [%s] orderFrom not found %s", s.accountKeyId, clientOrderId, string(data))

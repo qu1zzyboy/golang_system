@@ -24,7 +24,7 @@ func (s *Payload) onPayloadOrder(data []byte) {
 
 	if !ok {
 		// 可能是手动平仓单
-		if clientOrderId[0:3] == "ios" || clientOrderId[0:3] == "web" {
+		if clientOrderId[0:3] == "ios" || clientOrderId[0:3] == "web" || clientOrderId[0:3] == "ele" {
 			return
 		}
 		dynamicLog.Error.GetLog().Errorf("[%d]订单推送: [%s] orderFrom not found %s", s.accountKeyId, clientOrderId, string(data))

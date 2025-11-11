@@ -156,6 +156,10 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 				if errCode == (-2019) {
 					return
 				}
+				// {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
+				if errCode == (-2027) {
+					return
+				}
 				toUpBitListDataStatic.DyLog.GetLog().Errorf("账户[%d]下单失败,请求:%s,返回:%s", s.accountKeyId, wsMeta.Json, string(data))
 				notify.GetNotify().SendImportantErrorMsg(map[string]string{
 					"msg":           "下单失败",

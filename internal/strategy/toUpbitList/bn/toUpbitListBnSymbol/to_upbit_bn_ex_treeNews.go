@@ -22,6 +22,7 @@ func (s *Single) checkTreeNews() {
 }
 
 func (s *Single) ReceiveTreeNews() {
+	toUpBitListDataStatic.DyLog.GetLog().Info("--------------------TreeNews确认---------------------")
 	s.hasTreeNews = true
 	toUpBitListDataStatic.SendToUpBitMsg("TreeNews确认", map[string]string{
 		"symbol": s.StMeta.SymbolName,
