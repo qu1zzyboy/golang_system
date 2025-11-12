@@ -24,7 +24,7 @@ func newPayload() *Payload {
 
 func (s *Payload) init(ctx context.Context, v accountConfig.Config) error {
 	s.accountKeyId = v.AccountId
-	s.payload = bnPayload.NewBnPayload(v.ApiKeyHmac, v.SecretHmac)
+	s.payload = bnPayload.NewBnPayload(v.ApiKeyEd25519, v.SecretEd25519)
 	if err := s.payload.RegisterReadHandler(ctx, v.AccountId, s.OnPayload); err != nil {
 		return err
 	}
@@ -32,13 +32,15 @@ func (s *Payload) init(ctx context.Context, v accountConfig.Config) error {
 }
 
 func (s *Payload) OnPayload(data []byte) {
-	eveType := gjson.GetBytes(data, "e").String()
-	switch eveType {
-	case bnPayload.ORDER_TRADE_UPDATE:
+	switch {
+	case data[6] == 'O' && data[7] == 'R':
+		// ORDER_TRADE_UPDATE
 		s.onPayloadOrder(data)
-	case bnPayload.TRADE_LITE:
+	case data[6] == 'T' && data[7] == 'R':
+		// TRADE_LITE
 		s.onTradeLite(data)
-	case bnPayload.ACCOUNT_UPDATE:
+	case data[6] == 'A' && data[7] == 'C' && data[14] == 'U':
+		// ACCOUNT_UPDATE
 		if s.accountKeyId == 11 {
 			// 必须是转入导致的资金变化
 			if gjson.GetBytes(data, "a.m").String() != "ADMIN_DEPOSIT" {
@@ -55,10 +57,11 @@ func (s *Payload) OnPayload(data []byte) {
 				}
 			}
 		}
+	case data[6] == 'A' && data[7] == 'L':
+		// ALGO_UPDATE
+	case data[6] == 'A' && data[7] == 'C' && data[14] == 'C':
+		// ACCOUNT_CONFIG_UPDATE
 	default:
-		if eveType == bnPayload.ALGO_UPDATE || eveType == bnPayload.ACCOUNT_CONFIG_UPDATE {
-			return
-		}
 		toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]未知事件类型: %s", s.accountKeyId, string(data))
 	}
 }

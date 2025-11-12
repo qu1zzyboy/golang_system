@@ -5,8 +5,8 @@ import (
 	"time"
 	"upbitBnServer/internal/define/defineTime"
 	"upbitBnServer/internal/infra/global/globalCron"
+	"upbitBnServer/internal/quant/exchanges/binance/bnVar"
 
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/pkg/container/map/myMap"
 
 	"github.com/go-redis/redis/v8"
@@ -75,7 +75,7 @@ func (p *OIStore) fetchOnce() error {
 	}
 	for _, jsonStr := range data {
 		symbolName := gjson.Get(jsonStr, "symbol").String()
-		symbolIndex, ok := toUpBitDataStatic.SymbolIndex.Load(symbolName)
+		symbolIndex, ok := bnVar.SymbolIndex.Load(symbolName)
 		if !ok {
 			continue
 		}

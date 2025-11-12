@@ -1,12 +1,10 @@
 package orderModel
 
 import (
-	"upbitBnServer/internal/infra/errorx/errDefine"
+	"upbitBnServer/internal/infra/systemx"
+	"upbitBnServer/internal/infra/systemx/instanceEnum"
+	"upbitBnServer/internal/infra/systemx/usageEnum"
 	"upbitBnServer/internal/quant/execute"
-	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
-	"upbitBnServer/internal/resource/resourceEnum"
-
-	"github.com/shopspring/decimal"
 )
 
 const (
@@ -16,13 +14,17 @@ const (
 )
 
 type MyPlaceOrderReq struct {
-	OrigPrice     decimal.Decimal           //订单价格
-	OrigVol       decimal.Decimal           //订单数量
-	ClientOrderId string                    //自己生产的id,交易计划的key
-	StaticMeta    *symbolStatic.StaticTrade //静态交易对信息
-	OrderType     execute.MyOrderPlaceType  //下单类型 LIMIT,ioc,post_only,自定义字段
-	OrderMode     execute.MyOrderMode       //订单模式BUY_OPEN...下单打印会用到,自动赋值
-	From          resourceEnum.ResourceFrom // 订单来源
+	SymbolName    string                 //下单symbol
+	ClientOrderId systemx.WsId16B        //自己生产的id,交易计划的key
+	Pvalue        uint64                 //定点价格
+	Qvalue        uint64                 //定点数量
+	Pscale        systemx.PScale         //
+	Qscale        systemx.QScale         //
+	OrderMode     execute.OrderMode      //订单模式BUY_OPEN_LIMIT...
+	SymbolIndex   systemx.SymbolIndex16I //交易对的唯一标识
+	SymbolLen     uint16                 //交易对长度
+	ReqFrom       instanceEnum.Type      //实例枚举
+	UsageFrom     usageEnum.Type         //用途枚举
 }
 
 func (s *MyPlaceOrderReq) TypeName() string {
@@ -31,21 +33,6 @@ func (s *MyPlaceOrderReq) TypeName() string {
 
 // Check 下单非空判断
 func (s *MyPlaceOrderReq) Check() error {
-	if s.ClientOrderId == "" {
-		return errDefine.ClientOrderIdEmpty
-	}
-	if err := s.OrderType.Verify(); err != nil {
-		return err
-	}
-	if err := s.OrderMode.Verify(); err != nil {
-		return err
-	}
-	if s.OrigPrice.LessThanOrEqual(decimal.Zero) {
-		return errDefine.ValueInvalid.WithMetadata(map[string]string{origPrice: s.OrigPrice.String()})
-	}
-	if s.OrigVol.LessThanOrEqual(decimal.Zero) {
-		return errDefine.ValueInvalid.WithMetadata(map[string]string{origVol: s.OrigVol.String()})
-	}
 	return nil
 }
 
@@ -73,7 +60,7 @@ func (tp MyPlaceOrderReqSortLtSlice) Swap(i, j int) {
 }
 
 func (tp MyPlaceOrderReqSortLtSlice) Less(i, j int) bool {
-	return tp[i].OrigPrice.InexactFloat64() < tp[j].OrigPrice.InexactFloat64()
+	return tp[i].Pvalue < tp[j].Pvalue
 }
 
 type MyPlaceOrderReqSortGtSlice []*MyPlaceOrderReq
@@ -87,5 +74,5 @@ func (tp MyPlaceOrderReqSortGtSlice) Swap(i, j int) {
 }
 
 func (tp MyPlaceOrderReqSortGtSlice) Less(i, j int) bool {
-	return tp[i].OrigPrice.InexactFloat64() > tp[j].OrigPrice.InexactFloat64()
+	return tp[i].Pvalue > tp[j].Pvalue
 }

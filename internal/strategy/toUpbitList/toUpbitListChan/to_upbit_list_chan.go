@@ -1,6 +1,7 @@
 package toUpbitListChan
 
 import (
+	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 
 	"github.com/shopspring/decimal"
@@ -19,7 +20,7 @@ const (
 
 type Special struct {
 	Amount       decimal.Decimal
-	ErrCode      int64
+	ErrCode      [5]byte //错误码
 	SigType      Sig
 	AccountKeyId uint8
 }
@@ -30,74 +31,46 @@ type Job struct {
 }
 
 var (
-	bookTickChanArr    []chan Job
-	aggTradeChanArr    []chan Job
-	markPriceChanArr   []chan Job
-	chanTradeLiteArr   []chan []byte
-	chanOrderUpdateArr []chan []byte
-	chanMonitorArr     []chan []byte
-	chanSuOrderArr     []chan toUpBitListDataAfter.OnSuccessEvt
-	chanSpecialArr     []chan Special
+	chanTrigOrderArr []chan TrigOrderInfo
+	chanMonitorArr   []chan MonitorResp
+	chanSpecialArr   []chan Special
+	chanSuOrderArr   []chan toUpBitListDataAfter.OnSuccessEvt
 )
 
-func InitUpBit(size int) {
-	bookTickChanArr = make([]chan Job, size)
-	aggTradeChanArr = make([]chan Job, size)
-	markPriceChanArr = make([]chan Job, size)
-	chanTradeLiteArr = make([]chan []byte, size)
-	chanOrderUpdateArr = make([]chan []byte, size)
-	chanMonitorArr = make([]chan []byte, size)
-	chanSuOrderArr = make([]chan toUpBitListDataAfter.OnSuccessEvt, size)
+func InitChanArr(size int) {
+	chanTrigOrderArr = make([]chan TrigOrderInfo, size)
+	chanMonitorArr = make([]chan MonitorResp, size)
 	chanSpecialArr = make([]chan Special, size)
+	chanSuOrderArr = make([]chan toUpBitListDataAfter.OnSuccessEvt, size)
 }
 
-func RegisterMarket(symbolIndex int, bookTickChan chan Job, aggTradeChan chan Job, markPriceChan chan Job) {
-	bookTickChanArr[symbolIndex] = bookTickChan
-	aggTradeChanArr[symbolIndex] = aggTradeChan
-	markPriceChanArr[symbolIndex] = markPriceChan
-}
-
-func RegisterPrivate(symbolIndex int,
-	tradeLiteChan chan []byte,
-	deltaOrderChan chan []byte,
-	monitorChan chan []byte,
-	chanSpecial chan Special,
-	chanSuOrder chan toUpBitListDataAfter.OnSuccessEvt) {
-	chanTradeLiteArr[symbolIndex] = tradeLiteChan
-	chanOrderUpdateArr[symbolIndex] = deltaOrderChan
-	chanMonitorArr[symbolIndex] = monitorChan
+func RegisterSpecial(symbolIndex systemx.SymbolIndex16I, chanSpecial chan Special) {
 	chanSpecialArr[symbolIndex] = chanSpecial
+}
+
+func RegisterBnPrivate(symbolIndex systemx.SymbolIndex16I, trigOrderChan chan TrigOrderInfo, monitorChan chan MonitorResp, chanSuOrder chan toUpBitListDataAfter.OnSuccessEvt) {
+	chanTrigOrderArr[symbolIndex] = trigOrderChan
+	chanMonitorArr[symbolIndex] = monitorChan
 	chanSuOrderArr[symbolIndex] = chanSuOrder
 }
 
-func SendBookTick(symbolIndex int, buf *[]byte, len int) {
-	bookTickChanArr[symbolIndex] <- Job{Buf: buf, Len: len}
+func RegisterByBitPrivate(symbolIndex systemx.SymbolIndex16I, trigOrderChan chan TrigOrderInfo, chanSuOrder chan toUpBitListDataAfter.OnSuccessEvt) {
+	chanTrigOrderArr[symbolIndex] = trigOrderChan
+	chanSuOrderArr[symbolIndex] = chanSuOrder
 }
 
-func SendAggTrade(symbolIndex int, buf *[]byte, len int) {
-	aggTradeChanArr[symbolIndex] <- Job{Buf: buf, Len: len}
+func SendTradeLite(symbolIndex systemx.SymbolIndex16I, trig TrigOrderInfo) {
+	chanTrigOrderArr[symbolIndex] <- trig
 }
 
-func SendMarkPrice(symbolIndex int, buf *[]byte, len int) {
-	markPriceChanArr[symbolIndex] <- Job{Buf: buf, Len: len}
-}
-
-func SendTradeLite(symbolIndex int, buf []byte) {
-	chanTradeLiteArr[symbolIndex] <- buf
-}
-
-func SendDeltaOrder(symbolIndex int, buf []byte) {
-	chanOrderUpdateArr[symbolIndex] <- buf
-}
-
-func SendMonitorData(symbolIndex int, data []byte) {
+func SendMonitorData(symbolIndex systemx.SymbolIndex16I, data MonitorResp) {
 	chanMonitorArr[symbolIndex] <- data
 }
 
-func SendSuOrder(symbolIndex int, evt toUpBitListDataAfter.OnSuccessEvt) {
+func SendSuOrder(symbolIndex systemx.SymbolIndex16I, evt toUpBitListDataAfter.OnSuccessEvt) {
 	chanSuOrderArr[symbolIndex] <- evt
 }
 
-func SendSpecial(symbolIndex int, amount decimal.Decimal, errCode int64, sigType Sig, accountKeyId uint8) {
-	chanSpecialArr[symbolIndex] <- Special{Amount: amount, ErrCode: errCode, SigType: sigType, AccountKeyId: accountKeyId}
+func SendSpecial(symbolIndex systemx.SymbolIndex16I, spec Special) {
+	chanSpecialArr[symbolIndex] <- spec
 }

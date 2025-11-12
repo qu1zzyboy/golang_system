@@ -1,49 +1,29 @@
 package orderModel
 
 import (
-	"upbitBnServer/internal/infra/errorx/errDefine"
+	"upbitBnServer/internal/infra/systemx"
+	"upbitBnServer/internal/infra/systemx/instanceEnum"
+	"upbitBnServer/internal/infra/systemx/usageEnum"
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
-	"upbitBnServer/internal/resource/resourceEnum"
-
-	"github.com/shopspring/decimal"
 )
 
 // 只改价格不改数量
 
 type MyModifyOrderReq struct {
-	DepthOnePrice decimal.Decimal           //深度1价格
-	OrigPrice     decimal.Decimal           //原订单价格
-	OrigVol       decimal.Decimal           //订单数量
-	ModifyPrice   decimal.Decimal           //订单价格
-	ClientOrderId string                    //自己生产的id,交易计划的key
-	StaticMeta    *symbolStatic.StaticTrade //交易对静态数据
-	OrderMode     execute.MyOrderMode       //订单模式BUY_OPEN,SELL_OPEN,BUY_CLOSE,SELL_CLOSE
-	From          resourceEnum.ResourceFrom // 订单来源
+	SymbolName    string          //下单symbol
+	ClientOrderId systemx.WsId16B //自己生产的id,交易计划的key
+	Pvalue        uint64
+	Qvalue        uint64
+	Pscale        systemx.PScale
+	Qscale        systemx.QScale
+	OrderMode     execute.OrderMode //订单模式BUY_OPEN,SELL_OPEN,BUY_CLOSE,SELL_CLOSE
+	ReqFrom       instanceEnum.Type //实例枚举
+	UsageFrom     usageEnum.Type    //用途枚举
 }
 
 func (s *MyModifyOrderReq) TypeName() string {
 	return "MyModifyOrderReq"
-}
-
-// Check 下单非空判断
-func (s *MyModifyOrderReq) Check() error {
-	if s.ClientOrderId == "" {
-		return errDefine.ClientOrderIdEmpty
-	}
-	if err := s.OrderMode.Verify(); err != nil {
-		return err
-	}
-	if s.OrigPrice.LessThanOrEqual(decimal.Zero) {
-		return errDefine.ValueInvalid.WithMetadata(map[string]string{origPrice: s.OrigPrice.String()})
-	}
-	if s.OrigVol.LessThanOrEqual(decimal.Zero) {
-		return errDefine.ValueInvalid.WithMetadata(map[string]string{origVol: s.OrigVol.String()})
-	}
-	if s.ModifyPrice.LessThanOrEqual(decimal.Zero) {
-		return errDefine.ValueInvalid.WithMetadata(map[string]string{modifyPrice: s.ModifyPrice.String()})
-	}
-	return nil
 }
 
 type MyModifyOrderBatchReq struct {

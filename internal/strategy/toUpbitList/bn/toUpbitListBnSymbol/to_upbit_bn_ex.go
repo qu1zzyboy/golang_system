@@ -3,92 +3,81 @@ package toUpbitListBnSymbol
 import (
 	"time"
 
+	"upbitBnServer/internal/cal/u64Cal"
 	"upbitBnServer/internal/infra/safex"
+	"upbitBnServer/internal/infra/systemx"
+	"upbitBnServer/internal/infra/systemx/instanceEnum"
+	"upbitBnServer/internal/infra/systemx/usageEnum"
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
-	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-
-	"github.com/shopspring/decimal"
-)
-
-type StopType uint8
-
-const (
-	StopByTreeNews StopType = iota
-	StopByMoveStopLoss
-	StopByBtTakeProfit
-	StopByGetCmcFailure
-	StopByGetRemoteFailure
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitDefine"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitParam"
+	"upbitBnServer/pkg/utils/time2str"
 )
 
 const (
-	order_from = orderBelongEnum.TO_UPBIT_LIST_LOOP
+	to_upbit_main = usageEnum.TO_UPBIT_MAIN
 )
 
-var (
-	stopReasonArr = []string{
-		"未触发TreeNews",
-		"%5移动止损触发",
-		"BookTick止盈触发",
-		"获取cmc_id失败",
-		"获取远程参数失败",
+func (s *Single) Clear() {
+	s.posTotalNeed = 0
+	//清空持仓统计
+	if s.pos != nil {
+		s.pos.Clear()
 	}
-)
-
-func (s *Single) clear() {
-	s.posTotalNeed = decimal.Zero
-	s.pos.Clear() //清空持仓统计
 	s.takeProfitPrice = 0
 	for i := range s.secondArr {
 		s.secondArr[i].clear()
 	}
 	s.hasAllFilled.Store(false)
 	s.thisOrderAccountId.Store(0)
-	toUpBitListDataAfter.ClearTrig()
 }
 
-func (s *Single) receiveStop(stopType StopType) {
+func (s *Single) receiveStop(stopType toUpbitDefine.StopType) {
 	if s.hasReceiveStop {
 		return
 	}
 	s.hasReceiveStop = true
-	toUpBitDataStatic.DyLog.GetLog().Infof("收到停止信号==> %s", stopReasonArr[stopType])
+	toUpBitDataStatic.DyLog.GetLog().Infof("收到停止信号==> %s", toUpbitDefine.StopReasonArr[stopType])
 	s.cancel()
 	//开启平仓线程
 	safex.SafeGo("to_upbit_bn_close", func() {
 		defer func() {
 			toUpBitDataStatic.DyLog.GetLog().Infof("当前账户id[%d] 平仓协程结束", s.thisOrderAccountId.Load())
-			time.Sleep(20 * time.Millisecond)
-			s.clear()
+			time.Sleep(2 * time.Second)
+			s.Clear()
+			toUpBitListDataAfter.ClearTrig()
 		}()
 		// 撤销全部订单
-		s.clientOrderIds.Range(func(clientOrderId string, accountKeyId uint8) bool {
-			bnOrderAppManager.GetTradeManager().SendCancelOrder(order_from, accountKeyId, &orderModel.MyQueryOrderReq{
-				ClientOrderId: clientOrderId,
-				StaticMeta:    s.StMeta,
-			})
+		s.clientOrderIds.Range(func(clientOrderId systemx.WsId16B, accountKeyId uint8) bool {
+			s.can.RefreshClientOrderId(clientOrderId)
+			bnOrderAppManager.GetTradeManager().SendCancelOrderBy(s.can, instanceEnum.TO_UPBIT_LIST_BN, to_upbit_main, accountKeyId)
 			return true
 		})
 
+		if s.pos == nil {
+			toUpBitDataStatic.DyLog.GetLog().Infof("s.pos is nil,取消平仓")
+			return
+		}
 		// 判断有没有持仓
 		use := s.pos.GetTotal()
-		if use.LessThanOrEqual(decimal.Zero) {
+		if use <= 0 {
 			toUpBitDataStatic.DyLog.GetLog().Infof("没有可用的平仓数量,取消平仓")
 			return
 		}
-		if use.LessThanOrEqual(toUpBitDataStatic.Dec500) {
+		if use*s.priceMaxBuy <= toUpbitParam.Dec500 {
 			toUpBitDataStatic.DyLog.GetLog().Infof("没有足够的平仓数量,取消平仓")
 			return
 		}
 		//每秒平一次
-		var closeDecArr [11]decimal.Decimal // 每个账户每秒应该止盈的数量
-		perDec := decimal.NewFromFloat(1 / s.twapSec)
+		var closeDecArr [toUpbitParam.MaxAccount]float64 // 每个账户每秒应该止盈的数量
+		perDec := 1 / s.twapSec
 		copyMap := s.pos.GetAllAccountPos()
 		for accountKeyId, vol := range copyMap {
-			closeDecArr[accountKeyId] = vol.Mul(perDec).Truncate(s.qScale) //每秒应该止盈的数量
+			closeDecArr[accountKeyId] = vol * perDec //每秒应该止盈的数量
 		}
 		ticker := time.NewTicker(time.Second)
 		timeout := time.After(s.closeDuration)
@@ -100,9 +89,9 @@ func (s *Single) receiveStop(stopType StopType) {
 					if val == nil {
 						continue
 					}
-					priceDec := decimal.NewFromFloat(val.(float64)).Truncate(s.pScale)
+					bid64 := val.(float64)
 					posLeft := s.pos.GetTotal()
-					if s.pos.GetTotal().Mul(priceDec).LessThanOrEqual(toUpBitDataStatic.Dec500) {
+					if posLeft*bid64 <= toUpbitParam.Dec500 {
 						toUpBitDataStatic.DyLog.GetLog().Infof("平仓完全成交,开始清理资源")
 						ticker.Stop()
 						return
@@ -112,24 +101,28 @@ func (s *Single) receiveStop(stopType StopType) {
 					copyMap := s.pos.GetAllAccountPos()
 					for accountKeyId, vol := range copyMap {
 						// 已经完全平完了
-						if vol.LessThanOrEqual(decimal.Zero) {
+						if vol <= 0 {
 							continue
 						}
 						// 不够就全平
 						num := closeDecArr[accountKeyId]
-						if vol.LessThan(num) {
-							num = vol.Truncate(s.qScale)
+						if vol < num {
+							num = vol
 						}
 						// 发送平仓信号
-						if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(order_from, accountKeyId, s.symbolIndex,
-							&orderModel.MyPlaceOrderReq{
-								OrigPrice:     priceDec,
-								OrigVol:       num,
-								ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("close"),
-								StaticMeta:    s.StMeta,
-								OrderType:     execute.ORDER_TYPE_LIMIT,
-								OrderMode:     execute.ORDER_SELL_CLOSE,
-							}); err != nil {
+						if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(accountKeyId, orderModel.MyPlaceOrderReq{
+							SymbolName:    s.symbolName,
+							ClientOrderId: time2str.GetNowTimeStampMicroSlice16(),
+							Pvalue:        u64Cal.FromF64(bid64, s.pScale.Uint8()),
+							Qvalue:        u64Cal.FromF64(num, s.qScale.Uint8()),
+							Pscale:        s.pScale,
+							Qscale:        s.qScale,
+							OrderMode:     execute.SELL_CLOSE_LIMIT,
+							SymbolIndex:   s.symbolIndex,
+							SymbolLen:     s.symbolLen,
+							ReqFrom:       instanceEnum.TO_UPBIT_LIST_BN,
+							UsageFrom:     to_upbit_main,
+						}); err != nil {
 							toUpBitDataStatic.DyLog.GetLog().Errorf("每秒平仓创建订单失败: %v", err)
 						}
 					}

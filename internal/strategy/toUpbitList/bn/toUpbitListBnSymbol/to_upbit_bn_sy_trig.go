@@ -3,83 +3,113 @@ package toUpbitListBnSymbol
 import (
 	"fmt"
 
+	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
-	"upbitBnServer/pkg/container/ring/ringBuf"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitDefine"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
 )
 
-// 写入序号 + 值,用于单调队列(只维护最小值队列)
-type pwPairU64 struct {
-	seq   int64
-	value uint64
+func (s *Single) onTradeLitePre(data toUpbitListChan.TrigOrderInfo) {
+	// 处理预挂单成交
+	s.pre.OnPreFilled(s.symbolName, data.ClientOrderId, s.pScale, s.qScale)
+
+	if toUpBitListDataAfter.LoadTrig() {
+		if s.symbolIndex == toUpBitListDataAfter.TrigSymbolIndex {
+			toUpBitDataStatic.SendToUpBitMsg("发送bn二次确认失败", map[string]string{"symbol": s.symbolName, "op": "bn_二次上涨确认"})
+			toUpBitDataStatic.DyLog.GetLog().Infof("触发后二次确认:%s", s.symbolName)
+		}
+	} else {
+		/*********************上币还未触发**************************/
+		toUpBitDataStatic.SendToUpBitMsg("发送bn预挂单成交失败", map[string]string{"symbol": s.symbolName, "op": "bn_预挂单成交"})
+		s.onOrderPriceCheck(data.T, data.P)
+	}
 }
 
-func (s *Single) newPriceMinWindowU64(n ringBuf.Capacity) {
-	s.r = ringBuf.NewPow2[uint64](n)
-	s.minQ = make([]pwPairU64, 0, int(n))
+//to do
+
+func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
+	// minBId>=0.95*markPrice
+	if s.minPriceAfterMp >= toUpBitDataStatic.PriceRiceTrig*s.thisMarkPrice {
+		toUpBitDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
+			"msg":  "orderPrice快速上涨",
+			"bn品种": s.symbolName,
+			"上涨幅度": fmt.Sprintf("%.2f%%", s.lastRiseValue*100),
+		})
+		s.IntoExecuteNoCheck(tradeTs, "preOrder", priceU64_8)
+	} else {
+		toUpBitDataStatic.SendToUpBitMsg("成交但不满足上市check消息失败", map[string]string{
+			"msg":  fmt.Sprintf("成交但不满足上市check,成交价:%d", priceU64_8),
+			"bn品种": s.symbolName,
+			"上涨幅度": fmt.Sprintf("%.2f%%", s.lastRiseValue*100),
+		})
+	}
 }
 
-// Commit 阶段 2：解析完价格后尝试提交
-func (s *Single) commit(price uint64, threshold float64, ts int64) (riseValue float64, hasTrig, hasWrite bool) {
-	// 1) 真正写入 ring
-	s.r.Push(price)
-
-	// 2) 维护单调最小队列
-	s.seq++
-	seq := s.seq
-	// 维护单调递增队列(去掉 >= price 的队尾元素,因为它永远不会再成为最小值)
-	for len(s.minQ) > 0 && s.minQ[len(s.minQ)-1].value >= price {
-		s.minQ = s.minQ[:len(s.minQ)-1]
-	}
-	s.minQ = append(s.minQ, pwPairU64{seq, price})
-
-	// 淘汰窗外元素(仅在满容量后触发)
-	//当前窗口中,允许的最小序号(小于等于 limit 的都过期)
-	limit := seq - int64(s.r.Capacity())
-	for len(s.minQ) > 0 && s.minQ[0].seq <= limit {
-		// 淘汰队首元素
-		s.minQ = s.minQ[1:]
-	}
-
-	// 3) 计算结果(最新价就是本次 price)
-	if s.r.Size() >= 2 && len(s.minQ) > 0 {
-		minV := s.minQ[0].value
-		if price > minV && minV > 0 {
-			riseValue = float64(price-minV) / float64(minV)
-			hasTrig = riseValue >= threshold
-		}
-	}
-	// 4) 标记已提交 ts(受 mu 保护,语义比 seenTs 更“落地”)
-	s.committedTs = ts
-	return riseValue, hasTrig, true
+func (s *Single) IntoExecuteNoCheck(eventTs int64, trigFlag string, priceTrig_8 uint64) {
+	s.hasTreeNews = toUpbitBnMode.Mode.GetTreeNewsFlag()
+	toUpBitListDataAfter.Trig(s.symbolIndex)
+	s.startTrig()
+	// debug版默认为true,不会收到消息也不会退出
+	s.checkTreeNews()
+	s.PlacePostOnlyOrder()
+	s.TryBuyLoop(20)
+	// 获取止盈止损参数
+	s.calParam()
+	toUpBitDataStatic.DyLog.GetLog().Infof("%s->[%s]价格触发,最新价格: %d,涨幅: %f%%,事件时间:%d", trigFlag, s.symbolName, priceTrig_8, s.lastRiseValue*100, eventTs)
 }
 
-func (s *Single) checkMarket(eventTs int64, trigFlag string, priceU64_8 uint64) {
-	// 写入价格到环形缓冲区
-	riseValue, _, hasWrite := s.commit(priceU64_8, toUpBitDataStatic.PriceRiceTrig, eventTs)
-	//涨幅触发,只计算不触发
-	// if hasTrig {
-	// s.IntoExecuteCheck(eventTs, trigFlag, riseValue, priceU64_8)
-	// }
-	//写入成功就更新两分钟之前的价格
-	if hasWrite {
-		// 涨幅大于0.05并且比上一次递增1%以上
-		if riseValue > 0.05 && riseValue > 0.01+s.lastRiseValue {
-			toUpBitDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
-				"msg":  trigFlag + "快速上涨",
-				"bn品种": s.StMeta.SymbolName,
-				"上涨幅度": fmt.Sprintf("%.2f%%", riseValue*100),
-			})
-		}
-		// 保存当前已实现涨幅
-		s.lastRiseValue = riseValue
-		// 更新两分钟之前的价格
-		minuteId := eventTs / (60000)
-		if minuteId > s.thisMinTs {
-			s.thisMinTs = minuteId
-			s.last2MinClose_8 = s.last1MinClose_8
-			s.last1MinClose_8 = s.thisMinClose_8
-		} else {
-			s.thisMinClose_8 = priceU64_8
-		}
+func (s *Single) intoExecuteByMsg() {
+	s.hasTreeNews = true
+	toUpBitListDataAfter.Trig(s.symbolIndex)
+	s.startTrig()
+	s.TryBuyLoop(20)
+	// 获取止盈止损参数
+	s.calParam()
+	toUpBitDataStatic.DyLog.GetLog().Infof("treeNews->[%s]触发,涨幅: %f%%", s.symbolName, s.lastRiseValue*100)
+}
+
+func (s *Single) calParam() {
+	symbolName := s.symbolName
+	//获取流通量
+	mesh, ok := coinMesh.GetManager().Get(s.cmcId)
+	if !ok {
+		toUpBitDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] not found for tradeId: %d", symbolName, s.cmcId)
+		s.receiveStop(toUpbitDefine.StopByGetCmcFailure)
+		toUpBitDataStatic.SendToUpBitMsg("获取cmc_id失败", map[string]string{
+			"symbol": symbolName,
+			"op":     "获取cmc_id失败",
+		})
+		return
+	}
+	// 2min之前的市值
+	last2MinCloseF64 := float64(s.last2MinClose) / 1e8
+	cap2Min := mesh.SupplyNow * last2MinCloseF64
+	//计算止盈止损参数
+	gainPct, twapSec, err := toUpbitBnMode.Mode.GetTakeProfitParam(mesh.IsMeMe, int(s.symbolIndex), cap2Min/1_000_000)
+	if err != nil {
+		toUpBitDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] 获取止盈止损失败: %v", symbolName, err)
+		s.receiveStop(toUpbitDefine.StopByGetRemoteFailure)
+		toUpBitDataStatic.SendToUpBitMsg("获取止盈止损失败", map[string]string{
+			"symbol": symbolName,
+			"op":     "获取止盈止损失败",
+		})
+		return
+	}
+	// 返回值格式 15.5 30
+	toUpBitDataStatic.DyLog.GetLog().Infof("远程参数:%t,市值:%f,%s,远程响应:[%f,%f]", mesh.IsMeMe, cap2Min/1_000_000, symbolName, gainPct, twapSec)
+	s.setExecuteParam(last2MinCloseF64*(1+0.01*(gainPct+15)), twapSec)
+}
+
+func (s *Single) checkMarket(msT int64, price float64) {
+	// 更新两分钟之前的价格
+	minuteId := msT / (60000)
+	if minuteId > s.thisMinTs {
+		s.thisMinTs = minuteId
+		s.last2MinClose = s.last1MinClose
+		s.last1MinClose = s.thisMinClose
+	} else {
+		s.thisMinClose = price
 	}
 }

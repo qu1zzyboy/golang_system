@@ -114,7 +114,7 @@ func (m *BTCMetrics) Snapshot(nowMs int64) BTCSnapshot {
 	}
 }
 
-func (m *BTCMetrics) OnKLine(len int, bufPtr *[]byte) {
+func (m *BTCMetrics) OnKLine(len uint16, bufPtr *[]byte) {
 	data := (*bufPtr)[:len]
 	defer byteBufPool.ReleaseBuffer(bufPtr)
 	openTs := gjson.GetBytes(data, "k.t").Int()

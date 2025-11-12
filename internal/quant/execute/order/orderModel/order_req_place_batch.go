@@ -18,9 +18,9 @@ func (s *MyPlaceOrderBatchReq) AddPlaceOrder(req *MyPlaceOrderReq) {
 }
 
 func (s *MyPlaceOrderBatchReq) GetClientOrderIds() (clientOrderIds []string) {
-	clientOrderIds = make([]string, 0, len(s.Orders))
-	for _, v := range s.Orders {
-		clientOrderIds = append(clientOrderIds, v.ClientOrderId)
-	}
+	// clientOrderIds = make([]string, 0, len(s.Orders))
+	// for _, v := range s.Orders {
+	// 	clientOrderIds = append(clientOrderIds, v.ClientOrderId)
+	// }
 	return
 }

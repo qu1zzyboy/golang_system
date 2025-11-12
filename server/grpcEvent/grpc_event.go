@@ -9,12 +9,11 @@ const (
 	PRINT_ALL_INSTANCE                     //打印所有实例
 	CHECK_HEART_BEAT                       //检查心跳
 
-	TO_UPBIT_ON_LIST      //UpBit待上市
-	TO_UPBIT_DOWN_LIST    //UpBit待下市
-	TO_UPBIT_LIST_BN      //UpBit上市之bn
-	TO_UPBIT_LIST_BYBIT   //UpBit上市之ByBit
-	TO_UPBIT_RECEIVE_NEWS //
-	TO_UPBIT_CFG          // upbit配置更新
+	TO_UPBIT_ON_LIST    //UpBit待上市
+	TO_UPBIT_DOWN_LIST  //UpBit待下市
+	TO_UPBIT_LIST_BN    //UpBit上市之bn
+	TO_UPBIT_LIST_BYBIT //UpBit上市之ByBit
+	TO_UPBIT_CFG        // upbit配置更新
 	TO_UPBIT_TEST
 	TO_UPBIT_PARAM_TEST
 	GET_NOT_REASON //

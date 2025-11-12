@@ -2,45 +2,45 @@ package bnPayloadManager
 
 import (
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
-	"upbitBnServer/internal/quant/execute"
-	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
+	"upbitBnServer/internal/infra/systemx"
+	"upbitBnServer/internal/infra/systemx/instanceEnum"
 	"upbitBnServer/internal/quant/execute/order/orderStatic"
-	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
-
-	"github.com/tidwall/gjson"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnPayloadParse"
+	"upbitBnServer/pkg/utils/byteUtils"
 )
 
 func (s *Payload) onTradeLite(data []byte) {
-	clientOrderId := gjson.GetBytes(data, "c").String()
-	orderFrom, orderMode, symbolIndex, ok := orderStatic.GetService().GetOrderInstanceIdAndSymbolId(clientOrderId)
+	totalLen := uint16(len(data))
+	var clientOrderId systemx.WsId16B
+	symbolEnd := byteUtils.FindNextQuoteIndex(data, 59, totalLen)
+	qStart := symbolEnd + 7
+	qEnd := byteUtils.FindNextQuoteIndex(data, qStart, totalLen)
+	pStart := qEnd + 7
+	pEnd := byteUtils.FindNextQuoteIndex(data, pStart, totalLen)
+	mStart := pEnd + 6
+	cidStart := mStart + 10
+	copy(clientOrderId[:], data[cidStart:cidStart+systemx.ArrLen])
+	meta, ok := orderStatic.GetService().GetOrderMeta(clientOrderId)
 	if !ok {
 		// 可能是手动平仓单
-		if clientOrderId[0:3] == "ios" || clientOrderId[0:3] == "web" || clientOrderId[0:3] == "ele" {
+		switch {
+		case clientOrderId[0] == 'i' && clientOrderId[1] == 'o' && clientOrderId[2] == 's':
+			return
+		case clientOrderId[0] == 'w' && clientOrderId[1] == 'e' && clientOrderId[2] == 'b':
+			return
+		case clientOrderId[0] == 'e' && clientOrderId[1] == 'l' && clientOrderId[2] == 'e':
+			return
+		case clientOrderId[0] == 'a' && clientOrderId[1] == 'n' && clientOrderId[2] == 'd':
 			return
 		}
-		dynamicLog.Error.GetLog().Errorf("[%d]TRADE_LITE: [%s] orderFrom not found %s", s.accountKeyId, clientOrderId, string(data))
+		dynamicLog.Error.GetLog().Errorf("[%d]TRADE_LITE: [%s] orderFrom not found %s", s.accountKeyId, string(clientOrderId[:]), string(data))
 		return
 	}
-	switch orderFrom {
-	case orderBelongEnum.TO_UPBIT_LIST_PRE:
-		{
-			// 卖出开仓成交,主要是用来驱动策略触发
-			if orderMode != execute.ORDER_SELL_OPEN {
-				return
-			}
-			// 该笔订单已经被处理过了
-			if _, ok = toUpbitListBnSymbol.ClientOrderIsCheck.Load(clientOrderId); ok {
-				return
-			}
-			toUpbitListBnSymbol.ClientOrderIsCheck.Store(clientOrderId, struct{}{})
-			toUpbitListChan.SendTradeLite(symbolIndex, data)
-		}
-	case orderBelongEnum.TO_UPBIT_LIST_LOOP:
-		{
-			//暂时不处理
-		}
+	switch meta.ReqFrom {
+	case instanceEnum.TO_UPBIT_LIST_BN:
+		toUpbitBnPayloadParse.OnTradeLite(data, clientOrderId, meta, pStart, pEnd, s.accountKeyId)
+	case instanceEnum.TEST:
 	default:
-		dynamicLog.Error.GetLog().Errorf("TRADE_LITE: unknown orderFrom %v", orderFrom)
+		dynamicLog.Error.GetLog().Errorf("TRADE_LITE: unknown ReqFrom %v", meta.ReqFrom)
 	}
 }

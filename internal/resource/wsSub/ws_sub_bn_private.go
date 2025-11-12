@@ -43,7 +43,7 @@ func (s *BnPayload) createListenKey() error {
 	return nil
 }
 
-func (s *BnPayload) refreshListenKey(ctx context.Context, url string) {
+func (s *BnPayload) refreshListenKey(url string) {
 	s.once.Do(func() {
 		dynamicLog.Log.GetLog().Infof("进入[%s] refresh循环 %s", url, defineEmoji.Rocket)
 		safex.SafeGo(url, func() {
@@ -74,7 +74,7 @@ func (s *BnPayload) DialTo(ctx context.Context) (*wsDefine.SafeWrite, error) {
 		return nil, connErr.WithCause(err).WithMetadata(map[string]string{defineJson.FullUrl: url})
 	}
 	s.conn = wsDefine.NewSafeWrite(conn)
-	s.refreshListenKey(ctx, url) // 启动监听密钥刷新协程
+	s.refreshListenKey(url) // 启动监听密钥刷新协程
 	return s.conn, nil
 }
 

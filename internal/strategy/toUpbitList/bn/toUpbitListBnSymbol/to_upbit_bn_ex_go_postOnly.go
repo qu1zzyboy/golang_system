@@ -1,42 +1,18 @@
 package toUpbitListBnSymbol
 
 import (
-	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListPos"
+	"math"
+	"upbitBnServer/internal/cal/u64Cal"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitParam"
+	"upbitBnServer/pkg/utils/time2str"
 
 	"upbitBnServer/internal/infra/safex"
+	"upbitBnServer/internal/infra/systemx/instanceEnum"
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
-
-	"github.com/shopspring/decimal"
 )
-
-var (
-	dec03    decimal.Decimal                     //首次下 0.3
-	dec103   = decimal.RequireFromString("1.03") //第一次下单价格1.03倍
-	qtyTotal decimal.Decimal                     //单次下单总金额
-)
-
-func SetParam(qty, dec003 float64) {
-	qtyTotal = decimal.NewFromFloat(qty)
-	dec03 = decimal.NewFromFloat(dec003)
-}
-
-/**
-limit_maker协程,用到成员变量
-posTotalNeed:在这里赋值,后面都只读
-pScale: 多线程读安全
-maxNotional: 初始化赋值之后都只读不写
-secondArr: 不修改指针就安全
-ctxStop:
-hasAllFilled:
-symbolIndex:
-StMeta: 多线程读安全
-firstPriceBuy:
-thisOrderAccountId:
-
-**/
 
 /*
 限制1: maxNotional 单账户单品种最大开仓上限
@@ -46,11 +22,12 @@ thisOrderAccountId:
 1、账户没钱(不一定准)
 */
 
-func (s *Single) PlacePostOnlyOrder(limit decimal.Decimal) {
-	s.posTotalNeed = qtyTotal.Div(limit).Truncate(s.qScale)
-
+func (s *Single) PlacePostOnlyOrder() {
+	limit_p := u64Cal.FromF64(s.priceMaxBuy, s.pScale.Uint8())
+	s.posTotalNeed = toUpbitParam.QtyTotal / s.priceMaxBuy
+	maxOpenQty := math.Min(toUpbitParam.QtyTotal*toUpbitParam.F03, s.maxNotional)
 	// maker抽奖金额为 min(单账户单品种最大开仓上限,需开参数价值)
-	orderNum := decimal.Min(s.maxNotional, qtyTotal.Mul(dec03)).Div(limit).Truncate(s.qScale)
+	orderNum := u64Cal.FromF64(maxOpenQty/s.priceMaxBuy, s.qScale.Uint8())
 
 	safex.SafeGo("to_upbit_bn_limit_maker", func() {
 		s.secondArr[0].start()
@@ -70,15 +47,19 @@ func (s *Single) PlacePostOnlyOrder(limit decimal.Decimal) {
 					if s.secondArr[0].loadStop() || s.hasAllFilled.Load() {
 						break OUTER
 					}
-					if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(order_from, 0, s.symbolIndex,
-						&orderModel.MyPlaceOrderReq{
-							OrigPrice:     limit,
-							OrigVol:       orderNum,
-							ClientOrderId: toUpBitDataStatic.GetMakerClientOrderId(),
-							StaticMeta:    s.StMeta,
-							OrderType:     execute.ORDER_TYPE_POST_ONLY,
-							OrderMode:     execute.ORDER_BUY_OPEN,
-						}); err != nil {
+					if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(0, orderModel.MyPlaceOrderReq{
+						SymbolName:    s.symbolName,
+						ClientOrderId: time2str.GetNowTimeStampMicroSlice16(),
+						Pvalue:        limit_p,
+						Qvalue:        orderNum,
+						Pscale:        s.pScale,
+						Qscale:        s.qScale,
+						OrderMode:     execute.BUY_OPEN_LIMIT_MAKER,
+						SymbolIndex:   s.symbolIndex,
+						SymbolLen:     s.symbolLen,
+						ReqFrom:       instanceEnum.TO_UPBIT_LIST_BN,
+						UsageFrom:     to_upbit_main,
+					}); err != nil {
 						toUpBitDataStatic.DyLog.GetLog().Errorf("每秒limit_maker订单失败: %v", err)
 					}
 					// time.Sleep(40 * time.Microsecond) // 休眠 40 微秒
@@ -86,6 +67,4 @@ func (s *Single) PlacePostOnlyOrder(limit decimal.Decimal) {
 			}
 		}
 	})
-	s.pos = toUpbitListPos.NewPosCal()
-	s.firstPriceBuy = limit.Mul(dec103).Truncate(s.pScale)
 }

@@ -25,9 +25,5 @@ func (s *MyCancelOrderBatchReq) AddCancelOrder(req *MyQueryOrderReq) {
 }
 
 func (s *MyCancelOrderBatchReq) GetClientOrderIds() (clientOrderIds []string) {
-	clientOrderIds = make([]string, 0, s.size)
-	for _, v := range s.Orders {
-		clientOrderIds = append(clientOrderIds, v.ClientOrderId)
-	}
 	return
 }

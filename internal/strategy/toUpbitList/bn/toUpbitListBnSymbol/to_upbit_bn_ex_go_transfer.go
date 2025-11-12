@@ -1,18 +1,17 @@
 package toUpbitListBnSymbol
 
 import (
+	"math"
 	"upbitBnServer/internal/infra/safex"
+	"upbitBnServer/internal/infra/systemx/usageEnum"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
-	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnAccount"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 
 	"github.com/shopspring/decimal"
 )
 
-const tranSpecial = orderBelongEnum.TO_UPBIT_LIST_LOOP_CANCEL_TRANSFER
-
-var dec4 = decimal.NewFromInt(4)
+const tranSpecial = usageEnum.TO_UPBIT_CANCEL_TRANSFER
 
 func (s *Single) onCanceledOrder(accountKeyId uint8) {
 	//接收到撤单的返回,开始查询转出账户的可划转余额
@@ -34,7 +33,7 @@ func (s *Single) OnTransOut(maxWithdrawAmount decimal.Decimal) {
 		for {
 			accountKeyId = s.toAccountId.Load()
 			if err = toUpBitListBnAccount.GetBnAccountManager().TransferOut(accountKeyId, maxWithdrawAmount); err == nil {
-				s.secondArr[accountKeyId].maxNotional.Store(decimal.Min(maxWithdrawAmount.Mul(dec4), s.maxNotional))
+				s.secondArr[accountKeyId].maxNotional.Store(math.Min(maxWithdrawAmount.InexactFloat64()*4, s.maxNotional))
 				break
 			} else {
 				toUpBitDataStatic.DyLog.GetLog().Errorf("划转到[%d]失败:%v", accountKeyId, err)

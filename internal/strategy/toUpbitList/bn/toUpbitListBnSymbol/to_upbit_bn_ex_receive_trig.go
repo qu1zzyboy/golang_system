@@ -5,8 +5,7 @@ import (
 	"time"
 
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
-
-	"github.com/shopspring/decimal"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitParam"
 )
 
 func (s *Single) startTrig() {
@@ -14,9 +13,9 @@ func (s *Single) startTrig() {
 	var ok bool
 	s.maxNotional, ok = toUpBitDataStatic.SymbolMaxNotional.Load(s.symbolIndex)
 	if !ok {
-		s.maxNotional = decimal.NewFromInt(50000)
+		s.maxNotional = 50000
 	}
-	s.maxNotional = s.maxNotional.Sub(toUpBitDataStatic.Dec500)
+	s.maxNotional = s.maxNotional - toUpbitParam.Dec500
 }
 
 func (s *Single) setExecuteParam(trigPrice float64, twapSec float64) {

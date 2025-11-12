@@ -4,10 +4,7 @@ import (
 	"context"
 
 	"upbitBnServer/internal/quant/account/accountConfig"
-	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
-	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
-	"upbitBnServer/internal/quant/execute/order/orderStatic"
 	"upbitBnServer/pkg/singleton"
 )
 
@@ -27,7 +24,7 @@ func (m *MonitorManager) init(ctx context.Context) error {
 	m.appArray = make([]*OrderApp, len(accountConfig.Monitors))
 	for k, v := range accountConfig.Monitors {
 		app := newOrderApp()
-		if err := app.init(ctx, v); err != nil {
+		if err := app.Init(ctx, v); err != nil {
 			return err
 		}
 		app.isMonitor = true
@@ -36,14 +33,6 @@ func (m *MonitorManager) init(ctx context.Context) error {
 	return nil
 }
 
-func (m *MonitorManager) SendMonitorOrder(reqFrom orderBelongEnum.Type, index uint8, symbolIndex int, req *orderModel.MyPlaceOrderReq) error {
-	err := m.appArray[index].wsOrderSign.CreateOrder(reqFrom, orderSdkBnModel.GetFuturePlaceLimitSdk(req))
-	if err == nil {
-		orderStatic.GetService().SaveOrderMeta(req.ClientOrderId, orderStatic.StaticMeta{
-			SymbolIndex: symbolIndex,
-			OrderMode:   req.OrderMode,
-			OrderFrom:   reqFrom,
-		})
-	}
-	return err
+func (m *MonitorManager) SendMonitorOrder(index uint8, req orderModel.MyPlaceOrderReq) error {
+	return m.appArray[index].wsOrder.CreateOrder(req)
 }

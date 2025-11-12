@@ -2,6 +2,7 @@ package toUpBitDataStatic
 
 import (
 	"strconv"
+	"upbitBnServer/internal/infra/systemx"
 
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/infra/observe/log/staticLog"
@@ -23,12 +24,11 @@ const (
 )
 
 var (
-	GlobalCfg         ConfigVir                                       // 全局配置
-	SymbolIndex       = myMap.NewMySyncMap[string, int]()             // symbolName --> symbolIndex
-	SymbolMaxNotional = myMap.NewMySyncMap[int, decimal.Decimal]()    //symbolIndex-->最大仓位上限
-	Dec500            = decimal.NewFromInt(500)                       // 小于这个数全部平仓
-	PriceRiceTrig     float64                                         // 价格触发阈值,当价格变化超过该值时触发
-	DyLog             = dynamicLog.NewDynamicLogger(staticLog.Config{ // 创建日志记录器
+	GlobalCfg         ConfigVir                                               // 全局配置
+	SymbolMaxNotional = myMap.NewMySyncMap[systemx.SymbolIndex16I, float64]() //symbolIndex-->最大仓位上限
+	Dec500            = decimal.NewFromInt(500)                               // 小于这个数全部平仓
+	PriceRiceTrig     float64                                                 // 价格触发阈值,当价格变化超过该值时触发
+	DyLog             = dynamicLog.NewDynamicLogger(staticLog.Config{         // 创建日志记录器
 		NeedErrorHook: true,
 		FileDir:       "toUpBitList",
 		DateStr:       timeUtils.GetNowDateStr(),

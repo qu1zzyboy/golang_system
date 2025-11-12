@@ -6,6 +6,7 @@ import (
 
 	"upbitBnServer/internal/quant/account/accountConfig"
 	"upbitBnServer/internal/quant/account/universalTransfer"
+	"upbitBnServer/internal/quant/exchanges/binance/bnVar"
 	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
 	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnRest"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
@@ -89,11 +90,11 @@ func (s *BnAccountManager) RefreshSymbolConfig() error {
 	}
 	// 遍历整个数组
 	gjson.ParseBytes(data).ForEach(func(key, value gjson.Result) bool {
-		symbolIndex, ok := toUpBitDataStatic.SymbolIndex.Load(value.Get("symbol").String())
+		symbolIndex, ok := bnVar.SymbolIndex.Load(value.Get("symbol").String())
 		if !ok {
 			return true
 		}
-		toUpBitDataStatic.SymbolMaxNotional.Store(symbolIndex, decimal.RequireFromString(value.Get("maxNotionalValue").String()))
+		toUpBitDataStatic.SymbolMaxNotional.Store(symbolIndex, value.Get("maxNotionalValue").Float())
 		return true
 	})
 	toUpBitDataStatic.DyLog.GetLog().Infof("共刷新%d个交易对开仓上限信息", toUpBitDataStatic.SymbolMaxNotional.Length())

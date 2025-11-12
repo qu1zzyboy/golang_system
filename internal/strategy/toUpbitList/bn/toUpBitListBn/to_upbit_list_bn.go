@@ -9,6 +9,8 @@ import (
 	"upbitBnServer/internal/infra/global/globalCron"
 	"upbitBnServer/internal/infra/redisx"
 	"upbitBnServer/internal/infra/redisx/redisConfig"
+	"upbitBnServer/internal/infra/systemx/instanceEnum"
+	"upbitBnServer/internal/quant/exchanges/binance/poolMarketChanBn"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnAccount"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnMarket"
@@ -22,7 +24,6 @@ import (
 	"upbitBnServer/pkg/utils/convertx"
 	"upbitBnServer/pkg/utils/jsonUtils"
 	"upbitBnServer/server/instance/instanceCenter"
-	"upbitBnServer/server/serverInstanceEnum"
 )
 
 const limit = 30
@@ -46,6 +47,15 @@ func (s *Req) Check() error {
 type Engine struct {
 	thisCalCount     int32 // 当前计算次数
 	thisAccountKeyId uint8 // 账户KeyId
+}
+
+func (e *Engine) getPreAccountKeyId() uint8 {
+	e.thisCalCount++
+	if e.thisCalCount == limit {
+		e.thisAccountKeyId++
+		e.thisCalCount = 0
+	}
+	return e.thisAccountKeyId
 }
 
 func newEngine() *Engine {
@@ -91,8 +101,10 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 	}
 	toUpBitDataStatic.DyLog.GetLog().Infof("bn初始化订阅币种:%d,max:%d", len(symbols), len(data))
 	needLen := len(symbols) + 100
-	toUpbitListChan.InitUpBit(needLen)
-	toUpbitListBnSymbolArr.Init(needLen)
+
+	//chan对象数组
+	poolMarketChanBn.InitChanArr(needLen)
+	toUpbitListChan.InitChanArr(needLen)
 
 	for index, symbolName := range symbols {
 		// 提前指定每个品种的挂单账户
@@ -124,9 +136,9 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 }
 
 func Start(ctx context.Context, meta *strategyV1.ServerReqBase, req *Req) error {
-	if instanceCenter.GetManager().IsInstanceExists(serverInstanceEnum.TO_UPBIT_LIST_BN) {
+	if instanceCenter.GetManager().IsInstanceExists(instanceEnum.TO_UPBIT_LIST_BN) {
 		return errDefine.InstanceExists.WithMetadata(map[string]string{
-			defineJson.InstanceId: convertx.ToString(uint32(serverInstanceEnum.TO_UPBIT_LIST_BN)),
+			defineJson.InstanceId: convertx.ToString(uint32(instanceEnum.TO_UPBIT_LIST_BN)),
 			defineJson.Op:         "start",
 		})
 	}
@@ -134,10 +146,10 @@ func Start(ctx context.Context, meta *strategyV1.ServerReqBase, req *Req) error 
 	if err := s.start(ctx, req); err != nil {
 		return err
 	}
-	if err := toUpbitMesh.GetHandle().Register(ctx, serverInstanceEnum.TO_UPBIT_LIST_BN, map[string]string{}, s); err != nil {
+	if err := toUpbitMesh.GetHandle().Register(ctx, instanceEnum.TO_UPBIT_LIST_BN, map[string]string{}, s); err != nil {
 		return err
 	}
-	if err := instanceCenter.GetManager().Register(ctx, serverInstanceEnum.TO_UPBIT_LIST_BN, map[string]string{}, s); err != nil {
+	if err := instanceCenter.GetManager().Register(ctx, instanceEnum.TO_UPBIT_LIST_BN, map[string]string{}, s); err != nil {
 		return err
 	}
 	return nil

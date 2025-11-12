@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"upbitBnServer/internal/define/defineJson"
+	"upbitBnServer/internal/infra/systemx/instanceEnum"
 	"upbitBnServer/internal/resource/registerHandler"
 	"upbitBnServer/pkg/singleton"
-	"upbitBnServer/server/serverInstanceEnum"
 )
 
 type DynamicSymbolHandler func(symbolKeyId uint64, dynamicSymbol DynamicSymbol)
@@ -27,7 +27,7 @@ type Handle struct {
 	handlers *registerHandler.Registry[DynamicSymbolHandler] //事件处理器注册中心
 }
 
-func (m *Handle) Register(ctx context.Context, instanceId serverInstanceEnum.Type, fields map[string]string, handler DynamicSymbolHandler) error {
+func (m *Handle) Register(ctx context.Context, instanceId instanceEnum.Type, fields map[string]string, handler DynamicSymbolHandler) error {
 	fields[defineJson.From] = "DynamicSymbolHandle"
 	return m.handlers.RegisterOrReplace(ctx, instanceId, fields, handler)
 }

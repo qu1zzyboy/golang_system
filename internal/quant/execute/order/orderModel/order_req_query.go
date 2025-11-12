@@ -1,15 +1,16 @@
 package orderModel
 
 import (
-	"upbitBnServer/internal/infra/errorx/errDefine"
-	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
-	"upbitBnServer/internal/resource/resourceEnum"
+	"upbitBnServer/internal/infra/systemx"
+	"upbitBnServer/internal/infra/systemx/instanceEnum"
+	"upbitBnServer/internal/infra/systemx/usageEnum"
 )
 
 type MyQueryOrderReq struct {
-	StaticMeta    *symbolStatic.StaticTrade //交易对静态数据
-	ClientOrderId string                    //自己生产的id,交易计划的key
-	From          resourceEnum.ResourceFrom // 订单来源
+	SymbolName    string            //下单symbol
+	ClientOrderId systemx.WsId16B   //自己生产的id,交易计划的key
+	ReqFrom       instanceEnum.Type //实例枚举
+	UsageFrom     usageEnum.Type    //用途枚举
 }
 
 func (s *MyQueryOrderReq) TypeName() string {
@@ -17,8 +18,5 @@ func (s *MyQueryOrderReq) TypeName() string {
 }
 
 func (s *MyQueryOrderReq) Check() error {
-	if s.ClientOrderId == "" {
-		return errDefine.ClientOrderIdEmpty
-	}
 	return nil
 }

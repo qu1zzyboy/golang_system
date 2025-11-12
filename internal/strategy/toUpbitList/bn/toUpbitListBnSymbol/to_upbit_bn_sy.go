@@ -2,91 +2,82 @@ package toUpbitListBnSymbol
 
 import (
 	"context"
-	"strings"
 	"sync/atomic"
 	"time"
 
 	"upbitBnServer/internal/conf"
 	"upbitBnServer/internal/infra/latency"
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/infra/safex"
-	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
-	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
+	"upbitBnServer/internal/infra/systemx"
+	"upbitBnServer/internal/quant/exchanges/binance/poolMarketChanBn"
+	"upbitBnServer/internal/quant/execute/order/bnOrderTemplate"
 	"upbitBnServer/internal/quant/market/symbolInfo"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolLimit"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
 	"upbitBnServer/internal/resource/resourceEnum"
+	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitPointPreBn"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListPos"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitParam"
+	"upbitBnServer/internal/strategy/toUpbitList/toUpbitPoint"
 	"upbitBnServer/pkg/container/map/myMap"
-	"upbitBnServer/pkg/container/ring/ringBuf"
-	"upbitBnServer/pkg/utils/convertx"
+	"upbitBnServer/pkg/container/pool/byteBufPool"
 	"upbitBnServer/pkg/utils/idGen"
 
 	"github.com/shopspring/decimal"
-	"github.com/tidwall/gjson"
 )
 
 const (
-	total                    = "BINANCE_TOTAL"
-	jsonEvent                = "E"
-	jsonT                    = "T"
-	upPercentZoomScale int32 = 2 // 价格放大的倍数,10的ZoomScale次方倍
-	ws_req_from              = orderBelongEnum.TO_UPBIT_LIST_PRE
+	total = "BINANCE_TOTAL"
 )
 
 type cache_line_1 struct {
-	mpLatencyTotal   latency.Latency // 延迟统计
-	priceMaxBuy_10   uint64          // 价格上限(放大了10的10次方倍)
-	lastMarkPrice_8  uint64          // 上次标记价格
-	markPrice_8      uint64          // 最新标记价格(放大了10的8次方倍)
-	upLimitPercent_2 uint64          // 涨停百分比,115就是1.15
-	minPriceAfterMp  uint64          // 标记价格之后的最小ask
-	markPriceTs      int64           // 接受到标记价格的时间
+	symbolName      string
+	priceMaxBuy     float64                  // 价格上限
+	thisMarkPrice   float64                  // 上次标记价格
+	upLimitPercent  float64                  // 涨停百分比,115就是1.15
+	minPriceAfterMp float64                  // 标记价格之后的最小ask
+	markPriceTs     int64                    // 接受到标记价格的时间
+	cmcId           uint32                   //
+	symbolLen       uint16                   //
+	upT             toUpbitPoint.UpLimitType // 价格限制类型
 }
 type cache_line_2 struct {
-	btLatencyTotal  latency.Latency // 延迟统计
-	committedTs     int64           // 【已提交】最后一次成功写入的 ts
-	lastRiseValue   float64         // 上次涨幅
-	thisMinTs       int64           // 当前分钟的时间戳
-	last2MinClose_8 uint64          // 最近两分钟的收盘价
-	last1MinClose_8 uint64          // 最近一分钟的收盘价
-	thisMinClose_8  uint64          // 当前分钟的收盘价
+	btLatencyTotal latency.Latency // 延迟统计
+	lastRiseValue  float64         // 上次涨幅
+	thisMinTs      int64           // 当前分钟的时间戳
+	last2MinClose  float64         // 最近两分钟的收盘价
+	last1MinClose  float64         // 最近一分钟的收盘价
+	thisMinClose   float64         // 当前分钟的收盘价
 }
 
 type cache_line_3 struct {
-	StMeta          *symbolStatic.StaticTrade // 交易对静态信息
-	bidPrice        atomic.Value              // 买一价,平仓和计算仓位价值用到
-	takeProfitPrice float64                   // 止盈价格
-	symbolIndex     int                       // 交易对下标
-	pScale          int32                     // 价格小数位
-	qScale          int32                     // 数量小数位
-	hasAllFilled    atomic.Bool               // 是否已经完全成交
-	isStopLossAble  atomic.Bool               // 能否开始移动止损
-	hasReceiveStop  bool                      // 是否已经收到过停止信号
-	hasTreeNews     bool                      // 是否已经接受到treeNews
+	bidPrice        atomic.Value           // 买一价,平仓和计算仓位价值用到
+	takeProfitPrice float64                // 止盈价格
+	symbolIndex     systemx.SymbolIndex16I // 交易对下标
+	pScale          systemx.PScale         // 价格小数位
+	qScale          systemx.QScale         // 数量小数位
+	hasAllFilled    atomic.Bool            // 是否已经完全成交
+	isStopLossAble  atomic.Bool            // 能否开始移动止损
+	hasReceiveStop  bool                   // 是否已经收到过停止信号
+	hasTreeNews     bool                   // 是否已经接受到treeNews
 }
 
 type cache_line_4 struct {
-	clientOrderIdSmall string
-	orderNum           decimal.Decimal          // 预挂单订单数量
-	smallPercent       decimal.Decimal          // 小订单比例
-	chanMarkPrice      chan toUpbitListChan.Job // 标记价格chan
-	preAccountKeyId    uint8                    // 预挂单的账户id
-	hasInit            bool                     // 是否已经预挂单初始化
+	orderNum     decimal.Decimal // 预挂单订单数量
+	smallPercent decimal.Decimal // 小订单比例
+	hasInit      bool            // 是否已经预挂单初始化
 }
 type cache_line_5 struct {
-	minQ           []pwPairU64              // 单调递增队列,队首为当前窗口最小价
-	agLatencyTotal latency.Latency          // 延迟统计
-	r              *ringBuf.Ring[uint64]    // 环形缓冲区,存储价格
-	chanBookTick   chan toUpbitListChan.Job // 盘口数据chan
-	seq            int64                    // 成功写入次数(严格递增)
+	chanPoolMarket chan systemx.Job // 盘口数据chan
 }
 
 type cache_line_6 struct {
-	trigPriceMax_10 myMap.MySyncMap[int64, uint64] // 已触发品种的买入上限,秒级别时间戳和价格
+	trigPriceMax myMap.MySyncMap[int64, float64] // 已触发品种的买入上限,秒级别时间戳和价格
 }
 
 type Single struct {
@@ -96,33 +87,30 @@ type Single struct {
 	cache_line_4
 	cache_line_5
 	cache_line_6
-	chanAggTrade       chan toUpbitListChan.Job               // 成交数据chan
-	chanTradeLite      chan []byte                            // 简易成交数据chan
-	chanOrderUpdatePre chan []byte                            // delta订单数据chan
-	chanMonitor        chan []byte                            // 订单监测chan
-	chanOutSideSig     chan toUpbitListChan.Special           // 外部信号chan
-	chanSuOrder        chan toUpBitListDataAfter.OnSuccessEvt // 成功订单chan
-	secondArr          [11]*secondPerInfo                     // 每秒信息
-	clientOrderIds     myMap.MySyncMap[string, uint8]         // 挂单成功的clientOrderId
-	posTotalNeed       decimal.Decimal                        // 需要开仓的数量
-	firstPriceBuy      decimal.Decimal                        // 当前应该下单的价格
-	maxNotional        decimal.Decimal                        // 单品种最大开仓上限
-	ctxStop            context.Context                        // 同步关闭ctx
-	cancel             context.CancelFunc                     // 关闭函数
-	pos                *toUpbitListPos.PosCal                 // 持仓计算对象
-	twapSec            float64                                // twap下单间隔秒数
-	closeDuration      time.Duration                          // 平仓持续时间
-	thisOrderAccountId atomic.Int32                           // 当前订单使用的资金账户ID
-	toAccountId        atomic.Int32                           // 准备接收资金的账户id
-}
-
-func (s *Single) Clear() {
-	s.newPriceMinWindowU64(toUpBitDataStatic.TickCap)
-	s.lastRiseValue = 0.0
+	chanTrigOrder      chan toUpbitListChan.TrigOrderInfo      // 简易成交数据chan
+	chanMonitor        chan toUpbitListChan.MonitorResp        // 订单监测chan
+	chanOutSideSig     chan toUpbitListChan.Special            // 外部信号chan
+	chanSuOrder        chan toUpBitListDataAfter.OnSuccessEvt  // 成功订单chan
+	secondArr          [11]*secondPerInfo                      // 每秒信息
+	clientOrderIds     myMap.MySyncMap[systemx.WsId16B, uint8] // 挂单成功的clientOrderId
+	posTotalNeed       float64                                 // 需要开仓的数量
+	maxNotional        float64                                 // 单品种最大开仓上限
+	ctxStop            context.Context                         // 同步关闭ctx
+	cancel             context.CancelFunc                      // 关闭函数
+	pos                *toUpbitListPos.PosCalSafe              // 持仓计算对象
+	pre                *toUpbitPointPreBn.PointPre             // 预挂单对象
+	can                *bnOrderTemplate.CancelTemplate         // 撤单json模板
+	twapSec            float64                                 // twap下单间隔秒数
+	closeDuration      time.Duration                           // 平仓持续时间
+	thisOrderAccountId atomic.Int32                            // 当前订单使用的资金账户ID
+	toAccountId        atomic.Int32                            // 准备接收资金的账户id
 }
 
 func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
-	s.preAccountKeyId = accountKeyId
+	s.symbolName = symbolName
+	s.symbolIndex = systemx.SymbolIndex16I(index)
+	s.symbolLen = uint16(len(symbolName))
+
 	symbolId, ok := symbolStatic.GetSymbol().GetSymbol(symbolName)
 	if !ok {
 		toUpBitDataStatic.DyLog.GetLog().Errorf("symbolId not found: %s", symbolName)
@@ -135,15 +123,19 @@ func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 		toUpBitDataStatic.DyLog.GetLog().Errorf("symbolKeyId %d not found", symbolKeyId)
 		return err
 	}
-	s.StMeta = &stMeta
+	s.cmcId = stMeta.TradeId
+	s.pre = toUpbitPointPreBn.NewPre(accountKeyId, s.symbolLen, s.symbolIndex, stMeta.SymbolKeyId)
+	s.can = bnOrderTemplate.NewCancelTemplate()
+	s.can.Start(symbolName)
+
 	// 初始化品种动态数据
 	dyMeta, err := symbolDynamic.GetManager().Get(symbolKeyId)
 	if err != nil {
 		toUpBitDataStatic.DyLog.GetLog().Errorf("symbolKeyId %d not found", symbolKeyId)
 		return err
 	}
-	s.pScale = dyMeta.PScale
-	s.qScale = dyMeta.QScale
+	s.pScale = systemx.PScale(dyMeta.PScale)
+	s.qScale = systemx.QScale(dyMeta.QScale)
 
 	limit, err := symbolLimit.GetManager().Get(symbolKeyId)
 	if err != nil {
@@ -151,37 +143,27 @@ func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 		return err
 	}
 
-	switch toUpBitDataStatic.ExType {
-	case exchangeEnum.BINANCE:
-		// 1.15-->115
-		s.upLimitPercent_2 = convertx.PriceStringToUint64(limit.UpLimitPercent.String(), upPercentZoomScale)
-	case exchangeEnum.BYBIT:
-		// 0.15-->115
-		s.upLimitPercent_2 = 100 + convertx.PriceStringToUint64(limit.UpLimitPercent.String(), upPercentZoomScale)
-	}
-	s.newPriceMinWindowU64(toUpBitDataStatic.TickCap)
-	s.chanBookTick = make(chan toUpbitListChan.Job, 100)
-	s.chanAggTrade = make(chan toUpbitListChan.Job, 10)
-	s.chanMarkPrice = make(chan toUpbitListChan.Job, 10)
-	s.chanTradeLite = make(chan []byte, 10)
-	s.chanOrderUpdatePre = make(chan []byte, 10)
-	s.chanMonitor = make(chan []byte, 10)
+	// 1.15-->115
+	s.upLimitPercent = limit.UpLimitPercent.InexactFloat64()
+
+	s.chanPoolMarket = make(chan systemx.Job, 100)
+	poolMarketChanBn.Register(s.symbolIndex, s.chanPoolMarket)
+
+	s.chanTrigOrder = make(chan toUpbitListChan.TrigOrderInfo, 10)
+	s.chanMonitor = make(chan toUpbitListChan.MonitorResp, 10)
 	s.chanOutSideSig = make(chan toUpbitListChan.Special, 10)
 	s.chanSuOrder = make(chan toUpBitListDataAfter.OnSuccessEvt, 10)
-	toUpbitListChan.RegisterMarket(index, s.chanBookTick, s.chanAggTrade, s.chanMarkPrice)
-	toUpbitListChan.RegisterPrivate(index, s.chanTradeLite, s.chanOrderUpdatePre, s.chanMonitor, s.chanOutSideSig, s.chanSuOrder)
+
+	toUpbitListChan.RegisterSpecial(s.symbolIndex, s.chanOutSideSig)
+	toUpbitListChan.RegisterBnPrivate(s.symbolIndex, s.chanTrigOrder, s.chanMonitor, s.chanSuOrder)
 	latencyPrefix := idGen.BuildName2("GO", conf.ServerName)
-	s.agLatencyTotal = latency.NewHttpMonitor(idGen.BuildName2(latencyPrefix, total), latency.PROCESS_TOTAL, resourceEnum.AGG_TRADE)
 	s.btLatencyTotal = latency.NewHttpMonitor(idGen.BuildName2(latencyPrefix, total), latency.PROCESS_TOTAL, resourceEnum.BOOK_TICK)
-	s.mpLatencyTotal = latency.NewHttpMonitor(idGen.BuildName2(latencyPrefix, total), latency.PROCESS_TOTAL, resourceEnum.MARK_PRICE)
-	s.symbolIndex = index
-	toUpBitDataStatic.SymbolIndex.Store(symbolName, index)
-	for i := range 11 {
+	for i := range toUpbitParam.MaxAccount {
 		temp := &secondPerInfo{}
 		temp.clear()
 		s.secondArr[i] = temp
 	}
-	s.trigPriceMax_10 = myMap.NewMySyncMap[int64, uint64]()
+	s.trigPriceMax = myMap.NewMySyncMap[int64, float64]()
 	safex.SafeGo(symbolName+"单品种协程", s.onLoop)
 	return nil
 }
@@ -189,18 +171,14 @@ func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 func (s *Single) onLoop() {
 	for {
 		select {
-		case job := <-s.chanMarkPrice:
-			s.onMarkPrice(job.Len, job.Buf)
-		case job := <-s.chanAggTrade:
-			s.onAggTrade(job.Len, job.Buf)
-		case job := <-s.chanBookTick:
-			s.onBookTick(job.Len, job.Buf)
-		case job := <-s.chanTradeLite:
-			s.onTradeLite(job)
-		case job := <-s.chanOrderUpdatePre:
-			s.onPayloadOrder(job)
+		case job := <-s.chanPoolMarket:
+			s.handleMarketJob(job)
+		case job := <-s.chanTrigOrder:
+			s.onTradeLitePre(job)
 		case job := <-s.chanMonitor:
-			s.onMonitorData(job)
+			s.priceMaxBuy = job.P
+			s.trigPriceMax.Store(time.Now().Unix(), job.P)
+			toUpBitDataStatic.DyLog.GetLog().Infof("最新探测价格[%.8f]", job.P)
 		case sig := <-s.chanOutSideSig:
 			{
 				switch sig.SigType {
@@ -236,27 +214,17 @@ func (s *Single) onLoop() {
 	}
 }
 
-func (s *Single) onMonitorData(data []byte) {
-	// s := "Limit price can't be higher than 4550.62."
-	errMsg := gjson.GetBytes(data, "error.msg").String()
-	parts := strings.Fields(errMsg)      // 按空格切分
-	last := parts[len(parts)-1]          // 最后一段 "4550.62."
-	last = strings.TrimSuffix(last, ".") // 去掉末尾的点
-	// 价格更新,放大10的10次方倍
-	monitor_10 := convertx.PriceStringToUint64(last, 10)
-	if monitor_10 == s.priceMaxBuy_10 {
-		return
+func (s *Single) handleMarketJob(job systemx.Job) {
+	defer byteBufPool.ReleaseBuffer(job.Buf)
+	b := (*job.Buf)[:job.Len]
+	switch {
+	case b[6] == 'm' && b[7] == 'a' && b[8] == 'r' && b[9] == 'k':
+		s.onMarkPrice(job.Len, b)
+	case b[6] == 'a' && b[7] == 'g' && b[8] == 'g' && b[9] == 'T':
+		// s.onAggTrade(job.Len, b)
+	case b[6] == 'b' && b[7] == 'o' && b[8] == 'o' && b[9] == 'k':
+		s.onBookTick(job.Len, b)
+	default:
+		dynamicLog.Error.GetLog().Errorf("err json: %s", string(b))
 	}
-	s.priceMaxBuy_10 = monitor_10
-	s.trigPriceMax_10.Store(time.Now().Unix(), monitor_10)
-	toUpBitDataStatic.DyLog.GetLog().Infof("最新探测价格[%d]: %s", monitor_10, errMsg)
 }
-
-// {
-//     "id": "Ptest123456",
-//     "status": 400,
-//     "error": {
-//         "code": -4016,
-//         "msg": "Limit price can't be higher than 4275.37."
-//     }
-// }

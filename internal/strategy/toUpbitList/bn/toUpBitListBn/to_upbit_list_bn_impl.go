@@ -4,27 +4,14 @@ import (
 	"context"
 	"time"
 
-	"upbitBnServer/internal/quant/market/aggTrade/aggTradeSubBn"
-	"upbitBnServer/internal/quant/market/bookTick/bookTickSubBn"
-	"upbitBnServer/internal/quant/market/markPrice/markPriceSubBn"
+	"upbitBnServer/internal/infra/systemx"
+	"upbitBnServer/internal/quant/exchanges/binance/bnVar"
+	"upbitBnServer/internal/quant/exchanges/binance/poolMarketBnSub"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/server/instance"
 )
-
-func (e *Engine) onSymbolList(ctx context.Context, s *coinMesh.CoinMesh) error {
-	if err := bookTickSubBn.GetManager().AddParamAnd(ctx, s.BnFuUsdtName); err != nil {
-		return err
-	}
-	if err := aggTradeSubBn.GetManager().AddParamAnd(ctx, s.BnFuUsdtName); err != nil {
-		return err
-	}
-	if err := markPriceSubBn.GetManager().AddParamAnd(ctx, s.BnFuUsdtName); err != nil {
-		return err
-	}
-	return nil
-}
 
 func (e *Engine) OnSymbolList(ctx context.Context, s *coinMesh.CoinMesh) error {
 	toUpBitDataStatic.DyLog.GetLog().Infof("upbit上币:%v", s)
@@ -32,21 +19,18 @@ func (e *Engine) OnSymbolList(ctx context.Context, s *coinMesh.CoinMesh) error {
 	if symbolName == "" {
 		return nil
 	}
+	var symbolIndex systemx.SymbolIndex16I
 	// 下标不存在则添加,要不然会出现订阅的品种没有索引
-	if _, ok := toUpBitDataStatic.SymbolIndex.Load(symbolName); !ok {
-
-		symbolIndex := toUpBitDataStatic.SymbolIndex.Length()
-		e.thisCalCount++
-		if e.thisCalCount == limit {
-			e.thisAccountKeyId++
-			e.thisCalCount = 0
-		}
-		if err := toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex).Start(e.thisAccountKeyId, symbolIndex, symbolName); err != nil {
+	if rawIndex, ok := bnVar.SymbolIndex.Load(symbolName); !ok {
+		symbolIndex = systemx.SymbolIndex16I(bnVar.SymbolIndex.Length())
+		if err := toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex).Start(e.getPreAccountKeyId(), bnVar.SymbolIndex.Length(), symbolName); err != nil {
 			return err
 		}
+	} else {
+		symbolIndex = rawIndex
 	}
 	// 再订阅
-	if err := e.onSymbolList(ctx, s); err != nil {
+	if err := poolMarketBnSub.GetSymbolObj(symbolIndex).RegisterReadHandler(ctx, symbolName); err != nil {
 		toUpBitDataStatic.DyLog.GetLog().Errorf("bn_upbit上币失败,err:%v", err)
 		return err
 	}

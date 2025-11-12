@@ -1,5 +1,7 @@
 package u64Cal
 
+import "upbitBnServer/pkg/utils/pow10Utils"
+
 // IsDiffMoreThanPercent100 returns true if |a-b| > 1% of max(a,b)
 func IsDiffMoreThanPercent100(a, b uint64, percent uint64) bool {
 	if a == b {
@@ -15,4 +17,8 @@ func IsDiffMoreThanPercent100(a, b uint64, percent uint64) bool {
 	}
 	diff := a - b
 	return diff*100 > a*percent
+}
+
+func FromF64(f float64, scale uint8) uint64 {
+	return uint64(f * pow10Utils.ToPowF64(scale))
 }

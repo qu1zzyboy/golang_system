@@ -2,11 +2,11 @@ package klineSubBn
 
 import (
 	"context"
+	"upbitBnServer/internal/infra/ws/client/wsMarketClient"
 	"upbitBnServer/internal/infra/ws/wsDefine"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/quant/market/kline/klineEnum"
 	"upbitBnServer/internal/resource/resourceEnum"
-	"upbitBnServer/internal/resource/wsMarketClient"
 	"upbitBnServer/internal/resource/wsSub"
 	"upbitBnServer/internal/resource/wsSubParam"
 	"upbitBnServer/pkg/singleton"
@@ -21,10 +21,10 @@ func GetManager() *BnDeltaDepth {
 }
 
 type BnDeltaDepth struct {
-	paramMan *wsSubParam.ParamMarket   // ws订阅参数管理器
-	wsClient *wsMarketClient.Market    // WebSocket 客户端
-	resource resourceEnum.ResourceType // 资源类型
-	exType   exchangeEnum.ExchangeType // 交易所类型
+	paramMan *wsSubParam.ParamMarket    // ws订阅参数管理器
+	wsClient *wsMarketClient.PoolMarket // WebSocket 客户端
+	resource resourceEnum.ResourceType  // 资源类型
+	exType   exchangeEnum.ExchangeType  // 交易所类型
 }
 
 func newBnDeltaDepth() *BnDeltaDepth {
@@ -35,12 +35,12 @@ func newBnDeltaDepth() *BnDeltaDepth {
 	}
 }
 
-func (s *BnDeltaDepth) RegisterReadHandler(ctx context.Context, initSymbols []string, read wsDefine.ReadMarketHandler) error {
+func (s *BnDeltaDepth) RegisterReadHandler(ctx context.Context, initSymbols []string, read wsDefine.ReadPoolHandler) error {
 	var err error
 	if err = s.paramMan.SetInitSymbols(s.resource, initSymbols); err != nil {
 		return err
 	}
-	s.wsClient, err = wsMarketClient.NewMarket(s.exType, s.resource, read, s.paramMan)
+	s.wsClient, err = wsMarketClient.NewPoolMarket(s.exType, s.resource, read, s.paramMan)
 	if err != nil {
 		return err
 	}

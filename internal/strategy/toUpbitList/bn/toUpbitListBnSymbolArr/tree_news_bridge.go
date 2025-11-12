@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"upbitBnServer/internal/quant/exchanges/binance/bnVar"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/treenews"
@@ -22,7 +23,7 @@ func treeNewsHandler(_ context.Context, evt treenews.Event) {
 		if !strings.HasSuffix(symbolName, "USDT") {
 			symbolName = symbolName + "USDT"
 		}
-		symbolIndexTrue, ok := toUpBitDataStatic.SymbolIndex.Load(symbolName)
+		symbolIndexTrue, ok := bnVar.SymbolIndex.Load(symbolName)
 		if !ok {
 			toUpBitDataStatic.DyLog.GetLog().Errorf("%s treeNews品种不在品种池内", symbolName)
 			continue

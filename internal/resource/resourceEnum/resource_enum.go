@@ -12,19 +12,23 @@ type ResourceType uint8
 
 // 行情资源
 const (
-	DELTA_DEPTH ResourceType = iota //全量深度数据
-	LEVEL_DEPTH                     //深度数据
-	ALL_DEPTH                       //全量深度数据
-	BOOK_TICK                       //最优挂单数据
-	KLINE                           //K线数据
-	AGG_TRADE                       //聚合交易数据
-	MARK_PRICE                      //标记价格数据
-	FORCE_ORDER                     //强平订单数据
-	PRICE_LIMIT                     //价格限制数据
+	DELTA_DEPTH    ResourceType = iota //全量深度数据
+	LEVEL_DEPTH                        //深度数据
+	ALL_DEPTH                          //全量深度数据
+	BOOK_TICK                          //最优挂单数据
+	KLINE                              //K线数据
+	AGG_TRADE                          //聚合交易数据
+	MARK_PRICE                         //标记价格数据
+	FORCE_ORDER                        //强平订单数据
+	PRICE_LIMIT                        //价格限制数据
+	SYMBOL_SUB_256                     //单品种聚合订阅
+	SYMBOL_SUB_AUTO
+	WS_REQUEST_MARKET
+	TREE_NEWS
 
 	// 私有数据
-	ORDER_WRITE  //订单ws连接
-	PAYLOAD_READ //私有数据读取
+	WS_REQUEST_PRIVATE //ws_request连接
+	PAYLOAD_READ       //私有数据读取
 )
 
 func (s ResourceType) GetNotSupportError(flag string) error {
@@ -33,7 +37,7 @@ func (s ResourceType) GetNotSupportError(flag string) error {
 
 func (s ResourceType) Verify() error {
 	switch s {
-	case DELTA_DEPTH, LEVEL_DEPTH, ALL_DEPTH, BOOK_TICK, KLINE, AGG_TRADE, MARK_PRICE, PRICE_LIMIT, ORDER_WRITE, FORCE_ORDER:
+	case DELTA_DEPTH, LEVEL_DEPTH, ALL_DEPTH, BOOK_TICK, KLINE, AGG_TRADE, MARK_PRICE, PRICE_LIMIT, WS_REQUEST_PRIVATE, FORCE_ORDER:
 		return nil
 	default:
 		return errDefine.EnumDefineError.WithMetadata(map[string]string{
@@ -63,8 +67,8 @@ func (s ResourceType) String() string {
 		return "MARK_PRICE"
 	case PRICE_LIMIT:
 		return "PRICE_LIMIT"
-	case ORDER_WRITE:
-		return "ORDER_WRITE"
+	case WS_REQUEST_PRIVATE:
+		return "WS_REQUEST_PRIVATE"
 	case PAYLOAD_READ:
 		return "PRIVATE_READ"
 	default:

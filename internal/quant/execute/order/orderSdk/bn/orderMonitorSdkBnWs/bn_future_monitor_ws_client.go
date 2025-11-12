@@ -37,9 +37,9 @@ func (s *FutureMonitorClient) Close(ctx context.Context) error {
 	return s.conn.CloseConn(ctx)
 }
 
-func (s *FutureMonitorClient) RegisterReadHandler(ctx context.Context, read wsDefine.ReadPrivateHandler) error {
+func (s *FutureMonitorClient) RegisterReadHandler(ctx context.Context, read wsDefine.ReadAutoHandler) error {
 	var err error
-	s.conn, err = wsExecuteClient.NewExecute(exchangeEnum.BINANCE, resourceEnum.ORDER_WRITE, read, s.param, s.accountKeyId)
+	s.conn, err = wsExecuteClient.NewExecute(exchangeEnum.BINANCE, resourceEnum.WS_REQUEST_PRIVATE, read, s.param, s.accountKeyId)
 	if err != nil {
 		return err
 	}

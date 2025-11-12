@@ -3,27 +3,24 @@ package grpcLowLatencyServer
 import (
 	"context"
 	"fmt"
-	"time"
 
 	strategyV1 "upbitBnServer/api/strategy/v1"
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/infra/systemx/instanceEnum"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/market/symbolInfo"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
-	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBn"
-	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
+	"upbitBnServer/internal/strategy/toUpbitList/bybit/toUpBitByBit"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitMesh"
 	"upbitBnServer/internal/strategy/toUpbitParam"
 	"upbitBnServer/pkg/utils/jsonUtils"
 	"upbitBnServer/server/grpcEvent"
 	"upbitBnServer/server/instance"
 	"upbitBnServer/server/instance/instanceCenter"
-	"upbitBnServer/server/serverInstanceEnum"
 
 	"github.com/tidwall/gjson"
 )
@@ -50,10 +47,9 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 
 	var err error
 	switch grpcEventType {
-
-	case grpcEvent.TO_UPBIT_LIST_BN:
+	case grpcEvent.TO_UPBIT_LIST_BYBIT:
 		{
-			req := toUpBitListBn.Req{}
+			req := toUpBitByBit.Req{}
 			if err = jsonUtils.UnmarshalFromString(in.JsonData, &req); err != nil {
 				logError.GetLog().Error("特有参数json解析失败:", err)
 				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
@@ -62,10 +58,23 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 				logError.GetLog().Error("请求参数校验失败:", err)
 				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
 			}
-			err = toUpBitListBn.Start(ctx, in.CommonMeta, &req)
+			err = toUpBitByBit.Start(ctx, in.CommonMeta, &req)
 		}
+	// case grpcEvent.TO_UPBIT_LIST_BN:
+	// 	{
+	// 		req := toUpBitListBn.Req{}
+	// 		if err = jsonUtils.UnmarshalFromString(in.JsonData, &req); err != nil {
+	// 			logError.GetLog().Error("特有参数json解析失败:", err)
+	// 			return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
+	// 		}
+	// 		if err = req.Check(); err != nil {
+	// 			logError.GetLog().Error("请求参数校验失败:", err)
+	// 			return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
+	// 		}
+	// 		err = toUpBitListBn.Start(ctx, in.CommonMeta, &req)
+	// 	}
 
-		// 上币静态信息更新
+	// 上币静态信息更新
 	case grpcEvent.SYMBOL_ON_LIST:
 		{
 			var staticSave symbolStatic.StaticSave
@@ -131,29 +140,13 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 			}
 			toUpbitMesh.GetHandle().OnSymbolDel(ctx, &mesh)
 		}
-	case grpcEvent.TO_UPBIT_RECEIVE_NEWS:
-		{
-			Asset := gjson.Get(in.JsonData, "events.0.symbols.0").String()
-			symbolName := Asset + "USDT"
-			symbolIndexTrue, ok := toUpBitDataStatic.SymbolIndex.Load(symbolName)
-			if !ok {
-				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, "TreeNews品种不在品种池内", nil)
-			}
-
-			// 触发品种和TreeNews品种一致
-			if symbolIndexTrue == toUpBitListDataAfter.TrigSymbolIndex {
-				toUpbitListBnSymbolArr.GetSymbolObj(symbolIndexTrue).ReceiveTreeNews()
-			} else {
-				toUpbitListBnSymbolArr.GetSymbolObj(toUpBitListDataAfter.TrigSymbolIndex).ReceiveNoTreeNews()
-			}
-		}
-	case grpcEvent.TO_UPBIT_TEST:
-		{
-			symbolIndex, _ := toUpBitDataStatic.SymbolIndex.Load("XPINUSDT")
-			obj := toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex)
-			go obj.ReceiveTreeNews()
-			obj.IntoExecuteNoCheck(time.Now().UnixMilli(), "test", 200000000)
-		}
+	//case grpcEvent.TO_UPBIT_TEST:
+	//	{
+	//		symbolIndex, _ := bnVar.SymbolIndex.Load("XPINUSDT")
+	//		obj := toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex)
+	//		go obj.ReceiveTreeNews()
+	//		obj.IntoExecuteNoCheck(time.Now().UnixMilli(), "test", 200000000)
+	//	}
 	case grpcEvent.TO_UPBIT_PARAM_TEST:
 		{
 			var req toUpbitParam.ComputeRequest
@@ -195,7 +188,7 @@ func (s *Server) UpdateStrategy(ctx context.Context, in *strategyV1.StrategyReq)
 		logError.GetLog().Error("UpdateStrategy instanceId is null")
 		return failure(strategyV1.ErrorCode_INSTANCE_ID_EMPTY, "instanceId is empty", nil)
 	}
-	if err := instanceCenter.GetManager().UpdateInstance(ctx, serverInstanceEnum.Type(instanceId), instance.InstanceUpdate{JsonData: in.JsonData}); err != nil {
+	if err := instanceCenter.GetManager().UpdateInstance(ctx, instanceEnum.Type(instanceId), instance.InstanceUpdate{JsonData: in.JsonData}); err != nil {
 		return failure(strategyV1.ErrorCode_INTERNAL_ERROR, err.Error(), instanceId)
 	}
 	return success("update success", "")
@@ -210,7 +203,7 @@ func (s *Server) StopStrategy(ctx context.Context, in *strategyV1.StrategyReq) (
 		logError.GetLog().Error("StopStrategy instanceId is null")
 		return failure(strategyV1.ErrorCode_INSTANCE_ID_EMPTY, "instanceId is empty", nil)
 	}
-	if err := instanceCenter.GetManager().StopInstance(ctx, serverInstanceEnum.Type(in.CommonMeta.InstanceId)); err != nil {
+	if err := instanceCenter.GetManager().StopInstance(ctx, instanceEnum.Type(in.CommonMeta.InstanceId)); err != nil {
 		return failure(strategyV1.ErrorCode_INTERNAL_ERROR, err.Error(), in.CommonMeta.InstanceId)
 	}
 	return success("stop success", "")

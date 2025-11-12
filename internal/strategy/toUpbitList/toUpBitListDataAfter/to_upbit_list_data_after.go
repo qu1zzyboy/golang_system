@@ -3,32 +3,30 @@ package toUpBitListDataAfter
 import (
 	"sync/atomic"
 
+	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/quant/execute"
-	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
-
-	"github.com/shopspring/decimal"
 )
 
 type OnSuccessEvt struct {
-	ClientOrderId string
-	Volume        decimal.Decimal
-	SortPrice     float64
+	ClientOrderId systemx.WsId16B
+	Volume        float64
 	TimeStamp     int64
-	OrderMode     execute.MyOrderMode
+	OrderMode     execute.OrderMode
 	IsOnline      bool
 	AccountKeyId  uint8
-	InstanceId    orderBelongEnum.Type
 }
 
 type OnSuccessOrder func(evt OnSuccessEvt)
 
+const TrigIndexDefault systemx.SymbolIndex16I = -1
+
 var (
-	TrigSymbolIndex int         = -1 // 触发的交易对索引
-	hasTrig         atomic.Bool      // 是否已经成功触发,这里必须是全局变量,减少cpu解析
+	TrigSymbolIndex systemx.SymbolIndex16I = TrigIndexDefault // 触发5%的交易对索引
+	hasTrig         atomic.Bool                               // 是否已经成功触发,这里必须是全局变量,减少cpu解析
 )
 
-func Trig(symbolIndex int) {
+func Trig(symbolIndex systemx.SymbolIndex16I) {
 	hasTrig.Store(true)
 	TrigSymbolIndex = symbolIndex
 }
@@ -40,5 +38,5 @@ func LoadTrig() bool {
 func ClearTrig() {
 	toUpBitDataStatic.DyLog.GetLog().Info("===========================清空ClearTrig()===============================")
 	hasTrig.Store(false)
-	TrigSymbolIndex = -1
+	TrigSymbolIndex = TrigIndexDefault
 }
