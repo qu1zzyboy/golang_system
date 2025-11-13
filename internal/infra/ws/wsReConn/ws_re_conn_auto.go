@@ -58,7 +58,9 @@ func (c *ReConnAuto) ReConnLoop(ctxStop context.Context) {
 }
 
 func (c *ReConnAuto) reConnLoop(ctxStop context.Context) {
-	dynamicLog.Log.GetLog().Infof("进入[%s] auto_连接循环 %s", c.resourceId, defineEmoji.Rocket)
+	if c.resourceType != resourceEnum.SYMBOL_SUB_AUTO {
+		dynamicLog.Log.GetLog().Infof("进入[%s] auto_连接循环 %s", c.resourceId, defineEmoji.Rocket)
+	}
 	for {
 		select {
 		case <-ctxStop.Done():

@@ -27,8 +27,7 @@ type Parser struct {
 }
 
 func (s *Parser) Parse(data []byte, wsMeta wsRequestCache.WsRequestMeta, reqId systemx.WsId16B, accountKeyId uint8) {
-	reqOk := data[34] == '2' && data[35] == '0' && data[36] == '0'
-
+	reqOk := data[38] == '0'
 	usage := wsMeta.UsageFrom
 
 	switch wsMeta.ReqType {
@@ -108,3 +107,25 @@ func (s *Parser) Parse(data []byte, wsMeta wsRequestCache.WsRequestMeta, reqId s
 		dynamicLog.Error.GetLog().Errorf("WS_REQUEST: unknown WsRequestType %v", wsMeta.ReqType)
 	}
 }
+
+// {"reqId":"1763011501780691","retCode":10001,"retMsg":"position idx not match position mode"
+
+// {
+//   "reqId": "1763005546197794",
+//   "retCode": 0,
+//   "retMsg": "OK",
+//   "op": "order.create",
+//   "data": {
+//     "orderId": "e21c2cfd-4753-44c9-a865-38ebe7fe91e4",
+//     "orderLinkId": "1763005546197794"
+//   },
+//   "retExtInfo": {},
+//   "header": {
+//     "X-Bapi-Limit-Status": "19",
+//     "X-Bapi-Limit-Reset-Timestamp": "1763005546199",
+//     "Traceid": "570b19c082013e0f66b0ae10b104b366",
+//     "Timenow": "1763005546199",
+//     "X-Bapi-Limit": "20"
+//   },
+//   "connId": "d3rihevflflovgonnlu0-5nglh"
+// }

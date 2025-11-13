@@ -71,6 +71,10 @@ func (s ResourceType) String() string {
 		return "WS_REQUEST_PRIVATE"
 	case PAYLOAD_READ:
 		return "PRIVATE_READ"
+	case SYMBOL_SUB_256:
+		return "SYMBOL_SUB_256"
+	case SYMBOL_SUB_AUTO:
+		return "SYMBOL_SUB_AUTO"
 	default:
 		return "ERROR"
 	}

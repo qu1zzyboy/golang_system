@@ -8,6 +8,7 @@ import (
 	"upbitBnServer/internal/infra/latency"
 	"upbitBnServer/internal/infra/safex"
 	"upbitBnServer/internal/infra/systemx"
+	"upbitBnServer/internal/quant/exchanges/bybit/autoMarketChanByBit"
 	"upbitBnServer/internal/quant/exchanges/bybit/poolMarketChanByBit"
 	"upbitBnServer/internal/quant/market/symbolInfo"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
@@ -125,6 +126,9 @@ func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 	s.upLimitPercent = 1 + limit.UpLimitPercent.InexactFloat64()
 	s.chanMarketPool = make(chan systemx.Job, 100)
 	poolMarketChanByBit.Register(s.symbolIndex, s.chanMarketPool)
+
+	s.chanMarketAuto = make(chan []byte, 100)
+	autoMarketChanByBit.Register(s.symbolIndex, s.chanMarketAuto)
 
 	s.chanTrigOrder = make(chan toUpbitListChan.TrigOrderInfo, 10)
 	s.chanOutSideSig = make(chan toUpbitListChan.Special, 10)

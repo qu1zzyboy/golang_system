@@ -1,6 +1,7 @@
 package toUpbitBybitSymbol
 
 import (
+	"fmt"
 	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/infra/systemx/instanceEnum"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
@@ -38,19 +39,19 @@ func (s *Single) CancelPreOrder() {
 	}
 }
 
-func getMarketPrice(byteLen, symbolLen uint16, bb []byte) (markPrice float64) {
+func getMarketPrice(byteLen, symbolLen uint16, bb []byte) (markPrice float64, ok bool) {
 	var loop_begin uint16
 	if bb[18+symbolLen+10] == 'd' {
 		loop_begin = 18 + symbolLen + 35 + symbolLen + 3
 	} else {
 		loop_begin = 18 + symbolLen + 38 + symbolLen + 3
 	}
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		if bb[loop_begin] == 'm' && bb[loop_begin+1] == 'a' && bb[loop_begin+2] == 'r' && bb[loop_begin+3] == 'k' {
 			// 找到了
 			p_begin := loop_begin + 12
 			p_end := byteUtils.FindNextQuoteIndex(bb, p_begin, byteLen)
-			return byteConvert.ByteArrToF64(bb[p_begin:p_end])
+			return byteConvert.ByteArrToF64(bb[p_begin:p_end]), true
 		} else {
 			loop_begin = byteUtils.FindNextCommaIndex(bb, loop_begin, byteLen) + 2
 			if bb[loop_begin] == 'c' {
@@ -59,7 +60,7 @@ func getMarketPrice(byteLen, symbolLen uint16, bb []byte) (markPrice float64) {
 			}
 		}
 	}
-	return 0
+	return 0, false
 }
 
 func (s *Single) onMarkPrice(b []byte) {
@@ -71,12 +72,19 @@ func (s *Single) onMarkPrice(b []byte) {
 		byteLen := uint16(len(b))
 		// 1、计算价格上限并存储
 		msE := byteConvert.BytesToInt64(b[byteLen-14 : byteLen-1])
-		markPrice := getMarketPrice(byteLen, s.symbolLen, b)
+		markPrice, ok := getMarketPrice(byteLen, s.symbolLen, b)
+		if !ok {
+			return
+		}
 		priceMaxBuy := markPrice * s.upLimitPercent
 		s.trigPriceMax.Store(msE/1000, priceMaxBuy)
 		toUpBitDataStatic.DyLog.GetLog().Infof("%s最新[u8:%.8f,u10:%.8f]标记价格: %s", s.symbolName, markPrice, priceMaxBuy, string(b))
 	} else {
-		markPrice := getMarketPrice(uint16(len(b)), s.symbolLen, b)
+		markPrice, ok := getMarketPrice(uint16(len(b)), s.symbolLen, b)
+		if !ok {
+			return
+		}
+		fmt.Println(s.symbolName, markPrice)
 		// 2、计算价格上限
 		s.priceMaxBuy = markPrice * s.upLimitPercent
 		// 3、回调函数更新预挂单
