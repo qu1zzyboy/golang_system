@@ -112,9 +112,11 @@ func OnPayloadOrder(data []byte, clientOrderId systemx.WsId16B, meta orderStatic
 			p_start := o_end + 98
 			p_end := byteUtils.FindNextQuoteIndex(data, p_start, totalLen)
 
+			// ","qty":" 9
 			q_start := p_end + 9
 			q_end := byteUtils.FindNextQuoteIndex(data, q_start, totalLen)
 
+			// ","avgPrice":" 14
 			avg_p_start := q_end + 14
 			avg_p_end := byteUtils.FindNextQuoteIndex(data, avg_p_start, totalLen)
 

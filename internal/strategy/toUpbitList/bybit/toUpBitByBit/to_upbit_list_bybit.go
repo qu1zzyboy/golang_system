@@ -107,7 +107,7 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 	}
 	toUpBitDataStatic.DyLog.GetLog().Infof("bybit初始化订阅币种:%d,max:%d", len(symbols), len(data))
 
-	symbols = symbols[:2]
+	// symbols = symbols[:2]
 
 	needLen := len(symbols) + 100
 	//chan对象数组
