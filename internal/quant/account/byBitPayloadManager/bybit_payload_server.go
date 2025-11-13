@@ -6,6 +6,8 @@ import (
 	"upbitBnServer/internal/quant/account/accountConfig"
 	"upbitBnServer/internal/quant/account/byBitPayload"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
+
+	"github.com/tidwall/gjson"
 )
 
 type Payload struct {
@@ -36,6 +38,11 @@ func (s *Payload) OnPayload(data []byte) {
 		// execution.fast.linear
 		s.onTradeLite(data)
 	default:
+		if gjson.GetBytes(data, "op").Exists() {
+			// {"req_id":"1763012998605","success":true,"ret_msg":"","op":"auth","conn_id":"d2a4c6evqclvsgos5bjg-1zauw0"}
+			// {"req_id":"1763012998605","success":true,"ret_msg":"","op":"subscribe","conn_id":"d2a4c6evqclvsgos5bjg-1zauw0"}
+			return
+		}
 		toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]未知事件类型: %s", s.accountKeyId, string(data))
 	}
 }

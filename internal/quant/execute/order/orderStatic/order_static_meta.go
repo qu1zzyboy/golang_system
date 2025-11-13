@@ -15,9 +15,11 @@ import (
 
 type StaticMeta struct {
 	SymbolIndex systemx.SymbolIndex16I // 交易对的唯一标识
-	Pvalue      uint64                 //定点价格
-	Qvalue      uint64                 //定点数量
+	Pvalue      uint64                 // 定点价格
+	Qvalue      uint64                 // 定点数量
 	SymbolLen   uint16                 // 交易对长度
+	Pscale      systemx.PScale         //
+	Qscale      systemx.QScale         //
 	IsModified  bool                   // 标记是否被修改过,被修改过要重新解析原始价格和数量
 	OrderMode   execute.OrderMode      // 订单模式
 	ReqFrom     instanceEnum.Type      //实例枚举
