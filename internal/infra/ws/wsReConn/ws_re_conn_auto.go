@@ -136,7 +136,11 @@ func (c *ReConnAuto) connect(ctx context.Context) error {
 		}
 	case exchangeEnum.BYBIT:
 		switch c.resourceType {
-		case resourceEnum.MARK_PRICE, resourceEnum.AGG_TRADE, resourceEnum.SYMBOL_SUB_AUTO, resourceEnum.WS_REQUEST_PRIVATE:
+		case resourceEnum.MARK_PRICE,
+			resourceEnum.AGG_TRADE,
+			resourceEnum.SYMBOL_SUB_AUTO,
+			resourceEnum.WS_REQUEST_PRIVATE,
+			resourceEnum.PAYLOAD_READ:
 			safeRead := wsRead.NewAutoRead(conn.GetConn(), c.resourceId)
 			safeRead.ReadAutoLoop(ctxStopChild, c.read, c.sigChan)
 		default:

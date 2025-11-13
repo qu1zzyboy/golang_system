@@ -70,7 +70,7 @@ func (s ResourceType) String() string {
 	case WS_REQUEST_PRIVATE:
 		return "WS_REQUEST_PRIVATE"
 	case PAYLOAD_READ:
-		return "PRIVATE_READ"
+		return "PAYLOAD_READ"
 	case SYMBOL_SUB_256:
 		return "SYMBOL_SUB_256"
 	case SYMBOL_SUB_AUTO:
