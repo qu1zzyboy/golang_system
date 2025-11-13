@@ -13,7 +13,7 @@ import (
 	"upbitBnServer/pkg/utils/timeUtils"
 )
 
-var fuLeverageQueryByte = []byte(fmt.Sprintf("%s/v5/order/realtime", bybitConst.BASE_URL))
+var fuLeverageQueryByte = fmt.Appendf(nil, "%s/v5/position/set-leverage", bybitConst.BASE_URL)
 
 func (s *FutureRest) DoLeverage(leverage uint8, symbolName string) ([]byte, error) {
 	orig := make([]byte, 128)
