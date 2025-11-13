@@ -1,6 +1,7 @@
 package orderSdkBybitRest
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -26,7 +27,7 @@ func (s *FutureRest) DoLeverage(leverage uint8, symbolName string) ([]byte, erro
 	orig = append(orig, "&symbol="...)
 	orig = append(orig, symbolName...)
 
-	r, err := s.addSignParamsSpecial(fuLeverageQueryByte, orig)
+	r, err := s.addSignDoLeverage(fuLeverageQueryByte, orig)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +35,7 @@ func (s *FutureRest) DoLeverage(leverage uint8, symbolName string) ([]byte, erro
 	return httpx.DefaultClient.Do(r)
 }
 
-func (s *FutureRest) addSignParamsSpecial(urlByte []byte, param []byte) (*httpx.HttpRequest, error) {
+func (s *FutureRest) addSignDoLeverage(urlByte []byte, param []byte) (*httpx.HttpRequest, error) {
 	// 构建请求头 Header
 	timeStamp := timeUtils.GetNowTimeUnixMilli()
 	header := s.httpHeader.Clone()
@@ -68,6 +69,6 @@ func (s *FutureRest) addSignParamsSpecial(urlByte []byte, param []byte) (*httpx.
 	return &httpx.HttpRequest{
 		URL:    parsedURL,
 		Header: header,
-		Body:   http.NoBody,
+		Body:   bytes.NewReader(param),
 	}, nil
 }
