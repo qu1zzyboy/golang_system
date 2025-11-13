@@ -39,11 +39,10 @@ func (s *Parser) onPlaceOrderFailed(data []byte, wsMeta wsRequestCache.WsRequest
 				toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]触发后异常订单,请求数据:%s,返回数据%s", accountKeyId, string(wsMeta.ReqJson), string(data))
 				return
 			}
-
 			// 发送错误码
 			toUpbitListChan.SendSpecial(symbolIndex, toUpbitListChan.Special{
 				Amount:       decimal.Zero,
-				ErrCode:      [5]byte{data[55], data[56], data[57], data[58]},
+				ErrCode:      [5]byte{data[38], data[39], data[40], data[41], data[42]},
 				SigType:      toUpbitListChan.FailureOrder,
 				AccountKeyId: accountKeyId,
 			})
