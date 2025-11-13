@@ -17,13 +17,13 @@ import (
 var fuLeverageQueryByte = fmt.Appendf(nil, "%s/v5/position/set-leverage", bybitConst.BASE_URL)
 
 func (s *FutureRest) DoLeverage(leverage uint8, symbolName string) ([]byte, error) {
-	orig := make([]byte, 128)
+	orig := make([]byte, 0, 128)
 	orig = append(orig, "category=linear"...)
 
 	orig = append(orig, "&buyLeverage="...)
-	strconv.AppendUint(orig, uint64(leverage), 10)
+	orig = strconv.AppendUint(orig, uint64(leverage), 10)
 	orig = append(orig, "&sellLeverage="...)
-	strconv.AppendUint(orig, uint64(leverage), 10)
+	orig = strconv.AppendUint(orig, uint64(leverage), 10)
 	orig = append(orig, "&symbol="...)
 	orig = append(orig, symbolName...)
 
@@ -57,11 +57,11 @@ func (s *FutureRest) addSignDoLeverage(urlByte []byte, param []byte) (*httpx.Htt
 	if err != nil {
 		return nil, err
 	}
-	// myLog.LogDir.Infof("signature: %s", string(*signResp))
 	header.Set(p_SIGNATURE_KEY, string(*signResp))
 	// URL 解析
 	urlByte = append(urlByte, '?')
 	urlByte = append(urlByte, param...)
+	fmt.Println(string(urlByte))
 	parsedURL, err := url.Parse(string(urlByte))
 	if err != nil {
 		return nil, err
