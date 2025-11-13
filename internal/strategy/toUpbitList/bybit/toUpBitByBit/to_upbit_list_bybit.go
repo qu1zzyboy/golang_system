@@ -133,7 +133,6 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 	if err := treeNewsSub.Get().RegisterReadHandler(ctx, onSymbolPool); err != nil {
 		return err
 	}
-
 	// 注册交易时间段
 	if _, err := globalCron.AddFunc(toUpBitDataStatic.DAY_BEGIN_STR, e.OnDayBegin); err != nil {
 		return err
