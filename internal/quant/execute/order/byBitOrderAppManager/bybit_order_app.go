@@ -9,6 +9,8 @@ import (
 	"upbitBnServer/internal/quant/execute/order/orderSdk/bybit/orderSdkBybitWs"
 	"upbitBnServer/internal/quant/execute/order/wsRequestCache"
 	"upbitBnServer/internal/strategy/toUpbitList/bybit/toUpbitByBitWsParse"
+
+	"github.com/tidwall/gjson"
 )
 
 type OrderApp struct {
@@ -38,6 +40,9 @@ func (s *OrderApp) OnWsResp(data []byte) {
 	if !ok {
 		// 帐号认证的json
 		if reqOk {
+			return
+		}
+		if gjson.GetBytes(data, "retCode").Int() == 0 {
 			return
 		}
 		dynamicLog.Error.GetLog().Errorf("[%d]WS_REQUEST: [%s]  not found %s", s.accountKeyId, string(reqId[:]), string(data))
