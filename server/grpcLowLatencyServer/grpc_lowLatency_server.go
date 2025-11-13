@@ -9,6 +9,7 @@ import (
 	"upbitBnServer/internal/infra/systemx/instanceEnum"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
+	"upbitBnServer/internal/quant/execute/order/byBitOrderAppManager"
 	"upbitBnServer/internal/quant/market/symbolInfo"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
@@ -103,6 +104,8 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 			// 设置BN_FUTURE杠杆
 			if static.ExType == exchangeEnum.BINANCE && static.AcType == exchangeEnum.FUTURE {
 				err = bnOrderAppManager.GetTradeManager().SetBnLeverage(5, static.SymbolName)
+			} else if static.ExType == exchangeEnum.BYBIT && static.AcType == exchangeEnum.FUTURE {
+				err = byBitOrderAppManager.GetTradeManager().SetByBitLeverage(5, static.SymbolName)
 			}
 		}
 	case grpcEvent.SYMBOL_DOWN_LIST:

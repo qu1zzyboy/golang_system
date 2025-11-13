@@ -6,6 +6,7 @@ import (
 	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/infra/systemx/instanceEnum"
 	"upbitBnServer/internal/quant/account/accountConfig"
+	"upbitBnServer/internal/quant/execute/order/orderSdk/bybit/orderSdkBybitRest"
 	"upbitBnServer/internal/quant/execute/order/orderSdk/bybit/orderSdkBybitWs"
 	"upbitBnServer/internal/quant/execute/order/wsRequestCache"
 	"upbitBnServer/internal/strategy/toUpbitList/bybit/toUpbitByBitWsParse"
@@ -14,6 +15,7 @@ import (
 )
 
 type OrderApp struct {
+	rest         *orderSdkBybitRest.FutureRest // REST API 客户端
 	wsOrder      *orderSdkBybitWs.FutureClient // WS API 客户端
 	accountKeyId uint8                         // 账户序号
 }
@@ -24,6 +26,7 @@ func newOrderApp() *OrderApp {
 
 func (s *OrderApp) init(ctx context.Context, v accountConfig.Config) error {
 	s.accountKeyId = v.AccountId
+	s.rest = orderSdkBybitRest.NewFutureRest(v.ApiKeyHmac, v.SecretHmac)
 	s.wsOrder = orderSdkBybitWs.NewFutureClient(v.ApiKeyHmac, v.SecretHmac)
 	if err := s.wsOrder.RegisterReadHandler(ctx, v.AccountId, s.OnWsResp); err != nil {
 		return err
