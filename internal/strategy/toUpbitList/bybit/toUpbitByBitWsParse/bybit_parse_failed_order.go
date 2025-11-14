@@ -17,6 +17,7 @@ import (
 // {"reqId":"1763026852291724","retCode":110007,"retMsg":"ab not enough for new order"
 // {"reqId":"1763027838672461","retCode":30228,"retMsg":"No new positions during delisting." 币种正在下架，不能新开仓
 // "retCode":110007,"retMsg":"CheckMarginRatio fail! InsufficientAB" 可用余额不足
+// {"reqId":"1763086933896632","retCode":20006,"retMsg":"Duplicate reqId"
 
 func (s *Parser) onPlaceOrderFailed(data []byte, wsMeta wsRequestCache.WsRequestMeta, clientOrderId systemx.WsId16B, accountKeyId uint8) {
 	oMeta, ok := orderStatic.GetService().GetOrderMeta(clientOrderId)
