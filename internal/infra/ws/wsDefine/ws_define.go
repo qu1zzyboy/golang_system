@@ -36,6 +36,7 @@ type ReConnType uint8
 
 const (
 	READ_ERROR ReConnType = iota
+	PING_ERROR
 	START_CONN
 )
 

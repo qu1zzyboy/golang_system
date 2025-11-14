@@ -138,8 +138,6 @@ func (c *ReConnPool) connect(ctx context.Context) error {
 
 	ctxStopChild, cancel := context.WithCancel(context.Background())
 	c.thisCancel = cancel
-	//创建ping-pong对象
-	// pingPong := wsPingPong.NewPingPong(c.ping, conn, c.resourceId)
 
 	switch c.exType {
 	case exchangeEnum.BINANCE:
@@ -155,7 +153,9 @@ func (c *ReConnPool) connect(ctx context.Context) error {
 		default:
 		}
 	case exchangeEnum.BYBIT:
-		// read = pingPong.WrapByBitPongHandler(c.read)
+		//创建ping-pong对象
+		pingPong := wsPingPong.NewPingPong(wsPingPong.PingByBit, conn, c.resourceId)
+		pingPong.PingPongLoop(ctxStopChild, c.sigChan)
 		switch c.resourceType {
 		case resourceEnum.BOOK_TICK:
 			safeRead := wsRead.NewReadPool(conn.GetConn(), byteBufPool.SIZE_256, c.resourceId)
@@ -167,7 +167,5 @@ func (c *ReConnPool) connect(ctx context.Context) error {
 		}
 	default:
 	}
-	//开启ping-pong循环
-	// pingPong.PingPongLoop(ctxStopChild, c.sigChan)
 	return nil
 }

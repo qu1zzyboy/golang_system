@@ -135,6 +135,10 @@ func (c *ReConnAuto) connect(ctx context.Context) error {
 		default:
 		}
 	case exchangeEnum.BYBIT:
+		//创建ping-pong对象
+		pingPong := wsPingPong.NewPingPong(wsPingPong.PingByBit, conn, c.resourceId)
+		pingPong.PingPongLoop(ctxStopChild, c.sigChan)
+
 		switch c.resourceType {
 		case resourceEnum.MARK_PRICE,
 			resourceEnum.AGG_TRADE,
@@ -150,7 +154,5 @@ func (c *ReConnAuto) connect(ctx context.Context) error {
 		safeRead.ReadAutoLoop(ctxStopChild, c.read, c.sigChan)
 	default:
 	}
-	//开启ping-pong循环
-	// pingPong.PingPongLoop(ctxStopChild, c.sigChan)
 	return nil
 }

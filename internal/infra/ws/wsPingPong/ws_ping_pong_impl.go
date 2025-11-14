@@ -7,8 +7,7 @@ import (
 	"upbitBnServer/internal/infra/errorx/errCode"
 	"upbitBnServer/internal/infra/ws/wsDefine"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
-	"upbitBnServer/pkg/utils/convertx"
-	"upbitBnServer/pkg/utils/jsonUtils"
+	"upbitBnServer/pkg/utils/time2str"
 
 	"github.com/gorilla/websocket"
 )
@@ -41,15 +40,13 @@ func PongBn(msg string, conn *wsDefine.SafeWrite) error {
 }
 
 func PingByBit(conn *wsDefine.SafeWrite) error {
-	pingByte, err := jsonUtils.MarshalStructToByteArray(map[string]string{
-		"op":     "ping",
-		"req_id": convertx.GetNowTimeStampMilliStr(),
-	})
-	if err != nil {
-		return errorx.Newf(errCode.CodeWsParamError, "BYBIT_PING_MARSHAL", "bybit ws ping参数序列化错误").WithCause(err)
-	}
-	if err := conn.SafeWriteMsg(websocket.TextMessage, pingByte); err != nil {
-		return errorx.Newf(errCode.CodeWsDoError, "BYBIT_PING_SEND_ERROR", "bybit_ws ping发送失败").WithCause(err)
+	reqId := time2str.GetNowTimeStampMicroSlice16()
+	buf := make([]byte, 0, 64)
+	buf = append(buf, `{"reqId":"`...)
+	buf = append(buf, reqId[:]...)
+	buf = append(buf, `","op":"ping"}`...)
+	if err := conn.SafeWriteMsg(websocket.TextMessage, buf); err != nil {
+		return errorx.Newf(errCode.WS_SEND_ERROR, "bybit_ws ping发送失败").WithCause(err)
 	}
 	return nil
 }

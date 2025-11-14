@@ -27,6 +27,7 @@ const (
 
 	CodeWsParamError // ws参数错误
 	CodeWsDoError    // ws请求错误
+	WS_SEND_ERROR    // ws发送错误
 
 	// redis错误码
 	REDIS_CLIENT_NOT_FOUND     // Redis客户端未找到
