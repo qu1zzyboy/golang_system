@@ -144,7 +144,7 @@ func (s *PointPre) initPreOrder(qScale systemx.QScale) error {
 		return err
 	}
 	//挂单量=最大(最小下单量,12*最小下单金额/最新标记价格)
-	maxNum := math.Max(dyMeta.LotSize.InexactFloat64(), 12*dyMeta.MinQty.InexactFloat64()/(s.lastMarkPrice))
+	maxNum := math.Max(dyMeta.LotSize.InexactFloat64(), 2*dyMeta.MinQty.InexactFloat64()/(s.lastMarkPrice))
 	s.PointNum = u64Cal.FromF64(maxNum, qScale.Uint8())
 	s.clientOrderIdSmall = time2str.GetNowTimeStampMicroSlice16()
 	s.hasInit = true

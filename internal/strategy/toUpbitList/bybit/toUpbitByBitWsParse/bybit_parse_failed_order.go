@@ -14,6 +14,9 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// {"reqId":"1763026852291724","retCode":110007,"retMsg":"ab not enough for new order"
+// {"reqId":"1763027838672461","retCode":30228,"retMsg":"No new positions during delisting." 币种正在下架，不能新开仓
+
 func (s *Parser) onPlaceOrderFailed(data []byte, wsMeta wsRequestCache.WsRequestMeta, clientOrderId systemx.WsId16B, accountKeyId uint8) {
 	oMeta, ok := orderStatic.GetService().GetOrderMeta(clientOrderId)
 	// 不属于这个服务的订单直接pass
