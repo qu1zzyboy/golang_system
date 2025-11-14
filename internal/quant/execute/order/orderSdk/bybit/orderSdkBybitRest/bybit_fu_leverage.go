@@ -26,7 +26,7 @@ func (s *FutureRest) DoLeverage(leverage uint8, symbolName string) ([]byte, erro
 	orig = append(orig, symbolName...)
 	orig = append(orig, `"}`...)
 
-	r, err := s.addSignDoLeverage(fuLeverageUrl, orig)
+	r, err := s.addSignPost(fuLeverageUrl, orig)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (s *FutureRest) DoLeverage(leverage uint8, symbolName string) ([]byte, erro
 	return httpx.DefaultClient.Do(r)
 }
 
-func (s *FutureRest) addSignDoLeverage(urlStr string, param []byte) (*httpx.HttpRequest, error) {
+func (s *FutureRest) addSignPost(urlStr string, param []byte) (*httpx.HttpRequest, error) {
 	// 构建请求头 Header
 	timeStamp := timeUtils.GetNowTimeUnixMilli()
 	header := s.httpHeader.Clone()
