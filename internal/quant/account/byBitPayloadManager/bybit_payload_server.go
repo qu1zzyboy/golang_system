@@ -2,7 +2,6 @@ package byBitPayloadManager
 
 import (
 	"context"
-	"fmt"
 	"upbitBnServer/internal/quant/account/accountConfig"
 	"upbitBnServer/internal/quant/account/byBitPayload"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
@@ -29,7 +28,6 @@ func (s *Payload) init(ctx context.Context, v accountConfig.Config) error {
 }
 
 func (s *Payload) OnPayload(data []byte) {
-	fmt.Println(string(data))
 	switch {
 	case data[10] == 'o' && data[11] == 'r':
 		// order.linear

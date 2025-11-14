@@ -1,6 +1,7 @@
 package toUpbitBybitSymbol
 
 import (
+	"fmt"
 	"time"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/pkg/utils/byteUtils"
@@ -28,6 +29,9 @@ func (s *Single) onBookTick(byteLen uint16, b []byte) {
 		msE := byteConvert.BytesToInt64(b[e_begin : e_begin+13])
 		b_start := e_begin + 13 + 14 + s.symbolLen + 9
 		b_end := byteUtils.FindNextQuoteIndex(b, b_start, byteLen)
+		if b_end <= b_start {
+			fmt.Println("--->", string(b))
+		}
 		bid_u8 := byteConvert.PriceByteArrToUint64(b[b_start:b_end], 8)
 		// 数据太旧则丢弃
 		if msT <= s.committedTs {

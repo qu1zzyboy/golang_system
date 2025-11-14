@@ -31,7 +31,7 @@ func (s *Payload) onPayloadOrder(data []byte) {
 	}
 
 	switch meta.ReqFrom {
-	case instanceEnum.TO_UPBIT_LIST_BN:
+	case instanceEnum.TO_UPBIT_LIST_BYBIT:
 		toUpbitByBitPayloadParse.OnPayloadOrder(data, clientOrderId, meta, totalLen, cid_end, s.accountKeyId)
 	case instanceEnum.TEST:
 	default:

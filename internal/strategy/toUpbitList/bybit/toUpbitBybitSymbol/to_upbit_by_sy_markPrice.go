@@ -1,7 +1,6 @@
 package toUpbitBybitSymbol
 
 import (
-	"fmt"
 	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/infra/systemx/instanceEnum"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
@@ -84,7 +83,6 @@ func (s *Single) onMarkPrice(b []byte) {
 		if !ok {
 			return
 		}
-		fmt.Println(s.symbolName, markPrice)
 		// 2、计算价格上限
 		s.priceMaxBuy = markPrice * s.upLimitPercent
 		// 3、回调函数更新预挂单

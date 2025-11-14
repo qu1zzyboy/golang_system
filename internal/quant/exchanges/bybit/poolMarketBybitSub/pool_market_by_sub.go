@@ -54,6 +54,10 @@ func (s *ByBitSymbolSub256) onSymbolPool(lenData uint16, bufPtr *[]byte) {
 		byteBufPool.ReleaseBuffer(bufPtr)
 		return
 	}
+	if b[2] == 's' {
+		// {"success":true,"ret_msg":"","conn_id":"d4animcg7sdevt2s5mm0-1miz","req_id":"1763027485386","op":"subscribe"}
+		return
+	}
 	poolMarketChanByBit.SendPoolMarket(s.symbolIndex, bufPtr, lenData)
 }
 
