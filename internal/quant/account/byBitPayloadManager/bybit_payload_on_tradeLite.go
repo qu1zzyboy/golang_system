@@ -1,7 +1,6 @@
 package byBitPayloadManager
 
 import (
-	"fmt"
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/infra/systemx/instanceEnum"
@@ -11,7 +10,6 @@ import (
 )
 
 func (s *Payload) onTradeLite(data []byte) {
-	fmt.Println(string(data))
 	totalLen := uint16(len(data))
 	var clientOrderId systemx.WsId16B
 	var sy_start uint16 = 101

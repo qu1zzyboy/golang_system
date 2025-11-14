@@ -39,6 +39,9 @@ func (s *Payload) onPayloadOrder(data []byte) {
 	}
 }
 
+// {"topic":"execution.fast.linear","creationTime":1763095434843,"data":[{"category":"linear","symbol":"ESPORTSUSDT","execId":"410c66db-0f20-5f2f-99a4-e20bada7a6ce","execPrice":"0.33656","execQty":"34","orderId":"8e91f790-0d27-4c26-92ec-d3467da90d07","isMaker":true,"orderLinkId":"","side":"Sell","execTime":"1763095434836","seq":262102669252}]}
+// {"topic":"order.linear","id":"509665119_ESPORTSUSDT_262102669252","creationTime":1763095434847,"data":[{"category":"linear","symbol":"ESPORTSUSDT","orderId":"8e91f790-0d27-4c26-92ec-d3467da90d07","orderLinkId":"1763090785843843","blockTradeId":"","side":"Sell","positionIdx":2,"orderStatus":"Filled","cancelType":"UNKNOWN","rejectReason":"EC_NoError","timeInForce":"GTC","isLeverage":"","price":"0.33656","qty":"34","avgPrice":"0.33656","leavesQty":"0","leavesValue":"0","cumExecQty":"34","cumExecValue":"11.44304","cumExecFee":"0.00457722","orderType":"Limit","stopOrderType":"","orderIv":"","triggerPrice":"","takeProfit":"","stopLoss":"","triggerBy":"","tpTriggerBy":"","slTriggerBy":"","triggerDirection":0,"placeType":"","lastPriceOnCreated":"0.32268","closeOnTrigger":false,"reduceOnly":false,"smpGroup":0,"smpType":"None","smpOrderId":"","slLimitPrice":"0","tpLimitPrice":"0","tpslMode":"UNKNOWN","createType":"CreateByUser","marketUnit":"","createdTime":"1763090785846","updatedTime":"1763095434846","feeCurrency":"","closedPnl":"0","slippageTolerance":"0","slippageToleranceType":"UNKNOWN","cumFeeDetail":{"USDT":"0.00457722"}}]}
+
 //{
 //	"topic": "order.linear",
 //	"id": "447392952_SOLUSDT_197165523953",

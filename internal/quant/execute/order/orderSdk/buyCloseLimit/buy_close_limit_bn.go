@@ -33,7 +33,7 @@ func GetByBitFu_NoSign_u32(symbolName string, pVal, qVal uint64, pScale systemx.
 	buf = append(buf, `"},"op":"order.create","args":[{"symbol":"`...)
 	buf = append(buf, symbolName...)
 
-	buf = append(buf, `","side":"Buy","orderType":"Limit","positionIdx":1,"qty":"`...)
+	buf = append(buf, `","side":"Buy","orderType":"Limit","positionIdx":2,"qty":"`...)
 	buf = byteUtils.AppendScaledValue(buf, qVal, int(qScale))
 
 	buf = append(buf, `","price":"`...)

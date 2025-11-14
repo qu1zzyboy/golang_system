@@ -25,11 +25,18 @@ const (
 func (s *Single) clear() {
 	s.posTotalNeed = 0
 	//清空持仓统计
-	if s.pos != nil {
-		s.pos.Clear()
+	if s.posLong != nil {
+		s.posLong.Clear()
 	}
 	s.takeProfitPrice = 0
 	s.hasAllFilled.Store(false)
+}
+
+func (s *Single) getPosLong() float64 {
+	if s.posLong == nil {
+		return 0.0
+	}
+	return s.posLong.GetTotal()
 }
 
 func (s *Single) receiveStop(stopType toUpbitDefine.StopType) {
@@ -58,12 +65,8 @@ func (s *Single) receiveStop(stopType toUpbitDefine.StopType) {
 			return true
 		})
 
-		if s.pos == nil {
-			toUpBitDataStatic.DyLog.GetLog().Infof("s.pos is nil,取消平仓")
-			return
-		}
 		// 判断有没有持仓
-		use := s.pos.GetTotal()
+		use := s.getPosLong()
 		if use <= 0 {
 			toUpBitDataStatic.DyLog.GetLog().Infof("没有可用的平仓数量,取消平仓")
 			return
@@ -75,7 +78,7 @@ func (s *Single) receiveStop(stopType toUpbitDefine.StopType) {
 		//每秒平一次
 		var closeDecArr [toUpbitParam.MaxAccount]float64 // 每个账户每秒应该止盈的数量
 		perDec := 1 / s.twapSec
-		copyMap := s.pos.GetAllAccountPos()
+		copyMap := s.posLong.GetAllAccountPos()
 		for accountKeyId, vol := range copyMap {
 			closeDecArr[accountKeyId] = perDec * vol
 		}
@@ -90,15 +93,15 @@ func (s *Single) receiveStop(stopType toUpbitDefine.StopType) {
 						continue
 					}
 					bid64 := val.(float64)
-					posLeft := s.pos.GetTotal()
+					posLeft := s.posLong.GetTotal()
 					if posLeft*bid64 <= toUpbitParam.Dec500 {
 						toUpBitDataStatic.DyLog.GetLog().Infof("平仓完全成交,开始清理资源")
 						ticker.Stop()
 						return
 					}
-					toUpBitDataStatic.DyLog.GetLog().Infof("============开始平仓,剩余:%s============", posLeft)
+					toUpBitDataStatic.DyLog.GetLog().Infof("============开始平仓,剩余:%.8f============", posLeft)
 					// 最新的每个账户的仓位情况
-					for accountKeyId, vol := range s.pos.GetAllAccountPos() {
+					for accountKeyId, vol := range s.posLong.GetAllAccountPos() {
 						// 已经完全平完了
 						if vol <= 0 {
 							continue

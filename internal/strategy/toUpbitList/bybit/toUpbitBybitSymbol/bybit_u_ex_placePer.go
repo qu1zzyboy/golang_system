@@ -83,7 +83,7 @@ OUTER:
 			}
 
 			//0.3*(总仓位-当前仓位)
-			num := toUpbitParam.F03 * (s.posTotalNeed - s.pos.GetTotal())
+			num := toUpbitParam.F03 * (s.posTotalNeed - s.getPosLong())
 			if i >= 3 {
 				num = math.Min(num, maxNotional/(priceBuy))
 			}

@@ -25,7 +25,7 @@ func NewAutoRead(conn *websocket.Conn, resourceId string) *ReadAuto {
 }
 
 func (c *ReadAuto) readAutoLoop(ctxStop context.Context, onMsg wsDefine.ReadAutoHandler, sigChan chan wsDefine.ReConnType) {
-	dynamicLog.Log.GetLog().Infof("进入[%s] read_auto循环 %s", c.resourceId, defineEmoji.Rocket)
+	dynamicLog.Log.GetLog().Debugf("进入[%s] read_auto循环 %s", c.resourceId, defineEmoji.Rocket)
 	for {
 		select {
 		case <-ctxStop.Done():

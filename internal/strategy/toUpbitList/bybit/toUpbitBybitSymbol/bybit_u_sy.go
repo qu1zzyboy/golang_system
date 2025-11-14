@@ -81,7 +81,7 @@ type Single struct {
 	maxNotional    float64                                 // 单品种最大开仓上限
 	ctxStop        context.Context                         // 同步关闭ctx
 	cancel         context.CancelFunc                      // 关闭函数
-	pos            *toUpbitListPos.PosCalSafe              // 持仓计算对象
+	posLong        *toUpbitListPos.PosCalSafe              // 持仓计算对象
 	pre            *toUpbitPointPreByBit.PointPre          // 预挂单对象
 	twapSec        float64                                 // twap下单间隔秒数
 	closeDuration  time.Duration                           // 平仓持续时间

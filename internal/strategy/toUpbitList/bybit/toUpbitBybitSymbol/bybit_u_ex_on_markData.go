@@ -28,9 +28,9 @@ func (s *Single) onBookTickExecute(f64 float64, ts int64) {
 	tsSecond := ts / 1000
 	// 只在最后100ms判断移动止损
 	if ts >= tsSecond*1000+900 {
-		if markPrice_u10, ok := s.trigPriceMax.Load(tsSecond); ok {
-			if toUpbitBnMode.Mode.IsDynamicStopLossTrig(f64, float64(markPrice_u10)/1e10) {
-				toUpBitDataStatic.DyLog.GetLog().Infof("移动止损触发,价格上限:%d,bid: %.8f", markPrice_u10, f64)
+		if buyMax, ok := s.trigPriceMax.Load(tsSecond); ok {
+			if toUpbitBnMode.Mode.IsDynamicStopLossTrig(f64, buyMax) {
+				toUpBitDataStatic.DyLog.GetLog().Infof("移动止损触发,价格上限:%.8f,bid: %.8f", buyMax, f64)
 				s.receiveStop(toUpbitDefine.StopByMoveStopLoss)
 				return
 			}
