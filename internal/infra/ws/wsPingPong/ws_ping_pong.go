@@ -26,7 +26,7 @@ func NewPingPong(ping wsDefine.PingFunc, conn *wsDefine.SafeWrite, resourceId st
 }
 
 func (c *PingPong) pingPongLoop(ctxBreak context.Context, sigChan chan wsDefine.ReConnType) {
-	dynamicLog.Log.GetLog().Infof("进入[%s] ping-pong循环 %s", c.resourceId, defineEmoji.Rocket)
+	dynamicLog.Log.GetLog().Debugf("进入[%s] ping-pong循环 %s", c.resourceId, defineEmoji.Rocket)
 	ticker := time.NewTicker(wsDefine.KeepAliveInterval) //15s
 	defer func() {
 		ticker.Stop()
@@ -34,7 +34,7 @@ func (c *PingPong) pingPongLoop(ctxBreak context.Context, sigChan chan wsDefine.
 	for {
 		select {
 		case <-ctxBreak.Done():
-			dynamicLog.Log.GetLog().Infof("主动退出[%s] ping-pong循环", c.resourceId)
+			dynamicLog.Log.GetLog().Debugf("主动退出[%s] ping-pong循环", c.resourceId)
 			return
 		case <-ticker.C:
 			if err := c.ping(c.conn); err != nil {

@@ -29,14 +29,14 @@ func (c *ReadAuto) readAutoLoop(ctxStop context.Context, onMsg wsDefine.ReadAuto
 	for {
 		select {
 		case <-ctxStop.Done():
-			dynamicLog.Log.GetLog().Infof("主动退出[%s]ws read_auto循环", c.resourceId)
+			dynamicLog.Log.GetLog().Debugf("主动退出[%s]ws read_auto循环", c.resourceId)
 			return
 		default:
 			// do nothing here
 		}
 		_, msg, err := c.conn.ReadMessage()
 		if err != nil {
-			dynamicLog.Log.GetLog().Infof("读取出错退出[%s]ws read_auto循环,%v", c.resourceId, err)
+			dynamicLog.Log.GetLog().Errorf("读取出错退出[%s]ws read_auto循环,%v", c.resourceId, err)
 			select {
 			case sigChan <- wsDefine.READ_ERROR:
 			default:
