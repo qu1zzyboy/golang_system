@@ -34,7 +34,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const limit = 50
+const limit = 45
 
 type Req struct {
 	PriceRiceTrig float64          // 价格触发阈值,当价格变化超过该值时触发
