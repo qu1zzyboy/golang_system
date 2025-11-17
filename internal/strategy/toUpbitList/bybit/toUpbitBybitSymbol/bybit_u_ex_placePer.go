@@ -42,7 +42,7 @@ func (s *Single) placePer(i int32, accountIndex uint8) {
 		priceBuy = s.priceMaxBuy * 1.03
 	}
 OUTER:
-	for j = 0; j <= 230; j++ {
+	for j = 0; j <= 10; j++ {
 		select {
 		case <-s.ctxStop.Done():
 			toUpBitDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出每秒下单协程")
@@ -52,7 +52,6 @@ OUTER:
 			if s.hasAllFilled.Load() {
 				break OUTER
 			}
-
 			orderMode := execute.BUY_OPEN_LIMIT_MAKER
 			if s.hasTreeNews {
 				// 上一次循环没有收到这一秒的标记价格

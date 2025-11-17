@@ -36,7 +36,8 @@ func (s *Single) PlacePostOnlyOrder() {
 			toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d],下单[%d]次 [%d,%d] 10ms POST_ONLY 协程结束", 0, i+1, limitPrice, limitNum)
 		}()
 	OUTER:
-		for i = 0; i <= 200; i++ {
+		//每个账户每秒最多下10次
+		for i = 0; i <= 10; i++ {
 			select {
 			case <-s.ctxStop.Done():
 				toUpBitDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出POST_ONLY抽奖协程")

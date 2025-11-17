@@ -16,7 +16,7 @@ func (s *Single) checkTreeNews() {
 		s.receiveStop(toUpbitDefine.StopByTreeNews)
 		toUpBitDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
 			"symbol": s.symbolName,
-			"op":     "TreeNews未确认",
+			"op":     "bybit_TreeNews未确认",
 		})
 	}()
 }
@@ -25,7 +25,7 @@ func (s *Single) ReceiveTreeNews() {
 	s.hasTreeNews = true
 	toUpBitDataStatic.SendToUpBitMsg("TreeNews确认", map[string]string{
 		"symbol": s.symbolName,
-		"op":     "TreeNews确认",
+		"op":     "bybit_TreeNews确认",
 	})
 }
 
@@ -34,6 +34,6 @@ func (s *Single) ReceiveNoTreeNews() {
 	s.receiveStop(toUpbitDefine.StopByTreeNews)
 	toUpBitDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
 		"symbol": s.symbolName,
-		"op":     "TreeNews未确认",
+		"op":     "bybit_TreeNews未确认",
 	})
 }
