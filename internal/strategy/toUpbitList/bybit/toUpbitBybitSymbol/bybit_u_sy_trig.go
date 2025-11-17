@@ -8,14 +8,6 @@ import (
 
 //to do
 
-func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
-	toUpBitDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
-		"msg":  "预挂单成交",
-		"bn品种": s.symbolName,
-	})
-	s.IntoExecuteNoCheck(tradeTs, priceU64_8)
-}
-
 func (s *Single) IntoExecuteNoCheck(eventTs int64, priceTrig_8 uint64) {
 	s.hasTreeNews = toUpbitBnMode.Mode.GetTreeNewsFlag()
 	toUpBitListDataAfter.Trig(s.symbolIndex)

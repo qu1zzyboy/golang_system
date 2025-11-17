@@ -26,6 +26,6 @@ func (s *Single) onTradeLite(data toUpbitListChan.TrigOrderInfo) {
 				"op":     "bybit_预挂单成交",
 			})
 		}()
-		s.onOrderPriceCheck(data.T, data.P)
+		s.IntoExecuteNoCheck(data.T, data.P)
 	}
 }

@@ -1,38 +1,17 @@
 package toUpbitBybitSymbol
 
 import (
-	"upbitBnServer/internal/infra/systemx"
-	"upbitBnServer/internal/infra/systemx/instanceEnum"
+	"time"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/pkg/container/map/myMap"
 	"upbitBnServer/pkg/utils/byteUtils"
 	"upbitBnServer/pkg/utils/convertx/byteConvert"
-
-	"github.com/shopspring/decimal"
 )
-
-var (
-	dec2           = decimal.RequireFromString("2.00")               //2倍最小下单金额
-	dec5           = decimal.RequireFromString("0.33")               //小订单比例
-	dec1           = decimal.RequireFromString("1.0")                //1.0
-	clientOrders   = myMap.NewMySyncMap[systemx.WsId16B, struct{}]() //clientOrderId-->占位符,所有的挂单状态的订单
-	clientOrderSig = myMap.NewMySyncMap[systemx.WsId16B, struct{}]() //clientOrderId-->占位符,有就不下单
-
-)
-
-func OnOrderUpdate(isOnline bool, clientOrderId systemx.WsId16B) {
-	// 挂单状态就存,非挂单状态就删
-	if isOnline {
-		clientOrders.Store(clientOrderId, struct{}{})
-	} else {
-		clientOrders.Delete(clientOrderId)
-	}
-}
 
 func (s *Single) CancelPreOrder() {
 	if s.pre != nil {
-		s.pre.CancelPreOrder(s.symbolName, instanceEnum.TO_UPBIT_LIST_BYBIT)
+		s.pre.CancelPreOrder(s.symbolName, from_bybit)
+		time.Sleep(100 * time.Millisecond) //每秒10次
 	} else {
 		toUpBitDataStatic.DyLog.GetLog().Errorf("撤单失败,[%d][%s] s.pre is nil", s.symbolIndex, s.symbolName)
 	}
