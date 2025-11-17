@@ -2,6 +2,7 @@ package toUpBitDataStatic
 
 import (
 	"strconv"
+	"upbitBnServer/internal/infra/observe/log/logCfg"
 	"upbitBnServer/internal/infra/systemx"
 
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
@@ -33,14 +34,14 @@ var (
 		FileDir:       "toUpBitList",
 		DateStr:       timeUtils.GetNowDateStr(),
 		FileName:      "instanceId",
-		Level:         staticLog.INFO_LEVEL,
+		Level:         logCfg.G_LOG_LEVEL,
 	})
 	SigLog = dynamicLog.NewDynamicLogger(staticLog.Config{ // 创建日志记录器
 		NeedErrorHook: true,
 		FileDir:       "toUpBitList",
 		DateStr:       timeUtils.GetNowDateStr(),
 		FileName:      "signal",
-		Level:         staticLog.INFO_LEVEL,
+		Level:         logCfg.G_LOG_LEVEL,
 	})
 	TickCap ringBuf.Capacity          // 容量
 	ExType  exchangeEnum.ExchangeType // 交易所类型

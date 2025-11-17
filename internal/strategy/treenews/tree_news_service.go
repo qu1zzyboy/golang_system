@@ -13,6 +13,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"upbitBnServer/internal/infra/observe/log/logCfg"
 
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/infra/observe/log/staticLog"
@@ -28,14 +29,14 @@ var (
 		FileDir:       "tree_news_log",
 		DateStr:       timeUtils.GetNowDateStr(),
 		FileName:      "tree_news",
-		Level:         staticLog.INFO_LEVEL,
+		Level:         logCfg.INFO_LEVEL,
 	}
 	treeErrConfig = staticLog.Config{
 		NeedErrorHook: false,
 		FileDir:       "tree_news_log",
 		DateStr:       timeUtils.GetNowDateStr(),
 		FileName:      "tree_news_error",
-		Level:         staticLog.ERROR_LEVEL,
+		Level:         logCfg.ERROR_LEVEL,
 	}
 	logger    = dynamicLog.NewDynamicLogger(treeLogConfig)
 	loggerErr = dynamicLog.NewDynamicLogger(treeErrConfig)

@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"upbitBnServer/internal/define/defineTime"
+	"upbitBnServer/internal/infra/observe/log/logCfg"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/writer"
@@ -71,7 +72,7 @@ func NewLoggerWithLever(cfg Config) *logrus.Logger {
 			LogLevels: []logrus.Level{logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel},
 		})
 	}
-	log.SetLevel(GetLogLevelFromEnum(cfg.Level)) //设置日志级别
+	log.SetLevel(logCfg.GetLogLevelFromEnum(cfg.Level)) //设置日志级别
 	setLogDefaultConfig(log)
 	return log
 }

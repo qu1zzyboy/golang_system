@@ -56,8 +56,11 @@ func (s *Parser) Parse(data []byte, wsMeta wsRequestCache.WsRequestMeta, reqId s
 			}
 		case usageEnum.TO_UPBIT_MAIN, usageEnum.TO_UPBIT_PRE:
 			{
-				// 预期之内的行为
-				return
+				if reqOk {
+					// 预期之内的行为
+					return
+				}
+				dynamicLog.Error.GetLog().Errorf("取消订单失败:%s", string(data))
 			}
 		default:
 			dynamicLog.Error.GetLog().Errorf("CANCEL_ORDER: unknown usage %v", usage)

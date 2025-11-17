@@ -3,6 +3,7 @@ package dynamicLog
 import (
 	"fmt"
 	"sync/atomic"
+	"upbitBnServer/internal/infra/observe/log/logCfg"
 
 	"upbitBnServer/pkg/container/map/myMap"
 
@@ -20,21 +21,14 @@ var (
 		FileDir:       "",
 		DateStr:       timeUtils.GetNowDateStr(),
 		FileName:      "normal",
-		Level:         staticLog.DEBUG_LEVEL,
+		Level:         logCfg.G_LOG_LEVEL,
 	})
 	Error = NewDynamicLogger(staticLog.Config{
 		NeedErrorHook: false,
 		FileDir:       "",
 		DateStr:       timeUtils.GetNowDateStr(),
 		FileName:      staticLog.ErrorSum,
-		Level:         staticLog.ERROR_LEVEL,
-	})
-	Latency = NewDynamicLogger(staticLog.Config{
-		NeedErrorHook: false,
-		FileDir:       "latency",
-		DateStr:       timeUtils.GetNowDateStr(),
-		FileName:      "",
-		Level:         staticLog.ERROR_LEVEL,
+		Level:         logCfg.ERROR_LEVEL,
 	})
 )
 
