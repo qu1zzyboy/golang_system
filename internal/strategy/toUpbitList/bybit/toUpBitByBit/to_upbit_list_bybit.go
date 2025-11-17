@@ -26,7 +26,6 @@ import (
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitMesh"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitParam"
-	"upbitBnServer/pkg/container/ring/ringBuf"
 	"upbitBnServer/pkg/utils/convertx"
 	"upbitBnServer/pkg/utils/jsonUtils"
 	"upbitBnServer/server/instance/instanceCenter"
@@ -37,12 +36,11 @@ import (
 const limit = 45
 
 type Req struct {
-	PriceRiceTrig float64          // 价格触发阈值,当价格变化超过该值时触发
-	OrderRiceTrig float64          // 下单触发阈值,当价格变化超过该值时下单
-	Qty           float64          // 开仓金额
-	Dec003        float64          // dec0.3
-	Dec500        float64          // dec500
-	TickCap       ringBuf.Capacity // bookTick环形缓冲区容量
+	PriceRiceTrig float64 // 价格触发阈值,当价格变化超过该值时触发
+	OrderRiceTrig float64 // 下单触发阈值,当价格变化超过该值时下单
+	Qty           float64 // 开仓金额
+	Dec003        float64 // dec0.3
+	Dec500        float64 // dec500
 }
 
 func (s *Req) TypeName() string {
