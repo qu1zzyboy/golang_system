@@ -104,7 +104,7 @@ func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 	// 初始化品种静态数据
 	stMeta, err := symbolStatic.GetTrade().Get(symbolKeyId)
 	if err != nil {
-		toUpBitDataStatic.DyLog.GetLog().Errorf("symbolKeyId %d not found", symbolKeyId)
+		toUpBitDataStatic.DyLog.GetLog().Errorf("symbolKeyId %d not found for %s", symbolKeyId, symbolName)
 		return err
 	}
 	s.pre = toUpbitPointPreByBit.NewPre(accountKeyId, s.symbolLen, s.symbolIndex, stMeta.SymbolKeyId)
