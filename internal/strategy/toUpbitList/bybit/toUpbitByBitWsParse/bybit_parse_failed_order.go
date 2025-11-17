@@ -52,7 +52,7 @@ func (s *Parser) onPlaceOrderFailed(data []byte, wsMeta wsRequestCache.WsRequest
 				AccountKeyId: accountKeyId,
 			})
 			/**********过滤掉常见错误，然后打印************/
-			toUpBitDataStatic.DyLog.GetLog().Errorf("账户[%d]下单失败,请求:%s,返回:%s", accountKeyId, string(wsMeta.ReqJson), string(data))
+			toUpBitDataStatic.DyLog.GetLog().Errorf("账户[%d] TO_UPBIT_MAIN 下单失败,请求:%s,返回:%s", accountKeyId, string(wsMeta.ReqJson), string(data))
 			notify.GetNotify().SendImportantErrorMsg(map[string]string{"msg": "下单失败", "clientOrderId": string(clientOrderId[:])})
 		}
 	default:

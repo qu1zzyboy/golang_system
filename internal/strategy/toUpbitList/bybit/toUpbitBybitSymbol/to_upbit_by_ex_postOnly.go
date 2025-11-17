@@ -33,7 +33,7 @@ func (s *Single) PlacePostOnlyOrder() {
 	safex.SafeGo("to_upbit_bn_limit_maker", func() {
 		var i int
 		defer func() {
-			toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d],下单[%d]次 10ms POST_ONLY 协程结束", 0, i+1)
+			toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d],下单[%d]次 [%d,%d] 10ms POST_ONLY 协程结束", 0, i+1, limitPrice, limitNum)
 		}()
 	OUTER:
 		for i = 0; i <= 200; i++ {
