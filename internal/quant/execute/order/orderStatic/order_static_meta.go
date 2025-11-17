@@ -27,11 +27,14 @@ type StaticMeta struct {
 }
 
 type Service struct {
+	id2cid  myMap.MySyncMap[string, systemx.WsId16B]     // orderId --> clientOrderId
 	metaMap myMap.MySyncMap[systemx.WsId16B, StaticMeta] // clientOrderId --> StaticMeta
 }
 
 var serviceSingleton = singleton.NewSingleton(func() *Service {
-	return &Service{metaMap: myMap.NewMySyncMap[systemx.WsId16B, StaticMeta]()}
+	return &Service{
+		id2cid:  myMap.NewMySyncMap[string, systemx.WsId16B](),
+		metaMap: myMap.NewMySyncMap[systemx.WsId16B, StaticMeta]()}
 })
 
 func GetService() *Service {
@@ -40,6 +43,21 @@ func GetService() *Service {
 
 func (s *Service) SaveOrderMeta(clientOrderId systemx.WsId16B, meta StaticMeta) {
 	s.metaMap.Store(clientOrderId, meta)
+}
+
+func (s *Service) SaveOrderIdToClientOrderId(orderId string, clientOrderId systemx.WsId16B) {
+	s.id2cid.Store(orderId, clientOrderId)
+}
+
+func (s *Service) GetClientOrderIdByOrderId(orderId string) (systemx.WsId16B, bool) {
+	if cid, ok := s.id2cid.Load(orderId); ok {
+		return cid, true
+	}
+	return systemx.WsId16B{}, false
+}
+
+func (s *Service) DelOrderId(orderId string) {
+	s.id2cid.Delete(orderId)
 }
 
 func (s *Service) DelOrderMeta(clientOrderId systemx.WsId16B) {

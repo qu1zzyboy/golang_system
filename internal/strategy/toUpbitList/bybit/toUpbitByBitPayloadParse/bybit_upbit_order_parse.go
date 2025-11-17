@@ -15,7 +15,7 @@ import (
 	"upbitBnServer/pkg/utils/pow10Utils"
 )
 
-func OnPayloadOrder(data []byte, clientOrderId systemx.WsId16B, meta orderStatic.StaticMeta, totalLen, cidEnd uint16, accountKeyId uint8) {
+func OnPayloadOrder(data []byte, clientOrderId systemx.WsId16B, meta orderStatic.StaticMeta, totalLen, o_id_start, o_id_end, cidEnd uint16, accountKeyId uint8) {
 	usage := meta.UsageFrom
 	switch usage {
 	case usageEnum.TO_UPBIT_PRE:
@@ -37,6 +37,7 @@ func OnPayloadOrder(data []byte, clientOrderId systemx.WsId16B, meta orderStatic
 			switch data[o_start] {
 			case 'N':
 				toUpbitPointPreByBit.OnOrderUpdate(true, clientOrderId)
+				orderStatic.GetService().SaveOrderIdToClientOrderId(string(data[o_id_start:o_id_end]), clientOrderId)
 				return
 			case 'P':
 			case 'F':

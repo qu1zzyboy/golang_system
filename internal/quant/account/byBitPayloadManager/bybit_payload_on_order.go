@@ -32,7 +32,7 @@ func (s *Payload) onPayloadOrder(data []byte) {
 
 	switch meta.ReqFrom {
 	case instanceEnum.TO_UPBIT_LIST_BYBIT:
-		toUpbitByBitPayloadParse.OnPayloadOrder(data, clientOrderId, meta, totalLen, cid_end, s.accountKeyId)
+		toUpbitByBitPayloadParse.OnPayloadOrder(data, clientOrderId, meta, totalLen, o_id_start, o_id_end, cid_end, s.accountKeyId)
 	case instanceEnum.TEST:
 	default:
 		dynamicLog.Error.GetLog().Errorf("TRADE_LITE: unknown ReqFrom %v", meta.ReqFrom)

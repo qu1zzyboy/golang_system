@@ -32,13 +32,16 @@ func (s *Payload) onTradeLite(data []byte) {
 	switch data[m_start] {
 	case 'f':
 		cid_start = m_start + 21
+		cid_end := cid_start + systemx.ArrLen
+		copy(clientOrderId[:], data[cid_start:cid_end])
 	case 't':
-		cid_start = m_start + 20
+		//这里不存在orderLinkId
+		clientOrderId, _ = orderStatic.GetService().GetClientOrderIdByOrderId(string(data[id_start:id_end]))
 	default:
 		dynamicLog.Error.GetLog().Errorf("TRADE_LITE: [%s] buy maker error %s", clientOrderId, string(data))
+		return
 	}
-	cid_end := cid_start + systemx.ArrLen
-	copy(clientOrderId[:], data[cid_start:cid_end])
+
 	meta, ok := orderStatic.GetService().GetOrderMeta(clientOrderId)
 	if !ok {
 		dynamicLog.Error.GetLog().Errorf("TRADE_LITE: [%s] orderFrom not found %s", clientOrderId, string(data))
