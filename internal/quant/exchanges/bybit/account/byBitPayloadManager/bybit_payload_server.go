@@ -38,11 +38,6 @@ func (s *Payload) OnPayload(data []byte) {
 		// execution.fast.linear
 		s.onTradeLite(data)
 	default:
-		if gjson.GetBytes(data, "op").Exists() {
-			// {"req_id":"1763012998605","success":true,"ret_msg":"","op":"auth","conn_id":"d2a4c6evqclvsgos5bjg-1zauw0"}
-			// {"req_id":"1763012998605","success":true,"ret_msg":"","op":"subscribe","conn_id":"d2a4c6evqclvsgos5bjg-1zauw0"}
-			return
-		}
 		if data[2] == 'i' && data[3] == 'd' {
 			totalLen := uint16(len(data))
 			var id_begin uint16 = 7
@@ -53,6 +48,12 @@ func (s *Payload) OnPayload(data []byte) {
 				bybitAccountAvailable.GetManager().SetAvailable(s.accountKeyId, gjson.GetBytes(data, "data.0.totalAvailableBalance").Float())
 				return
 			}
+		}
+
+		if gjson.GetBytes(data, "op").Exists() {
+			// {"req_id":"1763012998605","success":true,"ret_msg":"","op":"auth","conn_id":"d2a4c6evqclvsgos5bjg-1zauw0"}
+			// {"req_id":"1763012998605","success":true,"ret_msg":"","op":"subscribe","conn_id":"d2a4c6evqclvsgos5bjg-1zauw0"}
+			return
 		}
 		toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]未知事件类型: %s", s.accountKeyId, string(data))
 	}

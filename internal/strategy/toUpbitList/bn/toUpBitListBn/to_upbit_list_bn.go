@@ -2,6 +2,7 @@ package toUpBitListBn
 
 import (
 	"context"
+	"upbitBnServer/internal/quant/exchanges/binance/marketSub/bnPoolMarketChan"
 
 	strategyV1 "upbitBnServer/api/strategy/v1"
 	"upbitBnServer/internal/define/defineJson"
@@ -10,7 +11,6 @@ import (
 	"upbitBnServer/internal/infra/redisx"
 	"upbitBnServer/internal/infra/redisx/redisConfig"
 	"upbitBnServer/internal/infra/systemx/instanceEnum"
-	"upbitBnServer/internal/quant/exchanges/binance/poolMarketChanBn"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnAccount"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnMarket"
@@ -103,7 +103,7 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 	needLen := len(symbols) + 100
 
 	//chan对象数组
-	poolMarketChanBn.InitChanArr(needLen)
+	bnPoolMarketChan.InitChanArr(needLen)
 	toUpbitListChan.InitChanArr(needLen)
 
 	for index, symbolName := range symbols {

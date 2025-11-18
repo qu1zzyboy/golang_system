@@ -4,7 +4,7 @@ import (
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/infra/systemx/usageEnum"
-	"upbitBnServer/internal/quant/account/bnPayload"
+	"upbitBnServer/internal/quant/exchanges/binance/account/bnPayload"
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/orderStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitPointPreBn"

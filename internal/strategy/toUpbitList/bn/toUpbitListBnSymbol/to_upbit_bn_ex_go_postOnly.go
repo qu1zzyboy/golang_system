@@ -3,13 +3,13 @@ package toUpbitListBnSymbol
 import (
 	"math"
 	"upbitBnServer/internal/cal/u64Cal"
+	"upbitBnServer/internal/quant/exchanges/binance/order/bnOrderAppManager"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitParam"
 	"upbitBnServer/pkg/utils/time2str"
 
 	"upbitBnServer/internal/infra/safex"
 	"upbitBnServer/internal/infra/systemx/instanceEnum"
 	"upbitBnServer/internal/quant/execute"
-	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 )

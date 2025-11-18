@@ -5,8 +5,9 @@ import (
 	"time"
 	"upbitBnServer/internal/cal/u64Cal"
 	"upbitBnServer/internal/infra/systemx/instanceEnum"
+	"upbitBnServer/internal/quant/exchanges/bybit/account/bybitAccountAvailable"
+	"upbitBnServer/internal/quant/exchanges/bybit/order/byBitOrderAppManager"
 	"upbitBnServer/internal/quant/execute"
-	"upbitBnServer/internal/quant/execute/order/byBitOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
@@ -14,21 +15,12 @@ import (
 	"upbitBnServer/pkg/utils/time2str"
 )
 
-func (s *Single) placePer(i int32, accountIndex uint8) {
-	var j int
-	var post, limit, market int
-	var maxNotional float64 //这一秒的能开的仓位的上限,第3秒之后要判断钱够不够开
-	if i >= 3 {
-		// val := s.secondArr[accountIndex].maxNotional.Load()
-		// if val == nil {
-		// 	maxNotional = s.maxNotional
-		// } else {
-		// 	maxNotional = val.(float64)
-		// }
-	}
+func (s *Single) placePer() {
+	var accountIndex uint8
+	var count, post, limit, market int
 	defer func() {
 		toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d],抽奖[总:%d,maker:%d,limit:%d,market:%d]次,上限[%.2f],协程结束",
-			accountIndex, j, post, limit, market, maxNotional)
+			accountIndex, count, post, limit, market, s.maxNotional)
 	}()
 	tsSec := time.Now().Unix() //该秒的开始时间戳,1760516599
 	hasReceive := false        //没有收到标记价格
@@ -41,69 +33,76 @@ func (s *Single) placePer(i int32, accountIndex uint8) {
 	} else {
 		priceBuy = s.priceMaxBuy * 1.03
 	}
-OUTER:
-	for j = 0; j <= 10; j++ {
-		select {
-		case <-s.ctxStop.Done():
-			toUpBitDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出每秒下单协程")
-			break OUTER
-		default:
-			//有成交或者本轮挂单成功
-			if s.hasAllFilled.Load() {
-				break OUTER
-			}
-			orderMode := execute.BUY_OPEN_LIMIT_MAKER
-			if s.hasTreeNews {
-				// 上一次循环没有收到这一秒的标记价格
-				if !hasReceive {
 
-					// 拿到了新的价格上限,更新买入价格
-					buyMaxPrice, ok := s.trigPriceMax.Load(tsSec)
-					if ok {
-						hasReceive = true
-						priceBuy = buyMaxPrice
-					}
-				}
-				// 再次判断是否拿到了标记价格
-				if hasReceive {
-					orderMode = execute.BUY_OPEN_LIMIT
-					limit++
-				} else {
-					orderMode = execute.BUY_OPEN_MARKET
-					market++
-				}
-			} else {
-				post++
-			}
+	// 遍历所有账户下单
+	for accountIndex = 0; accountIndex < uint8(toUpbitParam.AccountLen); accountIndex++ {
+		accountMaxQty := bybitAccountAvailable.GetManager().GetAvailable(accountIndex)
+		// 可开仓金额太少
+		if 4.0*accountMaxQty <= toUpbitParam.Dec500 {
+			continue
+		}
 
-			if toUpbitBnMode.Mode.ShouldExitOnTakeProfit(priceBuy, s.takeProfitPrice) {
-				toUpBitDataStatic.DyLog.GetLog().Infof("超出止盈价格:[买入价:%.8f,止盈价:%.8f],退出每秒下单协程", priceBuy, s.takeProfitPrice)
+		//每个账户每秒最多下10次
+		for j := 0; j <= 10; j++ {
+			select {
+			case <-s.ctxStop.Done():
+				toUpBitDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出每秒下单协程")
 				return
-			}
+			default:
+				//有成交或者本轮挂单成功
+				if s.hasAllFilled.Load() {
+					return
+				}
+				orderMode := execute.BUY_OPEN_LIMIT_MAKER
+				if s.hasTreeNews {
+					// 上一次循环没有收到这一秒的标记价格
+					if !hasReceive {
+						// 拿到了新的价格上限,更新买入价格
+						buyMaxPrice, ok := s.trigPriceMax.Load(tsSec)
+						if ok {
+							hasReceive = true
+							priceBuy = buyMaxPrice
+						}
+					}
+					// 再次判断是否拿到了标记价格
+					if hasReceive {
+						orderMode = execute.BUY_OPEN_LIMIT
+						limit++
+					} else {
+						orderMode = execute.BUY_OPEN_MARKET
+						market++
+					}
+				} else {
+					post++
+				}
 
-			//0.3*(总仓位-当前仓位)
-			num := toUpbitParam.F03 * (s.posTotalNeed - s.getPosLong())
-			if i >= 3 {
-				num = math.Min(num, maxNotional/(priceBuy))
-			}
+				if toUpbitBnMode.Mode.ShouldExitOnTakeProfit(priceBuy, s.takeProfitPrice) {
+					toUpBitDataStatic.DyLog.GetLog().Infof("超出止盈价格:[买入价:%.8f,止盈价:%.8f],退出每秒下单协程", priceBuy, s.takeProfitPrice)
+					return
+				}
 
-			// 每次只开剩余应开仓位
-			if err := byBitOrderAppManager.GetTradeManager().SendPlaceOrder(accountIndex, orderModel.MyPlaceOrderReq{
-				SymbolName:    s.symbolName,
-				ClientOrderId: time2str.GetNowTimeStampMicroSlice16(),
-				Pvalue:        u64Cal.FromF64(priceBuy, s.pScale.Uint8()),
-				Qvalue:        u64Cal.FromF64(num, s.qScale.Uint8()),
-				Pscale:        s.pScale,
-				Qscale:        s.qScale,
-				OrderMode:     orderMode,
-				SymbolIndex:   s.symbolIndex,
-				SymbolLen:     s.symbolLen,
-				ReqFrom:       instanceEnum.TO_UPBIT_LIST_BYBIT,
-				UsageFrom:     to_upbit_main,
-			}); err != nil {
-				toUpBitDataStatic.DyLog.GetLog().Errorf("每秒创建订单失败: %v", err)
+				//0.3*(总仓位-当前仓位),4.0*单账户可用资金/买入价
+				num := math.Min(toUpbitParam.F03*(s.posTotalNeed-s.getPosLong()), 4.0*accountMaxQty/(priceBuy))
+
+				// 每次只开剩余应开仓位
+				if err := byBitOrderAppManager.GetTradeManager().SendPlaceOrder(accountIndex, orderModel.MyPlaceOrderReq{
+					SymbolName:    s.symbolName,
+					ClientOrderId: time2str.GetNowTimeStampMicroSlice16(),
+					Pvalue:        u64Cal.FromF64(priceBuy, s.pScale.Uint8()),
+					Qvalue:        u64Cal.FromF64(num, s.qScale.Uint8()),
+					Pscale:        s.pScale,
+					Qscale:        s.qScale,
+					OrderMode:     orderMode,
+					SymbolIndex:   s.symbolIndex,
+					SymbolLen:     s.symbolLen,
+					ReqFrom:       instanceEnum.TO_UPBIT_LIST_BYBIT,
+					UsageFrom:     to_upbit_main,
+				}); err != nil {
+					toUpBitDataStatic.DyLog.GetLog().Errorf("每秒创建订单失败: %v", err)
+				}
+				count++
+				time.Sleep(100 * time.Microsecond) // 休眠 100 微秒
 			}
-			time.Sleep(300 * time.Microsecond) // 休眠 300 微秒
 		}
 	}
 }

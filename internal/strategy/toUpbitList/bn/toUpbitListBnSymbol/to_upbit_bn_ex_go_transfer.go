@@ -4,7 +4,7 @@ import (
 	"math"
 	"upbitBnServer/internal/infra/safex"
 	"upbitBnServer/internal/infra/systemx/usageEnum"
-	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
+	"upbitBnServer/internal/quant/exchanges/binance/order/bnOrderAppManager"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBnAccount"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 

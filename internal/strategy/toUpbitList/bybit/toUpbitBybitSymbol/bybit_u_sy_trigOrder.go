@@ -20,12 +20,10 @@ func (s *Single) onTradeLite(data toUpbitListChan.TrigOrderInfo) {
 		}
 	} else {
 		/*********************上币还未触发**************************/
-		go func() {
-			toUpBitDataStatic.SendToUpBitMsg("发送bybit预挂单成交失败", map[string]string{
-				"symbol": s.symbolName,
-				"op":     "bybit_预挂单成交",
-			})
-		}()
+		toUpBitDataStatic.SendToUpBitMsg("发送bybit预挂单成交失败", map[string]string{
+			"symbol": s.symbolName,
+			"op":     "bybit_预挂单成交",
+		})
 		s.IntoExecuteNoCheck(data.T, data.P)
 	}
 }

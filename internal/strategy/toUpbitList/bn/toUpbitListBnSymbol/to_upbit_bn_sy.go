@@ -4,14 +4,14 @@ import (
 	"context"
 	"sync/atomic"
 	"time"
+	"upbitBnServer/internal/quant/exchanges/binance/marketSub/bnPoolMarketChan"
+	"upbitBnServer/internal/quant/exchanges/binance/order/bnOrderTemplate"
 
 	"upbitBnServer/internal/conf"
 	"upbitBnServer/internal/infra/latency"
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/infra/safex"
 	"upbitBnServer/internal/infra/systemx"
-	"upbitBnServer/internal/quant/exchanges/binance/poolMarketChanBn"
-	"upbitBnServer/internal/quant/execute/order/bnOrderTemplate"
 	"upbitBnServer/internal/quant/market/symbolInfo"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolLimit"
@@ -147,7 +147,7 @@ func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 	s.upLimitPercent = limit.UpLimitPercent.InexactFloat64()
 
 	s.chanPoolMarket = make(chan systemx.Job, 100)
-	poolMarketChanBn.Register(s.symbolIndex, s.chanPoolMarket)
+	bnPoolMarketChan.Register(s.symbolIndex, s.chanPoolMarket)
 
 	s.chanTrigOrder = make(chan toUpbitListChan.TrigOrderInfo, 10)
 	s.chanMonitor = make(chan toUpbitListChan.MonitorResp, 10)

@@ -3,12 +3,12 @@ package toUpBitListBnAccount
 import (
 	"context"
 	"errors"
+	"upbitBnServer/internal/quant/exchanges/binance/account/bnAccountDefine"
+	orderSdkBnRest2 "upbitBnServer/internal/quant/exchanges/binance/account/bnAccountSdkRest"
+	orderSdkBnModel2 "upbitBnServer/internal/quant/exchanges/binance/order/bnOrderSdkModel"
 
 	"upbitBnServer/internal/quant/account/accountConfig"
-	"upbitBnServer/internal/quant/account/universalTransfer"
 	"upbitBnServer/internal/quant/exchanges/binance/bnVar"
-	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
-	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnRest"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/pkg/singleton"
@@ -24,8 +24,8 @@ const (
 var (
 	bnSingleton = singleton.NewSingleton(func() *BnAccountManager {
 		return &BnAccountManager{
-			sp: orderSdkBnRest.NewSpotRest("j0G54QHYH68pETkd0K9keDW2U02woj9w5mJ8EoFrv8tlRi0fCzp8XjwTXqFVNtho", "F7HmmiZnDUpgVgOW0CAFrVn7FcqFUN8t9UbYxQRKqZlIURE9sZiy7hqhXbkMIOC2"),
-			fu: orderSdkBnRest.NewFutureRest("j0G54QHYH68pETkd0K9keDW2U02woj9w5mJ8EoFrv8tlRi0fCzp8XjwTXqFVNtho", "F7HmmiZnDUpgVgOW0CAFrVn7FcqFUN8t9UbYxQRKqZlIURE9sZiy7hqhXbkMIOC2"),
+			sp: orderSdkBnRest2.NewSpotRest("j0G54QHYH68pETkd0K9keDW2U02woj9w5mJ8EoFrv8tlRi0fCzp8XjwTXqFVNtho", "F7HmmiZnDUpgVgOW0CAFrVn7FcqFUN8t9UbYxQRKqZlIURE9sZiy7hqhXbkMIOC2"),
+			fu: orderSdkBnRest2.NewFutureRest("j0G54QHYH68pETkd0K9keDW2U02woj9w5mJ8EoFrv8tlRi0fCzp8XjwTXqFVNtho", "F7HmmiZnDUpgVgOW0CAFrVn7FcqFUN8t9UbYxQRKqZlIURE9sZiy7hqhXbkMIOC2"),
 		}
 	})
 )
@@ -35,8 +35,8 @@ func GetBnAccountManager() *BnAccountManager {
 }
 
 type BnAccountManager struct {
-	sp *orderSdkBnRest.SpotRest   // 不参与交易,只用来查询资金
-	fu *orderSdkBnRest.FutureRest //
+	sp *orderSdkBnRest2.SpotRest   // 不参与交易,只用来查询资金
+	fu *orderSdkBnRest2.FutureRest //
 }
 
 func (s *BnAccountManager) TransferIn(from int32, amount decimal.Decimal) error {
@@ -46,14 +46,14 @@ func (s *BnAccountManager) TransferIn(from int32, amount decimal.Decimal) error 
 		toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d]余额不足200u,不划转", out.AccountId)
 		return nil
 	}
-	var reqIn universalTransfer.UniversalTransferReq
+	var reqIn bnAccountDefine.UniversalTransferReq
 	reqIn.To = email
 	reqIn.From = out.Email
-	reqIn.FromAcType = string(universalTransfer.USDT_FUTURE)
-	reqIn.ToAcType = string(universalTransfer.USDT_FUTURE)
+	reqIn.FromAcType = string(bnAccountDefine.USDT_FUTURE)
+	reqIn.ToAcType = string(bnAccountDefine.USDT_FUTURE)
 	reqIn.Asset = "USDT"
 	reqIn.Amount = usdtAmount.Truncate(0)
-	resIn, reqParamIn, err := s.sp.DoTransfer(context.Background(), orderSdkBnModel.GetSpotTransferSdk(&reqIn))
+	resIn, reqParamIn, err := s.sp.DoTransfer(context.Background(), orderSdkBnModel2.GetSpotTransferSdk(&reqIn))
 	if err != nil {
 		toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]划转到母账户[%s]失败,err:%s,请求参数:%s", out.AccountId, reqIn.ToAcType, err.Error(), reqParamIn)
 		return err
@@ -64,14 +64,14 @@ func (s *BnAccountManager) TransferIn(from int32, amount decimal.Decimal) error 
 
 func (s *BnAccountManager) TransferOut(to int32, amount decimal.Decimal) error {
 	in := accountConfig.Trades[to]
-	var reqOut universalTransfer.UniversalTransferReq
+	var reqOut bnAccountDefine.UniversalTransferReq
 	reqOut.From = email
 	reqOut.To = in.Email
-	reqOut.FromAcType = string(universalTransfer.USDT_FUTURE)
-	reqOut.ToAcType = string(universalTransfer.USDT_FUTURE)
+	reqOut.FromAcType = string(bnAccountDefine.USDT_FUTURE)
+	reqOut.ToAcType = string(bnAccountDefine.USDT_FUTURE)
 	reqOut.Asset = "USDT"
 	reqOut.Amount = amount.Truncate(0)
-	resOut, reqParamOut, err := s.sp.DoTransfer(context.Background(), orderSdkBnModel.GetSpotTransferSdk(&reqOut))
+	resOut, reqParamOut, err := s.sp.DoTransfer(context.Background(), orderSdkBnModel2.GetSpotTransferSdk(&reqOut))
 	if err != nil {
 		toUpBitDataStatic.DyLog.GetLog().Errorf("母账户划转到[%d]失败,err:%s,请求参数:%s", in.AccountId, err.Error(), reqParamOut)
 		return err
@@ -84,7 +84,7 @@ func (s *BnAccountManager) TransferOut(to int32, amount decimal.Decimal) error {
 }
 
 func (s *BnAccountManager) RefreshSymbolConfig() error {
-	data, err := s.fu.DoSymbolConfig(context.Background(), orderSdkBnModel.NewFutureSymbolConfigSdk())
+	data, err := s.fu.DoSymbolConfig(context.Background(), orderSdkBnModel2.NewFutureSymbolConfigSdk())
 	if err != nil {
 		return err
 	}

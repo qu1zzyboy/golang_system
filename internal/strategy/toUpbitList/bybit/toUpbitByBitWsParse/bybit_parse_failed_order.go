@@ -10,6 +10,8 @@ import (
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
+	"upbitBnServer/pkg/utils/byteUtils"
+	"upbitBnServer/pkg/utils/convertx/byteConvert"
 
 	"github.com/shopspring/decimal"
 )
@@ -21,6 +23,7 @@ import (
 // {"reqId":"C763362917332254","retCode":10006,"retMsg":"Too many visits. Exceeded the API Rate Limit
 
 func (s *Parser) onPlaceOrderFailed(data []byte, wsMeta wsRequestCache.WsRequestMeta, clientOrderId systemx.WsId16B, accountKeyId uint8) {
+	totalLen := uint16(len(data))
 	oMeta, ok := orderStatic.GetService().GetOrderMeta(clientOrderId)
 	// 不属于这个服务的订单直接pass
 	if !ok {
@@ -46,9 +49,10 @@ func (s *Parser) onPlaceOrderFailed(data []byte, wsMeta wsRequestCache.WsRequest
 				return
 			}
 			// 发送错误码
+			err_end := byteUtils.FindNextCommaIndex(data, 38, totalLen)
 			toUpbitListChan.SendSpecial(symbolIndex, toUpbitListChan.Special{
 				Amount:       decimal.Zero,
-				ErrCode:      [5]byte{data[38], data[39], data[40], data[41], data[42]},
+				ErrCode:      byteConvert.BytesToInt64(data[38:err_end]),
 				SigType:      toUpbitListChan.FailureOrder,
 				AccountKeyId: accountKeyId,
 			})

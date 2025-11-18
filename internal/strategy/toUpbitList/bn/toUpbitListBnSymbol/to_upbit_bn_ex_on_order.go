@@ -9,10 +9,10 @@ import (
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitParam"
 )
 
-func (s *Single) onFailureOrder(accountKeyId uint8, errCode [5]byte) {
+func (s *Single) onFailureOrder(accountKeyId uint8, errCode int64) {
 	// {"code":-2019,"msg":"Margin is insufficient."},账户没钱,停止这一秒抽奖
-	switch {
-	case errCode[0] == '2' && errCode[1] == '0' && errCode[2] == '1' && errCode[3] == '9':
+	switch errCode {
+	case 2019:
 		// s.secondArr[accountKeyId].receiveStop(accountKeyId)
 	}
 }

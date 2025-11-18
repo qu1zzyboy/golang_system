@@ -21,5 +21,5 @@ func (s *Single) setExecuteParam(trigPrice float64, twapSec float64) {
 	s.twapSec = twapSec
 	s.takeProfitPrice = trigPrice
 	s.closeDuration = time.Duration(twapSec) * time.Second
-	toUpBitDataStatic.DyLog.GetLog().Infof("止盈价格: %.8f,平仓持续时间: %s,单账户上限:%s", trigPrice, s.closeDuration.String(), s.maxNotional)
+	toUpBitDataStatic.DyLog.GetLog().Infof("止盈价格: %.8f,平仓持续时间: %s,单账户上限:%.2f", trigPrice, s.closeDuration.String(), s.maxNotional)
 }

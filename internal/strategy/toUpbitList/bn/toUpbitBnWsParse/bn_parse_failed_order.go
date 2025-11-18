@@ -80,7 +80,7 @@ func (s *Parser) onPlaceOrderFailed(data []byte, wsMeta wsRequestCache.WsRequest
 			// 发送错误码
 			toUpbitListChan.SendSpecial(symbolIndex, toUpbitListChan.Special{
 				Amount:       decimal.Zero,
-				ErrCode:      [5]byte{data[55], data[56], data[57], data[58]},
+				ErrCode:      byteConvert.BytesToInt64([]byte{data[55], data[56], data[57], data[58]}),
 				SigType:      toUpbitListChan.FailureOrder,
 				AccountKeyId: accountKeyId,
 			})

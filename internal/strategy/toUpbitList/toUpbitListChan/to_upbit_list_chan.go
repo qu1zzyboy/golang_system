@@ -20,7 +20,7 @@ const (
 
 type Special struct {
 	Amount       decimal.Decimal
-	ErrCode      [5]byte //错误码
+	ErrCode      int64 //错误码
 	SigType      Sig
 	AccountKeyId uint8
 }

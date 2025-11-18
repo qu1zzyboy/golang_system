@@ -3,10 +3,10 @@ package toUpBitListBn
 import (
 	"context"
 	"time"
+	"upbitBnServer/internal/quant/exchanges/binance/marketSub/bnPoolMarketSub"
 
 	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/quant/exchanges/binance/bnVar"
-	"upbitBnServer/internal/quant/exchanges/binance/poolMarketBnSub"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
@@ -30,7 +30,7 @@ func (e *Engine) OnSymbolList(ctx context.Context, s *coinMesh.CoinMesh) error {
 		symbolIndex = rawIndex
 	}
 	// 再订阅
-	if err := poolMarketBnSub.GetSymbolObj(symbolIndex).RegisterReadHandler(ctx, symbolName); err != nil {
+	if err := bnPoolMarketSub.GetSymbolObj(symbolIndex).RegisterReadHandler(ctx, symbolName); err != nil {
 		toUpBitDataStatic.DyLog.GetLog().Errorf("bn_upbit上币失败,err:%v", err)
 		return err
 	}

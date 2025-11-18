@@ -2,11 +2,11 @@ package toUpbitListBnSymbol
 
 import (
 	"time"
+	"upbitBnServer/internal/quant/exchanges/binance/order/bnOrderAppManager"
 
 	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/infra/systemx/instanceEnum"
 	"upbitBnServer/internal/infra/systemx/usageEnum"
-	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 )
 

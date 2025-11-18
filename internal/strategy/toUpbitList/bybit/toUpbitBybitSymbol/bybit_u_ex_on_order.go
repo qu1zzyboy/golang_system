@@ -8,12 +8,8 @@ import (
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitParam"
 )
 
-func (s *Single) onFailureOrder(accountKeyId uint8, errCode [5]byte) {
-	// {"code":-2019,"msg":"Margin is insufficient."},账户没钱,停止这一秒抽奖
-	// switch {
-	// case errCode[0] == '2' && errCode[1] == '0' && errCode[2] == '1' && errCode[3] == '9':
-	// 	s.secondArr[accountKeyId].receiveStopBuy(accountKeyId)
-	// }
+func (s *Single) onFailureOrder(accountKeyId uint8, errCode int64) {
+
 }
 
 func (s *Single) onSuccessOrder(evt toUpBitListDataAfter.OnSuccessEvt) {

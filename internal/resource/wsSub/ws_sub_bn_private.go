@@ -6,13 +6,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"upbitBnServer/internal/quant/exchanges/binance/account/bnAccountSdkRest"
 
 	"upbitBnServer/internal/define/defineEmoji"
 	"upbitBnServer/internal/define/defineJson"
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/infra/safex"
 	"upbitBnServer/internal/infra/ws/wsDefine"
-	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnRest"
 
 	"github.com/gorilla/websocket"
 )
@@ -20,17 +20,17 @@ import (
 const listenKeyRefreshInterval = 20 * time.Minute //  listenKey刷新间隔
 
 type BnPayload struct {
-	baseUrl   string                     // 当前订阅的URL
-	listenKey string                     // 监听密钥
-	once      sync.Once                  // 确保只创建一次连接
-	restFu    *orderSdkBnRest.FutureRest //rest client
-	conn      *wsDefine.SafeWrite        // websocket连接
+	baseUrl   string                       // 当前订阅的URL
+	listenKey string                       // 监听密钥
+	once      sync.Once                    // 确保只创建一次连接
+	restFu    *bnAccountSdkRest.FutureRest //rest client
+	conn      *wsDefine.SafeWrite          // websocket连接
 }
 
 func NewBnPayload(apiKey, secretKey string) *BnPayload {
 	return &BnPayload{
 		baseUrl: "wss://fstream.binance.com/ws/",
-		restFu:  orderSdkBnRest.NewFutureRest(apiKey, secretKey),
+		restFu:  bnAccountSdkRest.NewFutureRest(apiKey, secretKey),
 	}
 }
 
