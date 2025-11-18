@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	ORDER_LINEAR    = "order.linear"
-	TRADE_LITE      = "execution.fast.linear"
+	orderLINEAR     = "order.linear"
+	tradeLITE       = "execution.fast.linear"
 	POSITION_LINEAR = "position.linear"
+	wallet          = "wallet"
 )
 
 type ByBitPayload struct {
@@ -28,7 +29,7 @@ func NewByBitPayload(apiKey, secretKey string) *ByBitPayload {
 
 func (s *ByBitPayload) RegisterReadHandler(ctx context.Context, accountKeyId uint8, read wsDefine.ReadAutoHandler) error {
 	var err error
-	if err = s.param.SetInitParams([]string{TRADE_LITE, ORDER_LINEAR}); err != nil {
+	if err = s.param.SetInitParams([]string{tradeLITE, orderLINEAR, wallet}); err != nil {
 		return err
 	}
 	s.payload, err = wsExecuteClient.NewExecute(exchangeEnum.BYBIT, resourceEnum.PAYLOAD_READ, read, s.param, accountKeyId)

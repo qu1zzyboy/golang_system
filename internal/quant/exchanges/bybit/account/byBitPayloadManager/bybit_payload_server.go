@@ -3,7 +3,7 @@ package byBitPayloadManager
 import (
 	"context"
 	"upbitBnServer/internal/quant/account/accountConfig"
-	"upbitBnServer/internal/quant/account/byBitPayload"
+	"upbitBnServer/internal/quant/exchanges/bybit/account/byBitPayload"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 
 	"github.com/tidwall/gjson"
