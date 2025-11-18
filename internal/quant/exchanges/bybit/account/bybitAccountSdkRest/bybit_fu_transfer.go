@@ -7,16 +7,16 @@ import (
 	"upbitBnServer/internal/infra/httpx"
 	"upbitBnServer/internal/quant/exchanges/bybit/account/bybitAccountDefine"
 	"upbitBnServer/internal/quant/exchanges/bybit/bybitConst"
-	"upbitBnServer/pkg/utils/time2str"
+
+	"github.com/google/uuid"
 )
 
 var fuTransferUrl = fmt.Sprintf("%s/v5/asset/transfer/universal-transfer", bybitConst.BASE_URL)
 
 func (s *FutureRest) DoTransfer(req bybitAccountDefine.TransferReq) ([]byte, error) {
-	reqId := time2str.GetNowTimeStampMicroSlice16()
-	buf := make([]byte, 0, 128)
+	buf := make([]byte, 0, 256)
 	buf = append(buf, `{"transferId":"`...)
-	buf = append(buf, reqId[:]...)
+	buf = append(buf, uuid.New().String()...)
 
 	buf = append(buf, `","coin":"`...)
 	buf = append(buf, req.Coin...)
