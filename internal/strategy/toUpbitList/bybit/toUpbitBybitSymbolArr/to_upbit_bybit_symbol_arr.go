@@ -37,3 +37,12 @@ func ClearByDayEnd(stopIndex int) {
 		sym.Clear()
 	}
 }
+
+func RefreshByDayBegin(stopIndex int) {
+	for index, sym := range symObjArray {
+		if index >= stopIndex {
+			break
+		}
+		sym.ClearBegin()
+	}
+}

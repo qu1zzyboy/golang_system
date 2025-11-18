@@ -81,6 +81,7 @@ func (e *Engine) OnDayBegin() {
 	} else {
 		ctx := context.Background()
 		stopIndex := bybitVar.SymbolIndex.Length()
+		toUpbitBybitSymbolArr.RefreshByDayBegin(stopIndex)
 		poolMarketBybitSub.OpenSub(ctx, stopIndex)
 		autoMarketBybitSub.OpenSub(ctx, stopIndex)
 		toUpBitDataStatic.DyLog.GetLog().Info("今天交易开始,打开订阅")

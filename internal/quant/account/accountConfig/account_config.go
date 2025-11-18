@@ -6,6 +6,7 @@ type Config struct {
 	ApiKeyEd25519 string
 	SecretEd25519 string
 	Email         string
+	Uid           uint32
 	AccountId     uint8
 }
 

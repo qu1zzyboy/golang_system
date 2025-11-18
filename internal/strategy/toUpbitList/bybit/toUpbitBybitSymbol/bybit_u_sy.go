@@ -90,6 +90,12 @@ type Single struct {
 func (s *Single) Clear() {
 }
 
+func (s *Single) ClearBegin() {
+	if s.pre != nil {
+		s.pre.FreshClientOrderId()
+	}
+}
+
 func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 	s.symbolName = symbolName
 	s.symbolIndex = systemx.SymbolIndex16I(index)

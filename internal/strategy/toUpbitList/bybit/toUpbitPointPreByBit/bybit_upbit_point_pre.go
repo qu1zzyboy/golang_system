@@ -176,7 +176,7 @@ func (s *PointPre) OnPreFilled(symbolName string, clientOrderId systemx.WsId16B,
 				toUpBitDataStatic.DyLog.GetLog().Errorf("%s下买入平空单错误: %s", symbolName, err.Error())
 			}
 			//刷新一下clientOrderId
-			s.clientOrderIdSmall = time2str.GetNowTimeStampMicroSlice16()
+			s.FreshClientOrderId()
 			// 等待能再次下单
 			time.Sleep(60 * time.Second)
 			toUpBitDataStatic.DyLog.GetLog().Infof("预挂单成交60秒后,删除订单限流标记:%s", string(clientOrderId[:]))
@@ -195,4 +195,8 @@ func (s *PointPre) CancelPreOrder(symbolName string, reqFrom instanceEnum.Type) 
 		ReqFrom:       reqFrom,
 		UsageFrom:     point_pre,
 	})
+}
+
+func (s *PointPre) FreshClientOrderId() {
+	s.clientOrderIdSmall = time2str.GetNowTimeStampMicroSlice16()
 }
