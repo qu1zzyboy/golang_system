@@ -1,4 +1,4 @@
-package orderSdkBybitRest
+package bybitAccountSdkRest
 
 import (
 	"fmt"

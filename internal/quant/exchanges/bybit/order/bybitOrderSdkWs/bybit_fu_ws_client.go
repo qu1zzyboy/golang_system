@@ -1,4 +1,4 @@
-package orderSdkBybitWs
+package bybitOrderSdkWs
 
 import (
 	"context"

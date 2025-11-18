@@ -1,4 +1,4 @@
-package queryOrderByBit
+package bybitQueryOrder
 
 import (
 	"upbitBnServer/internal/infra/systemx"
