@@ -4,6 +4,7 @@ import (
 	"context"
 	"upbitBnServer/internal/infra/observe/notify"
 	"upbitBnServer/internal/quant/account/accountConfig"
+	"upbitBnServer/internal/quant/exchanges/bybit/account/bybitAccountAvailable"
 )
 
 const MODULE_ID = "bybit_payload_manager"
@@ -21,8 +22,9 @@ func (s *Boot) ModuleId() string {
 
 func (s *Boot) DependsOn() []string {
 	return []string{
-		accountConfig.MODULE_ID, //账户配置信息
-		notify.MODULE_ID,        //通知模块
+		accountConfig.MODULE_ID,         //账户配置信息
+		notify.MODULE_ID,                //通知模块
+		bybitAccountAvailable.MODULE_ID, //账户可用资金
 	}
 }
 

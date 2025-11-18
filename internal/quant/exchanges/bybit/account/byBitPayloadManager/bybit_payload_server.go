@@ -4,7 +4,9 @@ import (
 	"context"
 	"upbitBnServer/internal/quant/account/accountConfig"
 	"upbitBnServer/internal/quant/exchanges/bybit/account/byBitPayload"
+	"upbitBnServer/internal/quant/exchanges/bybit/account/bybitAccountAvailable"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
+	"upbitBnServer/pkg/utils/byteUtils"
 
 	"github.com/tidwall/gjson"
 )
@@ -40,6 +42,17 @@ func (s *Payload) OnPayload(data []byte) {
 			// {"req_id":"1763012998605","success":true,"ret_msg":"","op":"auth","conn_id":"d2a4c6evqclvsgos5bjg-1zauw0"}
 			// {"req_id":"1763012998605","success":true,"ret_msg":"","op":"subscribe","conn_id":"d2a4c6evqclvsgos5bjg-1zauw0"}
 			return
+		}
+		if data[2] == 'i' && data[3] == 'd' {
+			totalLen := uint16(len(data))
+			var id_begin uint16 = 7
+			id_end := byteUtils.FindNextQuoteIndex(data, id_begin, totalLen)
+
+			topic_start := id_end + 11
+			if data[topic_start] == 'w' && data[topic_start+1] == 'a' && data[topic_start+2] == 'l' {
+				bybitAccountAvailable.GetManager().SetAvailable(s.accountKeyId, gjson.GetBytes(data, "data.0.totalAvailableBalance").Float())
+				return
+			}
 		}
 		toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]未知事件类型: %s", s.accountKeyId, string(data))
 	}
