@@ -1,7 +1,6 @@
 package toUpBitDataStatic
 
 import (
-	"strconv"
 	"upbitBnServer/internal/infra/observe/log/logCfg"
 	"upbitBnServer/internal/infra/systemx"
 
@@ -9,10 +8,8 @@ import (
 	"upbitBnServer/internal/infra/observe/log/staticLog"
 	"upbitBnServer/internal/infra/observe/notify/notifyTg"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
-	"upbitBnServer/internal/utils/algorithms"
 	"upbitBnServer/pkg/container/map/myMap"
 	"upbitBnServer/pkg/container/ring/ringBuf"
-	"upbitBnServer/pkg/utils/idGen"
 	"upbitBnServer/pkg/utils/timeUtils"
 
 	"github.com/shopspring/decimal"
@@ -56,33 +53,6 @@ func SetParam(priceRiceTrig float64, tickCap ringBuf.Capacity, dec500 int64) {
 
 func UpdateParam(priceRiceTrig float64) {
 	PriceRiceTrig = priceRiceTrig
-}
-
-func getClientOrderId(acType exchangeEnum.AccountType, flag string) string {
-	str := ""
-	switch acType {
-	case exchangeEnum.SPOT:
-		str = "sp"
-	case exchangeEnum.FUTURE:
-		str = "fu"
-	case exchangeEnum.SWAP:
-		str = "sw"
-	case exchangeEnum.FULL_MARGIN:
-		str = "fm"
-	case exchangeEnum.ISOLATED_MARGIN:
-		str = "im"
-	default:
-	}
-	str += strconv.Itoa(algorithms.GetRandom09()) + "-" + string(algorithms.GetRandomaZ()) + "-" + flag
-	return str + idGen.GetSnowflakeIdStr()
-}
-
-func GetMakerClientOrderId() string {
-	return getClientOrderId(AcType, "maker")
-}
-
-func GetClientOrderIdBy(flag string) string {
-	return getClientOrderId(AcType, flag)
 }
 
 func SendToUpBitMsg(flag string, payload map[string]string) {

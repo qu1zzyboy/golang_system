@@ -21,6 +21,7 @@ import (
 // "retCode":110007,"retMsg":"CheckMarginRatio fail! InsufficientAB" 可用余额不足
 // {"reqId":"1763086933896632","retCode":20006,"retMsg":"Duplicate reqId"
 // {"reqId":"C763362917332254","retCode":10006,"retMsg":"Too many visits. Exceeded the API Rate Limit
+// {"reqId":"C763515937969044","retCode":110001,"retMsg":"order not exists or too late to cancel"
 
 func (s *Parser) onPlaceOrderFailed(data []byte, wsMeta wsRequestCache.WsRequestMeta, clientOrderId systemx.WsId16B, accountKeyId uint8) {
 	totalLen := uint16(len(data))
@@ -64,49 +65,3 @@ func (s *Parser) onPlaceOrderFailed(data []byte, wsMeta wsRequestCache.WsRequest
 		dynamicLog.Error.GetLog().Errorf("PLACE_ORDER: unknown orderFrom %v", oMeta.UsageFrom)
 	}
 }
-
-// 挂单成功
-// {
-//   "id": "1761662304009422",
-//   "status": 200,
-//   "result": {
-//     "orderId": 8389765998331620000,
-//     "symbol": "ETHUSDT",
-//     "status": "NEW",
-//     "clientOrderId": "1761662304009422",
-//     "price": "3100.00",
-//     "avgPrice": "0.00",
-//     "origQty": "0.010",
-//     "executedQty": "0.000",
-//     "cumQty": "0.000",
-//     "cumQuote": "0.00000",
-//     "timeInForce": "GTC",
-//     "type": "LIMIT",
-//     "reduceOnly": false,
-//     "closePosition": false,
-//     "side": "BUY",
-//     "positionSide": "LONG",
-//     "stopPrice": "0.00",
-//     "workingType": "CONTRACT_PRICE",
-//     "priceProtect": false,
-//     "origType": "LIMIT",
-//     "priceMatch": "NONE",
-//     "selfTradePreventionMode": "EXPIRE_MAKER",
-//     "goodTillDate": 0,
-//     "updateTime": 1761662304015
-//   }
-// }
-
-// 探测返回
-// {
-//   "id": "1761660897009235",
-//   "status": 400,
-//   "error": {
-//     "code": -4016,
-//     "msg": "Limit price can't be higher than 4370.70."
-//   }
-// }
-
-// {"id":"Pfu2-A-EVAA7389116673233420540","status":400,"error":{"code":-4014,"msg":"Price not increased by tick size."}}
-// {"id":"Pfu8-l-maker7388831890662129920","status":400,"error":{"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}}
-// {"id":"Pfu3-D-TRUTH7389116673233420542","status":400,"error":{"code":-4400,"msg":"Futures Trading Quantitative Rules violated, only reduceOnly order is allowed, please try again later."}}

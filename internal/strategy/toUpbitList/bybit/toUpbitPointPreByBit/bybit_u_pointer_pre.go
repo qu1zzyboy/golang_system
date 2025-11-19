@@ -32,9 +32,14 @@ var (
 func OnOrderUpdate(isOnline bool, clientOrderId systemx.WsId16B) {
 	// 挂单状态就存,非挂单状态就删
 	if isOnline {
+		if _, ok := clientOrderOnline.Load(clientOrderId); ok {
+			return
+		}
 		clientOrderOnline.Store(clientOrderId, struct{}{})
+		toUpBitDataStatic.DyLog.GetLog().Infof("探针[%s]挂单成功,总数%d", string(clientOrderId[:]), clientOrderOnline.Length())
 	} else {
 		clientOrderOnline.Delete(clientOrderId)
+		toUpBitDataStatic.DyLog.GetLog().Infof("探针[%s]非挂单成功,总数%d", string(clientOrderId[:]), clientOrderOnline.Length())
 	}
 }
 
