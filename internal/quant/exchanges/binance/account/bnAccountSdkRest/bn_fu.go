@@ -1,13 +1,11 @@
 package bnAccountSdkRest
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 
 	"upbitBnServer/internal/define/defineJson"
 	"upbitBnServer/internal/infra/httpx"
-	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
 	"upbitBnServer/internal/utils/myCrypto"
 	"upbitBnServer/pkg/container/pool/byteBufPool"
 )
@@ -18,9 +16,7 @@ const (
 )
 
 var (
-	futureBatchFullUrl = fmt.Sprintf("%s/fapi/v1/batchOrders?", bnConst.FUTURE_BASE_REST_URL)
-	futureFullUrlBytes = fmt.Appendf(nil, "%s/fapi/v1/order?", bnConst.FUTURE_BASE_REST_URL)
-	b_SIGNATURE_Equal  = []byte("&signature=")
+	b_SIGNATURE_Equal = []byte("&signature=")
 )
 
 type FutureRest struct {

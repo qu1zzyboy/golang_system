@@ -1,6 +1,7 @@
 package toUpbitBybitSymbolArr
 
 import (
+	"time"
 	"upbitBnServer/internal/infra/systemx"
 	"upbitBnServer/internal/strategy/toUpbitList/bybit/toUpbitBybitSymbol"
 )
@@ -44,5 +45,6 @@ func RefreshByDayBegin(stopIndex int) {
 			break
 		}
 		sym.ClearBegin()
+		time.Sleep(100 * time.Millisecond)
 	}
 }
