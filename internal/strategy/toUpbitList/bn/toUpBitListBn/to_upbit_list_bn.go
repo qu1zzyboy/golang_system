@@ -88,6 +88,9 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 		if mesh.SymbolName == "币安人生USDT" {
 			continue
 		}
+		if mesh.SymbolName == "PIEVERSEUSDT" {
+			continue
+		}
 		if mesh.IsList {
 			symbols = append(symbols, mesh.SymbolName)
 		}
