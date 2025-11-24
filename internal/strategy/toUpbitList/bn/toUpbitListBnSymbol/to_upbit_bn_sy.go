@@ -132,7 +132,7 @@ func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 	// 初始化品种静态数据
 	stMeta, err := symbolStatic.GetTrade().Get(symbolKeyId)
 	if err != nil {
-		toUpBitDataStatic.DyLog.GetLog().Errorf("symbolKeyId %d not found", symbolKeyId)
+		toUpBitDataStatic.DyLog.GetLog().Errorf("%s symbolKeyId %d not found", symbolName, symbolKeyId)
 		return err
 	}
 	s.StMeta = &stMeta

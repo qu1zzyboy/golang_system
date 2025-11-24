@@ -113,7 +113,7 @@ func (s *Single) onPreFilled(clientOrderId string) {
 			}
 			// 等待能再次下单
 			time.Sleep(60 * time.Second)
-			toUpBitDataStatic.DyLog.GetLog().Infof("预挂单成交5秒后,删除订单限流标记:%s", clientOrderId)
+			toUpBitDataStatic.DyLog.GetLog().Infof("预挂单成交60秒后,删除订单限流标记:%s", clientOrderId)
 			clientOrderSig.Delete(clientOrderId)
 		}
 	})

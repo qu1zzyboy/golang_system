@@ -17,11 +17,6 @@ import (
 func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
 	// minBId>=0.95*markPrice
 	if float64(s.minPriceAfterMp) >= toUpBitDataStatic.PriceRiceTrig*float64(s.markPrice_8) {
-		toUpBitDataStatic.SendToUpBitMsg("发送bn快速上涨消息失败", map[string]string{
-			"msg":  "orderPrice快速上涨",
-			"bn品种": s.StMeta.SymbolName,
-			"上涨幅度": fmt.Sprintf("%.2f%%", s.lastRiseValue*100),
-		})
 		s.IntoExecuteNoCheck(tradeTs, "preOrder", priceU64_8)
 	} else {
 		toUpBitDataStatic.SendToUpBitMsg("成交但不满足上市check消息失败", map[string]string{

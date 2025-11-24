@@ -79,7 +79,13 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 		if err := jsonUtils.UnmarshalFromString(v, &mesh); err != nil {
 			return err
 		}
-		if mesh.SymbolName == "AI16ZUSDT" || mesh.SymbolName == "SLERFUSDT" {
+		// if mesh.SymbolName == "ALLOUSDT" || mesh.SymbolName == "SLERFUSDT" || mesh.SymbolName == "BANKUSDT" {
+		// 	continue
+		// }
+		if mesh.SymbolName == "" {
+			continue
+		}
+		if mesh.SymbolName == "币安人生USDT" {
 			continue
 		}
 		if mesh.IsList {
