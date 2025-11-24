@@ -23,7 +23,7 @@ func (s ExchangeType) GetNotSupportError(flag string) error {
 
 func (s ExchangeType) Verify() error {
 	switch s {
-	case BINANCE, BYBIT:
+	case BINANCE, BYBIT, UPBIT, TREE_NEWS:
 		return nil
 	default:
 		return errDefine.EnumDefineError.WithMetadata(map[string]string{

@@ -13,7 +13,7 @@ const (
 )
 
 var (
-	ConnErr = errorx.Newf(errCode.CodeWsDoError, "ws连接失败")
+	ConnErr = errorx.Newf(errCode.CONN_ERROR, "ws连接失败")
 )
 
 type ReadAutoHandler func(msg []byte)

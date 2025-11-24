@@ -15,11 +15,11 @@ import (
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolLimit"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
 	"upbitBnServer/internal/resource/resourceEnum"
+	"upbitBnServer/internal/strategy/position/posMultiAccountOneSide"
 	"upbitBnServer/internal/strategy/toUpbitList/bybit/toUpbitPointPreByBit"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListPos"
 	"upbitBnServer/pkg/container/map/myMap"
 	"upbitBnServer/pkg/container/pool/byteBufPool"
 	"upbitBnServer/pkg/utils/idGen"
@@ -81,7 +81,7 @@ type Single struct {
 	maxNotional    float64                                 // 单品种最大开仓上限
 	ctxStop        context.Context                         // 同步关闭ctx
 	cancel         context.CancelFunc                      // 关闭函数
-	posLong        *toUpbitListPos.PosCalSafe              // 持仓计算对象
+	posLong        *posMultiAccountOneSide.PosCalSafe      // 持仓计算对象
 	pre            *toUpbitPointPreByBit.PointPre          // 预挂单对象
 	twapSec        float64                                 // twap下单间隔秒数
 	closeDuration  time.Duration                           // 平仓持续时间

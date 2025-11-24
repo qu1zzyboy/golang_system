@@ -2,9 +2,9 @@ package toUpbitBybitSymbol
 
 import (
 	"fmt"
+	"upbitBnServer/internal/strategy/position/posMultiAccountOneSide"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListPos"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitParam"
 )
 
@@ -19,7 +19,7 @@ func (s *Single) onSuccessOrder(evt toUpBitListDataAfter.OnSuccessEvt) {
 	} else {
 		if evt.Volume > 0 {
 			if s.posLong == nil {
-				s.posLong = toUpbitListPos.NewPosCal()
+				s.posLong = posMultiAccountOneSide.NewPosCal()
 			}
 			// 有成交更新可用仓位
 			if evt.OrderMode.IsOpen() {

@@ -1,4 +1,4 @@
-package toUpbitListPos
+package posMultiAccountOneSide
 
 import (
 	"maps"

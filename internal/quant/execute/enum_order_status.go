@@ -10,7 +10,6 @@ const (
 	CANCELED                    //订单被用户取消。
 	REJECTED                    //新订单被拒绝 这信息只会在撤消挂单再下单中发生，下新订单被拒绝但撤消挂单请求成功
 	EXPIRED                     //订单已根据 ArrTime In Force 参数的规则取消
-
 )
 
 func ParseBnOrderStatus(status string) OrderStatus {

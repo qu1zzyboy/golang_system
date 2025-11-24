@@ -8,7 +8,6 @@ const (
 	TO_UPBIT_LIST_BN                 //upbit上市实例
 	TO_UPBIT_LIST_BYBIT              //bybit上市实例
 	DOWNLOAD_ONLY_BN                 //bn下载服务
-	ARB_BN_2_BYBIT                   //bn_bybit套利
 	CHECK_ALL_HEART_BEAT             //检查所有服务心跳实例
 )
 

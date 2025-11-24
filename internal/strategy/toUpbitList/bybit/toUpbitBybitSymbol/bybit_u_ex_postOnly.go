@@ -33,7 +33,7 @@ func (s *Single) PlacePostOnlyOrder() {
 		var accountIndex uint8
 		var count int
 		defer func() {
-			toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d],下单[%d]次 [%d,%d] 10ms POST_ONLY 协程结束", accountIndex, count, limitPrice, limitNum)
+			toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d],下单[%d]次 价格数量[%d,%d] 10ms POST_ONLY 协程结束", accountIndex, count, limitPrice, limitNum)
 		}()
 		// 遍历所有账户下单
 		for accountIndex = 0; accountIndex < uint8(toUpbitParam.AccountLen); accountIndex++ {

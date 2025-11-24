@@ -6,6 +6,7 @@ import (
 	"time"
 	"upbitBnServer/internal/quant/exchanges/binance/marketSub/bnPoolMarketChan"
 	"upbitBnServer/internal/quant/exchanges/binance/order/bnOrderTemplate"
+	"upbitBnServer/internal/strategy/position/posMultiAccountOneSide"
 
 	"upbitBnServer/internal/conf"
 	"upbitBnServer/internal/infra/latency"
@@ -21,7 +22,6 @@ import (
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListPos"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitParam"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitPoint"
 	"upbitBnServer/pkg/container/map/myMap"
@@ -97,7 +97,7 @@ type Single struct {
 	maxNotional        float64                                 // 单品种最大开仓上限
 	ctxStop            context.Context                         // 同步关闭ctx
 	cancel             context.CancelFunc                      // 关闭函数
-	pos                *toUpbitListPos.PosCalSafe              // 持仓计算对象
+	pos                *posMultiAccountOneSide.PosCalSafe      // 持仓计算对象
 	pre                *toUpbitPointPreBn.PointPre             // 预挂单对象
 	can                *bnOrderTemplate.CancelTemplate         // 撤单json模板
 	twapSec            float64                                 // twap下单间隔秒数
