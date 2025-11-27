@@ -96,9 +96,11 @@ func (s *Single) TryBuyLoop(max int32) {
 				secStart := now.Truncate(time.Second)
 				target := secStart.Add(965 * time.Millisecond)
 
-				if now.Before(target) {
-					time.Sleep(time.Until(target))
+				// 如果已经超过 965ms，就睡到下一秒的 965ms
+				if !now.Before(target) {
+					target = target.Add(time.Second)
 				}
+				time.Sleep(time.Until(target))
 
 				// next := now.Truncate(time.Second).Add(time.Second)
 				// trigger := next.Add(+5 * time.Millisecond)
