@@ -93,12 +93,19 @@ func (s *Single) TryBuyLoop(max int32) {
 			default:
 				// 睡到下一秒的5毫秒后
 				now := time.Now()
-				next := now.Truncate(time.Second).Add(time.Second)
-				trigger := next.Add(+5 * time.Millisecond)
-				sleep := time.Until(trigger)
-				if sleep > 0 {
-					time.Sleep(sleep)
+				secStart := now.Truncate(time.Second)
+				target := secStart.Add(965 * time.Millisecond)
+
+				if now.Before(target) {
+					time.Sleep(time.Until(target))
 				}
+
+				// next := now.Truncate(time.Second).Add(time.Second)
+				// trigger := next.Add(+5 * time.Millisecond)
+				// sleep := time.Until(target)
+				// if sleep > 0 {
+				// 	time.Sleep(sleep)
+				// }
 				//已经完全开满
 				if s.hasAllFilled.Load() {
 					break
