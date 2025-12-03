@@ -25,7 +25,7 @@ import (
 	"upbitBnServer/server/serverInstanceEnum"
 )
 
-const limit = 100
+const limit = 50
 
 type Req struct {
 	PriceRiceTrig float64          // 价格触发阈值,当价格变化超过该值时触发
