@@ -25,7 +25,7 @@ import (
 	"upbitBnServer/server/serverInstanceEnum"
 )
 
-const limit = 300
+const limit = 100
 
 type Req struct {
 	PriceRiceTrig float64          // 价格触发阈值,当价格变化超过该值时触发
@@ -51,16 +51,14 @@ type Engine struct {
 func (e *Engine) getPreAccountKeyId() uint8 {
 	e.thisCalCount++
 	if e.thisCalCount >= limit {
-		e.thisAccountKeyId--
+		e.thisAccountKeyId++
 		e.thisCalCount = 0
 	}
 	return e.thisAccountKeyId
 }
 
 func newEngine() *Engine {
-	return &Engine{
-		thisAccountKeyId: 10,
-	}
+	return &Engine{}
 }
 
 func (e *Engine) start(ctx context.Context, req *Req) error {
