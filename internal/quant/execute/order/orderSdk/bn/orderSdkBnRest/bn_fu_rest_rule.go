@@ -11,7 +11,7 @@ import (
 
 // /fapi/v1/apiTradingStatus
 
-var fuTradeRuleFullUrlByte = fmt.Appendf(nil, "%s/fapi/v1/symbolConfig?", bnConst.FUTURE_BASE_REST_URL)
+var fuTradeRuleFullUrlByte = fmt.Appendf(nil, "%s/fapi/v1/apiTradingStatus?", bnConst.FUTURE_BASE_REST_URL)
 
 // Do send request
 func (s *FutureRest) DoTradeRule(ctx context.Context, api *orderSdkBnModel.FutureTradeingRuleSdk) ([]byte, error) {
