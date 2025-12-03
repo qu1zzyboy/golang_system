@@ -34,14 +34,8 @@ func (e *Engine) OnSymbolList(ctx context.Context, s *coinMesh.CoinMesh) error {
 	}
 	// 下标不存在则添加,要不然会出现订阅的品种没有索引
 	if _, ok := toUpBitDataStatic.SymbolIndex.Load(symbolName); !ok {
-
 		symbolIndex := toUpBitDataStatic.SymbolIndex.Length()
-		e.thisCalCount++
-		if e.thisCalCount == limit {
-			e.thisAccountKeyId++
-			e.thisCalCount = 0
-		}
-		if err := toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex).Start(e.thisAccountKeyId, symbolIndex, symbolName); err != nil {
+		if err := toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex).Start(e.getPreAccountKeyId(), symbolIndex, symbolName); err != nil {
 			return err
 		}
 	}

@@ -25,7 +25,7 @@ import (
 	"upbitBnServer/server/serverInstanceEnum"
 )
 
-const limit = 30
+const limit = 300
 
 type Req struct {
 	PriceRiceTrig float64          // 价格触发阈值,当价格变化超过该值时触发
@@ -48,8 +48,19 @@ type Engine struct {
 	thisAccountKeyId uint8 // 账户KeyId
 }
 
+func (e *Engine) getPreAccountKeyId() uint8 {
+	e.thisCalCount++
+	if e.thisCalCount >= limit {
+		e.thisAccountKeyId--
+		e.thisCalCount = 0
+	}
+	return e.thisAccountKeyId
+}
+
 func newEngine() *Engine {
-	return &Engine{}
+	return &Engine{
+		thisAccountKeyId: 10,
+	}
 }
 
 func (e *Engine) start(ctx context.Context, req *Req) error {
@@ -102,13 +113,7 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 
 	for index, symbolName := range symbols {
 		// 提前指定每个品种的挂单账户
-		e.thisCalCount++
-		if e.thisCalCount == limit {
-			e.thisAccountKeyId++
-			e.thisCalCount = 0
-		}
-
-		if err := toUpbitListBnSymbolArr.GetSymbolObj(index).Start(e.thisAccountKeyId, index, symbolName); err != nil {
+		if err := toUpbitListBnSymbolArr.GetSymbolObj(index).Start(e.getPreAccountKeyId(), index, symbolName); err != nil {
 			return err
 		}
 	}
