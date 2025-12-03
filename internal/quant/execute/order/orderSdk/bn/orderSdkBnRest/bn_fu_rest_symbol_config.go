@@ -20,7 +20,7 @@ var fuSymbolConfigFullUrlByte = fmt.Appendf(nil, "%s/fapi/v1/symbolConfig?", bnC
 func (s *FutureRest) DoSymbolConfig(ctx context.Context, api *orderSdkBnModel.FutureSymbolConfigSdk) ([]byte, error) {
 	var urlByte []byte
 	urlByte = append(urlByte, fuSymbolConfigFullUrlByte...)
-	r, err := s.addSignParamsSymbolConfig(urlByte, api.ParseRestReq())
+	r, err := s.addSignParamsGet(urlByte, api.ParseRestReq())
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (s *FutureRest) DoSymbolConfig(ctx context.Context, api *orderSdkBnModel.Fu
 	return body, nil
 }
 
-func (s *FutureRest) addSignParamsSymbolConfig(urlByte, param []byte) (*httpx.HttpRequest, error) {
+func (s *FutureRest) addSignParamsGet(urlByte, param []byte) (*httpx.HttpRequest, error) {
 	//1、 生成签名
 	signByte := byteBufPool.AcquireBuffer(64)
 	defer byteBufPool.ReleaseBuffer(signByte)
