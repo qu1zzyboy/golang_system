@@ -58,6 +58,7 @@ func GetService() *Service {
 type Event struct {
 	ID              string
 	Symbols         []string
+	Exchange        string
 	Payload         map[string]any
 	ReceivedAt      time.Time
 	ServerMilli     int64
@@ -429,11 +430,12 @@ func (s *Service) processMessage(ctx context.Context, msg queuedMessage) {
 		event.ID = trimID
 	}
 
-	symbols := upbitKRWSymbols(payload)
+	exchange, symbols := routeSymbols(payload)
 	if len(symbols) == 0 {
 		return
 	}
 
+	event.Exchange = exchange
 	event.Symbols = symbols
 
 	logger.GetLog().Infof("tree news event id=%s symbols=%v latency=%d rtt=%d", event.ID, symbols, event.LatencyMS, event.RTTMS)

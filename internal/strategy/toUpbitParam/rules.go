@@ -2,6 +2,7 @@ package toUpbitParam
 
 import (
 	"math"
+	"strings"
 )
 
 type gainBucket struct {
@@ -17,6 +18,11 @@ type twapBucket struct {
 	baseline float64
 	cap      float64
 }
+
+const (
+	ExchangeUpbit   = "upbit"
+	ExchangeBinance = "binance"
+)
 
 var gainBuckets = []gainBucket{
 	{lower: 0, upper: 5, baseline: 40, cap: 55},
@@ -128,6 +134,15 @@ func expectedTwapDuration(marketCapM, fearGreedIndex, btc1d, btc7d float64, isMe
 func expectedSplitGainAndTwapDuration(marketCapM, fearGreedIndex, btc1d, btc7d float64, isMeme bool) (float64, float64) {
 	return expectedSplitGain(marketCapM, fearGreedIndex, btc1d, btc7d, isMeme),
 		expectedTwapDuration(marketCapM, fearGreedIndex, btc1d, btc7d, isMeme)
+}
+
+func ExpectedSplitGainAndTwapDurationWithExchange(exchange string, marketCapM, fearGreedIndex, btc1d, btc7d float64, isMeme bool) (float64, float64) {
+	switch strings.ToLower(exchange) {
+	case ExchangeBinance:
+		return expectedSplitGainAndTwapDurationBinance(marketCapM, fearGreedIndex, btc1d, btc7d, isMeme)
+	default:
+		return expectedSplitGainAndTwapDuration(marketCapM, fearGreedIndex, btc1d, btc7d, isMeme)
+	}
 }
 
 func clipGain(marketCapM, target float64) (float64, float64, float64) {

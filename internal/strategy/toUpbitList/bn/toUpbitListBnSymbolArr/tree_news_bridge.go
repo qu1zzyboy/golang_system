@@ -27,7 +27,11 @@ func treeNewsHandler(_ context.Context, evt treenews.Event) {
 			toUpBitListDataStatic.DyLog.GetLog().Errorf("%s treeNews品种不在品种池内", symbolName)
 			continue
 		}
-		toUpBitListDataStatic.DyLog.GetLog().Infof("received tree news: symbol=%s id=%s", symbolName, evt.ID)
+		exchange := evt.Exchange
+		if exchange == "" {
+			exchange = "unknown"
+		}
+		toUpBitListDataStatic.DyLog.GetLog().Infof("received tree news: exchange=%s symbol=%s id=%s", exchange, symbolName, evt.ID)
 		// 触发品种和TreeNews品种一致
 		if symbolIndexTrue == toUpBitListDataAfter.TrigSymbolIndex {
 			GetSymbolObj(symbolIndexTrue).ReceiveTreeNews()

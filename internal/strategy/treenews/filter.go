@@ -80,6 +80,59 @@ func isUpbitSource(v string) bool {
 	return strings.Contains(strings.ToLower(v), "upbit")
 }
 
+func isBinanceSource(v string) bool {
+	return strings.EqualFold(strings.TrimSpace(v), "Binance EN")
+}
+
+func passBinanceSpotFilter(record map[string]any) bool {
+	if !isBinanceSource(toString(record["source"])) {
+		return false
+	}
+	title := strings.ToLower(toString(record["title"]))
+	en := strings.ToLower(toString(record["en"]))
+	switch {
+	case strings.Contains(title, "binance will list"), strings.Contains(en, "binance will list"):
+		return true
+	case strings.Contains(title, "introducing") && strings.Contains(title, "hodler airdrops"):
+		return true
+	case strings.Contains(en, "introducing") && strings.Contains(en, "hodler airdrops"):
+		return true
+	default:
+		return false
+	}
+}
+
+func binanceSpotSymbols(event map[string]any) []string {
+	if !passBinanceSpotFilter(event) {
+		return nil
+	}
+	syms := extractSymbols(event)
+	if len(syms) == 0 {
+		return nil
+	}
+	return syms
+}
+
+func routeSymbols(event map[string]any) (string, []string) {
+	source := strings.ToLower(strings.TrimSpace(toString(event["source"])))
+	if source == "" {
+		source = strings.ToLower(strings.TrimSpace(toString(event["type"])))
+	}
+	switch {
+	case strings.Contains(source, "upbit"):
+		syms := upbitKRWSymbols(event)
+		if len(syms) > 0 {
+			return "upbit", syms
+		}
+	case source == "binance en":
+		syms := binanceSpotSymbols(event)
+		if len(syms) > 0 {
+			return "binance", syms
+		}
+	}
+	return "", nil
+}
+
 func upbitKRWSymbols(event map[string]any) []string {
 	source := toString(event["source"])
 	if source == "" {
