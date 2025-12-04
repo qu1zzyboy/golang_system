@@ -2,7 +2,8 @@ package toUpbitParam
 
 import (
 	"math"
-	"strings"
+
+	exchangeEnum "upbitBnServer/internal/quant/exchanges/exchangeEnum"
 )
 
 type gainBucket struct {
@@ -18,11 +19,6 @@ type twapBucket struct {
 	baseline float64
 	cap      float64
 }
-
-const (
-	ExchangeUpbit   = "upbit"
-	ExchangeBinance = "binance"
-)
 
 var gainBuckets = []gainBucket{
 	{lower: 0, upper: 5, baseline: 40, cap: 55},
@@ -136,23 +132,52 @@ func expectedSplitGainAndTwapDuration(marketCapM, fearGreedIndex, btc1d, btc7d f
 		expectedTwapDuration(marketCapM, fearGreedIndex, btc1d, btc7d, isMeme)
 }
 
-func ExpectedSplitGainAndTwapDurationWithExchange(exchange string, marketCapM, fearGreedIndex, btc1d, btc7d float64, isMeme bool) (float64, float64) {
-	switch strings.ToLower(exchange) {
-	case ExchangeBinance:
+func ExpectedSplitGainAndTwapDurationWithExchange(exchange exchangeEnum.ExchangeType, marketCapM, fearGreedIndex, btc1d, btc7d float64, isMeme bool) (float64, float64) {
+	switch normalizeExchange(exchange) {
+	case exchangeEnum.BINANCE:
 		return expectedSplitGainAndTwapDurationBinance(marketCapM, fearGreedIndex, btc1d, btc7d, isMeme)
 	default:
 		return expectedSplitGainAndTwapDuration(marketCapM, fearGreedIndex, btc1d, btc7d, isMeme)
 	}
 }
 
-func clipGain(marketCapM, target float64) (float64, float64, float64) {
-	bucket := pickGainBucket(marketCapM)
+func clipGain(exchange exchangeEnum.ExchangeType, marketCapM, target float64) (float64, float64, float64) {
+	bucket := pickGainBucketByExchange(exchange, marketCapM)
 	return clampFloat(target, bucket.baseline, bucket.cap), bucket.baseline, bucket.cap
 }
 
-func clipTwap(marketCapM, target float64) (float64, float64, float64) {
-	bucket := pickTwapBucket(marketCapM)
+func clipTwap(exchange exchangeEnum.ExchangeType, marketCapM, target float64) (float64, float64, float64) {
+	bucket := pickTwapBucketByExchange(exchange, marketCapM)
 	return clampFloat(target, bucket.baseline, bucket.cap), bucket.baseline, bucket.cap
+}
+
+func pickGainBucketByExchange(exchange exchangeEnum.ExchangeType, marketCap float64) gainBucket {
+	switch normalizeExchange(exchange) {
+	case exchangeEnum.BINANCE:
+		return pickGainBucketBinance(marketCap)
+	default:
+		return pickGainBucket(marketCap)
+	}
+}
+
+func pickTwapBucketByExchange(exchange exchangeEnum.ExchangeType, marketCap float64) twapBucket {
+	switch normalizeExchange(exchange) {
+	case exchangeEnum.BINANCE:
+		return pickTwapBucketBinance(marketCap)
+	default:
+		return pickTwapBucket(marketCap)
+	}
+}
+
+func normalizeExchange(ex exchangeEnum.ExchangeType) exchangeEnum.ExchangeType {
+	switch ex {
+	case exchangeEnum.BINANCE:
+		return exchangeEnum.BINANCE
+	case exchangeEnum.UPBIT:
+		return exchangeEnum.UPBIT
+	default:
+		return exchangeEnum.UPBIT
+	}
 }
 
 const (

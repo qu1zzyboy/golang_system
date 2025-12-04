@@ -56,16 +56,17 @@ type cache_line_2 struct {
 }
 
 type cache_line_3 struct {
-	StMeta          *symbolStatic.StaticTrade // 交易对静态信息
-	bidPrice        atomic.Value              // 买一价,平仓和计算仓位价值用到
-	takeProfitPrice float64                   // 止盈价格
-	symbolIndex     int                       // 交易对下标
-	pScale          int32                     // 价格小数位
-	qScale          int32                     // 数量小数位
-	hasAllFilled    atomic.Bool               // 是否已经完全成交
-	isStopLossAble  atomic.Bool               // 能否开始移动止损
-	hasReceiveStop  bool                      // 是否已经收到过停止信号
-	hasTreeNews     bool                      // 是否已经接受到treeNews
+	StMeta               *symbolStatic.StaticTrade // 交易对静态信息
+	bidPrice             atomic.Value              // 买一价,平仓和计算仓位价值用到
+	takeProfitPrice      float64                   // 止盈价格
+	symbolIndex          int                       // 交易对下标
+	pScale               int32                     // 价格小数位
+	qScale               int32                     // 数量小数位
+	hasAllFilled         atomic.Bool               // 是否已经完全成交
+	isStopLossAble       atomic.Bool               // 能否开始移动止损
+	hasReceiveStop       bool                      // 是否已经收到过停止信号
+	hasTreeNews          bool                      // 是否已经接受到treeNews
+	treeNewsExchangeType exchangeEnum.ExchangeType
 }
 
 type cache_line_4 struct {

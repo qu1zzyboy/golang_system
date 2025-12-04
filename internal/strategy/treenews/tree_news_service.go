@@ -17,6 +17,7 @@ import (
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/infra/observe/log/staticLog"
 	"upbitBnServer/internal/infra/safex"
+	exchangeEnum "upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/pkg/utils/timeUtils"
 
 	"github.com/gorilla/websocket"
@@ -58,6 +59,7 @@ func GetService() *Service {
 type Event struct {
 	ID              string
 	Symbols         []string
+	ExchangeType    exchangeEnum.ExchangeType
 	Exchange        string
 	Payload         map[string]any
 	ReceivedAt      time.Time
@@ -430,11 +432,12 @@ func (s *Service) processMessage(ctx context.Context, msg queuedMessage) {
 		event.ID = trimID
 	}
 
-	exchange, symbols := routeSymbols(payload)
+	exType, exchange, symbols := routeSymbols(payload)
 	if len(symbols) == 0 {
 		return
 	}
 
+	event.ExchangeType = exType
 	event.Exchange = exchange
 	event.Symbols = symbols
 

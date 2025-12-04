@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"upbitBnServer/internal/infra/safex"
+	exchangeEnum "upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
@@ -34,6 +35,8 @@ func (s *Single) clear() {
 	s.posTotalNeed = decimal.Zero
 	s.pos.Clear() //清空持仓统计
 	s.takeProfitPrice = 0
+	s.hasTreeNews = false
+	s.treeNewsExchangeType = exchangeEnum.UPBIT
 	for i := range s.secondArr {
 		s.secondArr[i].clear()
 	}

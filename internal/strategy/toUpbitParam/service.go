@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	exchangeEnum "upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/pkg/singleton"
 
 	"github.com/go-redis/redis/v8"
@@ -116,9 +117,10 @@ type Diagnostics struct {
 }
 
 type ComputeRequest struct {
-	MarketCapM  float64 `json:"market_cap_m"`
-	SymbolIndex int     `json:"symbol_index"`
-	IsMeme      bool    `json:"is_meme"`
+	MarketCapM  float64                   `json:"market_cap_m"`
+	SymbolIndex int                       `json:"symbol_index"`
+	IsMeme      bool                      `json:"is_meme"`
+	Exchange    exchangeEnum.ExchangeType `json:"exchange,omitempty"`
 }
 
 // ComputeResponse 是返回给策略层的结果。
@@ -146,6 +148,7 @@ func (s ComputeResponse) PrintMe() {
 //  3. 叠加 OI 修正项；
 //  4. 按分桶上下限裁剪结果。
 func (s *Service) Compute(ctx context.Context, req ComputeRequest) (ComputeResponse, error) {
+	exType := normalizeExchange(req.Exchange)
 	fgiValue, ok := s.fgi.LoadValue()
 	if !ok || fgiValue <= 0 {
 		fgiValue = defaultFGI
@@ -160,7 +163,7 @@ func (s *Service) Compute(ctx context.Context, req ComputeRequest) (ComputeRespo
 		btc7d = 0
 	}
 	marketCapM := req.MarketCapM
-	gainBase, twapBase := expectedSplitGainAndTwapDuration(marketCapM, fgiValue, btc1d, btc7d, req.IsMeme)
+	gainBase, twapBase := ExpectedSplitGainAndTwapDurationWithExchange(exType, marketCapM, fgiValue, btc1d, btc7d, req.IsMeme)
 
 	var (
 		oiValue float64
@@ -174,8 +177,8 @@ func (s *Service) Compute(ctx context.Context, req ComputeRequest) (ComputeRespo
 	}
 
 	gainAdd, twapAdd, strength, norm := computeOIContribs(oiValue, marketCapM)
-	gainFinal, gainMin, gainMax := clipGain(marketCapM, gainBase+gainAdd)
-	twapFinal, twapMin, twapMax := clipTwap(marketCapM, twapBase+twapAdd)
+	gainFinal, gainMin, gainMax := clipGain(exType, marketCapM, gainBase+gainAdd)
+	twapFinal, twapMin, twapMax := clipTwap(exType, marketCapM, twapBase+twapAdd)
 
 	diag := Diagnostics{
 		GainBase:         gainBase,

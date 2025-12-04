@@ -3,6 +3,8 @@ package treenews
 import (
 	"regexp"
 	"strings"
+
+	exchangeEnum "upbitBnServer/internal/quant/exchanges/exchangeEnum"
 )
 
 var (
@@ -113,7 +115,7 @@ func binanceSpotSymbols(event map[string]any) []string {
 	return syms
 }
 
-func routeSymbols(event map[string]any) (string, []string) {
+func routeSymbols(event map[string]any) (exchangeEnum.ExchangeType, string, []string) {
 	source := strings.ToLower(strings.TrimSpace(toString(event["source"])))
 	if source == "" {
 		source = strings.ToLower(strings.TrimSpace(toString(event["type"])))
@@ -122,15 +124,15 @@ func routeSymbols(event map[string]any) (string, []string) {
 	case strings.Contains(source, "upbit"):
 		syms := upbitKRWSymbols(event)
 		if len(syms) > 0 {
-			return "upbit", syms
+			return exchangeEnum.UPBIT, "upbit", syms
 		}
 	case source == "binance en":
 		syms := binanceSpotSymbols(event)
 		if len(syms) > 0 {
-			return "binance", syms
+			return exchangeEnum.BINANCE, "binance", syms
 		}
 	}
-	return "", nil
+	return exchangeEnum.ExchangeType(255), "", nil
 }
 
 func upbitKRWSymbols(event map[string]any) []string {

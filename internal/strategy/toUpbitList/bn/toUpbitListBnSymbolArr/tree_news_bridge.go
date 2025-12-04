@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	exchangeEnum "upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"upbitBnServer/internal/strategy/treenews"
@@ -27,17 +28,37 @@ func treeNewsHandler(_ context.Context, evt treenews.Event) {
 			toUpBitListDataStatic.DyLog.GetLog().Errorf("%s treeNews品种不在品种池内", symbolName)
 			continue
 		}
+		exType := normalizeExchangeType(evt.ExchangeType)
 		exchange := evt.Exchange
 		if exchange == "" {
-			exchange = "unknown"
+			exchange = exType.String()
+			if exchange == "ERROR" || exchange == "" {
+				exchange = "unknown"
+			}
 		}
-		toUpBitListDataStatic.DyLog.GetLog().Infof("received tree news: exchange=%s symbol=%s id=%s", exchange, symbolName, evt.ID)
+		toUpBitListDataStatic.DyLog.GetLog().Infof("received tree news: exchange=%s exchange_type=%s symbol=%s id=%s", exchange, exType.String(), symbolName, evt.ID)
 		// 触发品种和TreeNews品种一致
 		if symbolIndexTrue == toUpBitListDataAfter.TrigSymbolIndex {
-			GetSymbolObj(symbolIndexTrue).ReceiveTreeNews()
+			sym := GetSymbolObj(symbolIndexTrue)
+			if exType == exchangeEnum.BINANCE {
+				sym.ReceiveTreeNewsWithExchange(exchangeEnum.BINANCE)
+			} else {
+				sym.ReceiveTreeNews()
+			}
 		} else {
 			GetSymbolObj(toUpBitListDataAfter.TrigSymbolIndex).ReceiveNoTreeNews()
 		}
 		return
+	}
+}
+
+func normalizeExchangeType(ex exchangeEnum.ExchangeType) exchangeEnum.ExchangeType {
+	switch ex {
+	case exchangeEnum.BINANCE:
+		return exchangeEnum.BINANCE
+	case exchangeEnum.UPBIT:
+		return exchangeEnum.UPBIT
+	default:
+		return exchangeEnum.UPBIT
 	}
 }

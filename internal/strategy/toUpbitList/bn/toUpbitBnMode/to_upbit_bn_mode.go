@@ -2,6 +2,8 @@ package toUpbitBnMode
 
 import (
 	"context"
+
+	exchangeEnum "upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitParam"
 
@@ -18,7 +20,7 @@ type ModeBehavior interface {
 	ShouldExitOnTakeProfit(priceBuy, takeProfit float64) bool
 	IsDynamicStopLossTrig(bid, maxPriceF64 float64) bool
 	GetTreeNewsFlag() bool
-	GetTakeProfitParam(isMeme bool, symbolIndex int, cap float64) (gainPct, twapSec float64, err error)
+	GetTakeProfitParam(isMeme bool, symbolIndex int, cap float64, exchange exchangeEnum.ExchangeType) (gainPct, twapSec float64, err error)
 	GetTransferAmount(amount decimal.Decimal) decimal.Decimal
 }
 
@@ -28,7 +30,7 @@ func (d DebugMode) GetTransferAmount(amount decimal.Decimal) decimal.Decimal {
 	return amount
 }
 
-func (d DebugMode) GetTakeProfitParam(_ bool, _ int, _ float64) (float64, float64, error) {
+func (d DebugMode) GetTakeProfitParam(_ bool, _ int, _ float64, _ exchangeEnum.ExchangeType) (float64, float64, error) {
 	return 7, 10, nil
 }
 
@@ -51,11 +53,12 @@ func (l MocaMode) GetTransferAmount(amount decimal.Decimal) decimal.Decimal {
 	return amount.Sub(dec200)
 }
 
-func (l MocaMode) GetTakeProfitParam(isMeme bool, symbolIndex int, cap float64) (float64, float64, error) {
+func (l MocaMode) GetTakeProfitParam(isMeme bool, symbolIndex int, cap float64, exchange exchangeEnum.ExchangeType) (float64, float64, error) {
 	resp, err := toUpbitParam.GetService().Compute(context.Background(), toUpbitParam.ComputeRequest{
 		IsMeme:      isMeme,
 		SymbolIndex: symbolIndex,
 		MarketCapM:  cap,
+		Exchange:    exchange,
 	})
 	if err != nil {
 		return 0, 0, err
@@ -85,11 +88,12 @@ func (l LiveMode) GetTransferAmount(amount decimal.Decimal) decimal.Decimal {
 	return amount.Sub(dec200)
 }
 
-func (l LiveMode) GetTakeProfitParam(isMeme bool, symbolIndex int, cap float64) (float64, float64, error) {
+func (l LiveMode) GetTakeProfitParam(isMeme bool, symbolIndex int, cap float64, exchange exchangeEnum.ExchangeType) (float64, float64, error) {
 	resp, err := toUpbitParam.GetService().Compute(context.Background(), toUpbitParam.ComputeRequest{
 		IsMeme:      isMeme,
 		SymbolIndex: symbolIndex,
 		MarketCapM:  cap,
+		Exchange:    exchange,
 	})
 	if err != nil {
 		return 0, 0, err

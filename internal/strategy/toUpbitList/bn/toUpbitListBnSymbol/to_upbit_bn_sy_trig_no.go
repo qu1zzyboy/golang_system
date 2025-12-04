@@ -5,6 +5,7 @@ import (
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitDefine"
 
 	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
+	exchangeEnum "upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
@@ -35,6 +36,9 @@ func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
 
 func (s *Single) IntoExecuteNoCheck(eventTs int64, trigFlag string, priceTrig_8 uint64) {
 	s.hasTreeNews = toUpbitBnMode.Mode.GetTreeNewsFlag()
+	if s.hasTreeNews {
+		s.treeNewsExchangeType = exchangeEnum.UPBIT
+	}
 	toUpBitListDataAfter.Trig(s.symbolIndex)
 	s.startTrig()
 	limit := decimal.New(int64(s.priceMaxBuy_10), -bnConst.PScale_10).Truncate(s.pScale)
@@ -75,7 +79,11 @@ func (s *Single) calParam() {
 	last2MinCloseF64 := float64(s.last2MinClose_8) / 1e8
 	cap2Min := mesh.SupplyNow * last2MinCloseF64
 	//计算止盈止损参数
-	gainPct, twapSec, err := toUpbitBnMode.Mode.GetTakeProfitParam(mesh.IsMeMe, s.symbolIndex, cap2Min/1_000_000)
+	exType := exchangeEnum.UPBIT
+	if s.hasTreeNews {
+		exType = normalizeExchangeType(s.treeNewsExchangeType)
+	}
+	gainPct, twapSec, err := toUpbitBnMode.Mode.GetTakeProfitParam(mesh.IsMeMe, s.symbolIndex, cap2Min/1_000_000, exType)
 	if err != nil {
 		toUpBitListDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] 获取止盈止损失败: %v", symbolName, err)
 		s.receiveStop(toUpbitDefine.StopByGetRemoteFailure)
@@ -86,6 +94,6 @@ func (s *Single) calParam() {
 		return
 	}
 	// 返回值格式 15.5 30
-	toUpBitListDataStatic.DyLog.GetLog().Infof("远程参数:%t,市值:%f,%s,远程响应:[%f,%f]", mesh.IsMeMe, cap2Min/1_000_000, symbolName, gainPct, twapSec)
+	toUpBitListDataStatic.DyLog.GetLog().Infof("远程参数:%t,市值:%f,%s,交易所:%s,远程响应:[%f,%f]", mesh.IsMeMe, cap2Min/1_000_000, symbolName, exType.String(), gainPct, twapSec)
 	s.setExecuteParam(last2MinCloseF64*(1+0.01*(gainPct+15)), twapSec)
 }
