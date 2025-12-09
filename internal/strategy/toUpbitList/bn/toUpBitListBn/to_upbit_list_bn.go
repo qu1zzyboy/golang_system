@@ -2,6 +2,7 @@ package toUpBitListBn
 
 import (
 	"context"
+	toUpbitMesh2 "upbitBnServer/internal/strategy/newsDrive/upbit/toUpbitMesh"
 
 	strategyV1 "upbitBnServer/api/strategy/v1"
 	"upbitBnServer/internal/define/defineJson"
@@ -17,7 +18,6 @@ import (
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpbitMesh"
 	"upbitBnServer/pkg/container/ring/ringBuf"
 	"upbitBnServer/pkg/utils/convertx"
 	"upbitBnServer/pkg/utils/jsonUtils"
@@ -73,7 +73,7 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 	if err != nil {
 		return err
 	}
-	res := redisClient.HGetAll(ctx, toUpbitMesh.REDIS_KEY_TO_UPBIT_LIST_COIN_BN)
+	res := redisClient.HGetAll(ctx, toUpbitMesh2.REDIS_KEY_TO_UPBIT_LIST_COIN_BN)
 	if res.Err() != nil {
 		return res.Err()
 	}
@@ -84,7 +84,7 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 	// 要订阅的品种
 	var symbols []string
 	for _, v := range data {
-		var mesh toUpbitMesh.Save
+		var mesh toUpbitMesh2.Save
 		if err := jsonUtils.UnmarshalFromString(v, &mesh); err != nil {
 			return err
 		}
@@ -143,7 +143,7 @@ func Start(ctx context.Context, meta *strategyV1.ServerReqBase, req *Req) error 
 	if err := s.start(ctx, req); err != nil {
 		return err
 	}
-	if err := toUpbitMesh.GetHandle().Register(ctx, serverInstanceEnum.TO_UPBIT_LIST_BN, map[string]string{}, s); err != nil {
+	if err := toUpbitMesh2.GetHandle().Register(ctx, serverInstanceEnum.TO_UPBIT_LIST_BN, map[string]string{}, s); err != nil {
 		return err
 	}
 	if err := instanceCenter.GetManager().Register(ctx, serverInstanceEnum.TO_UPBIT_LIST_BN, map[string]string{}, s); err != nil {

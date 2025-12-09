@@ -102,12 +102,6 @@ func (s *Single) TryBuyLoop(max int32) {
 				}
 				time.Sleep(time.Until(target))
 
-				// next := now.Truncate(time.Second).Add(time.Second)
-				// trigger := next.Add(+5 * time.Millisecond)
-				// sleep := time.Until(target)
-				// if sleep > 0 {
-				// 	time.Sleep(sleep)
-				// }
 				//已经完全开满
 				if s.hasAllFilled.Load() {
 					break

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"upbitBnServer/internal/strategy/newsDrive/upbit/toUpbitMesh"
 
 	strategyV1 "upbitBnServer/api/strategy/v1"
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
@@ -17,7 +18,6 @@ import (
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpbitMesh"
 	"upbitBnServer/internal/strategy/toUpbitParam"
 	"upbitBnServer/pkg/utils/jsonUtils"
 	"upbitBnServer/server/grpcEvent"
