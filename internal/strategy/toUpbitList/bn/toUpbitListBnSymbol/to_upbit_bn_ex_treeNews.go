@@ -3,6 +3,7 @@ package toUpbitListBnSymbol
 import (
 	"time"
 
+	"upbitBnServer/internal/strategy/newsDrive/driverDefine"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 )
 
@@ -13,7 +14,7 @@ func (s *Single) checkTreeNews() {
 		if s.hasTreeNews {
 			return
 		}
-		s.receiveStop(StopByTreeNews)
+		s.receiveStop(driverDefine.StopByTreeNews)
 		toUpBitDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
 			"symbol": s.StMeta.SymbolName,
 			"op":     "TreeNews未确认",
@@ -32,7 +33,7 @@ func (s *Single) ReceiveTreeNews() {
 
 func (s *Single) ReceiveNoTreeNews() {
 	s.hasTreeNews = false
-	s.receiveStop(StopByTreeNews)
+	s.receiveStop(driverDefine.StopByTreeNews)
 	toUpBitDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
 		"symbol": s.StMeta.SymbolName,
 		"op":     "TreeNews未确认",

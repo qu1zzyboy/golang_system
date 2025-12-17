@@ -70,15 +70,14 @@ func (s *Single) PlacePostOnlyOrder(limit decimal.Decimal) {
 					if s.secondArr[0].loadStop() || s.hasAllFilled.Load() {
 						break OUTER
 					}
-					if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(order_from, 0, s.symbolIndex,
-						&orderModel.MyPlaceOrderReq{
-							OrigPrice:     limit,
-							OrigVol:       orderNum,
-							ClientOrderId: toUpBitDataStatic.GetMakerClientOrderId(),
-							StaticMeta:    s.StMeta,
-							OrderType:     execute.ORDER_TYPE_POST_ONLY,
-							OrderMode:     execute.ORDER_BUY_OPEN,
-						}); err != nil {
+					if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(order_from, 0, s.symbolIndex, &orderModel.MyPlaceOrderReq{
+						OrigPrice:     limit,
+						OrigVol:       orderNum,
+						ClientOrderId: toUpBitDataStatic.GetMakerClientOrderId(),
+						StaticMeta:    s.StMeta,
+						OrderType:     execute.ORDER_TYPE_POST_ONLY,
+						OrderMode:     execute.ORDER_BUY_OPEN,
+					}); err != nil {
 						toUpBitDataStatic.DyLog.GetLog().Errorf("每秒limit_maker订单失败: %v", err)
 					}
 					// time.Sleep(40 * time.Microsecond) // 休眠 40 微秒

@@ -2,6 +2,7 @@ package toUpbitListBnSymbol
 
 import (
 	"time"
+	"upbitBnServer/internal/strategy/newsDrive/driverDefine"
 
 	"upbitBnServer/internal/infra/safex"
 	"upbitBnServer/internal/quant/execute"
@@ -14,28 +15,8 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type StopType uint8
-
-const (
-	StopByTreeNews StopType = iota
-	StopByMoveStopLoss
-	StopByBtTakeProfit
-	StopByGetCmcFailure
-	StopByGetRemoteFailure
-)
-
 const (
 	order_from = orderBelongEnum.TO_UPBIT_LIST_LOOP
-)
-
-var (
-	stopReasonArr = []string{
-		"未触发TreeNews",
-		"%5移动止损触发",
-		"BookTick止盈触发",
-		"获取cmc_id失败",
-		"获取远程参数失败",
-	}
 )
 
 func (s *Single) clear() {
@@ -50,12 +31,12 @@ func (s *Single) clear() {
 	toUpBitListDataAfter.ClearTrig()
 }
 
-func (s *Single) receiveStop(stopType StopType) {
+func (s *Single) receiveStop(stopType driverDefine.StopType) {
 	if s.hasReceiveStop {
 		return
 	}
 	s.hasReceiveStop = true
-	toUpBitDataStatic.DyLog.GetLog().Infof("收到停止信号==> %s", stopReasonArr[stopType])
+	toUpBitDataStatic.DyLog.GetLog().Infof("收到停止信号==> %s", driverDefine.StopReasonArr[stopType])
 	s.cancel()
 	//开启平仓线程
 	safex.SafeGo("to_upbit_bn_close", func() {
