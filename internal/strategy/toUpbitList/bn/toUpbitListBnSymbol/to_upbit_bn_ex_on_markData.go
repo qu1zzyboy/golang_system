@@ -34,24 +34,26 @@ func (s *Single) onBookTickExecute(f64 float64, ts int64) {
 				}
 			}
 		}
-		
+
 	case exchangeEnum.BINANCE:
 		//价格涨到位,触发平仓
-		if s.hasTreeNews && s.bnSellTrigPrice > 0 && f64 > s.bnSellTrigPrice {
+		if s.bnSellTrigPrice > 0 && f64 > s.bnSellTrigPrice {
 			toUpBitDataStatic.DyLog.GetLog().Infof("触发平仓价格: %.8f,当前价格: %.8f", s.bnSellTrigPrice, f64)
 			s.receiveStop(driverDefine.StopByTrigClosePrice)
 			return
 		}
 
-		if s.hasTreeNews && s.stopLossPrice > 0 && f64 < s.stopLossPrice {
+		if s.stopLossPrice > 0 && f64 < s.stopLossPrice {
 			toUpBitDataStatic.DyLog.GetLog().Infof("触发止损价格: %.8f,当前价格: %.8f", s.stopLossPrice, f64)
 			s.receiveStop(driverDefine.StopByStopLoss)
 			return
 		}
+	case exchangeEnum.UNKNOWN:
+		return
 	}
 
-	//价格涨到位,触发平仓
-	if s.hasTreeNews && s.takeProfitPrice > 0 && f64 > s.takeProfitPrice {
+	// 通用止盈判定
+	if s.takeProfitPrice > 0 && f64 > s.takeProfitPrice {
 		toUpBitDataStatic.DyLog.GetLog().Infof("触发平仓价格: %.8f,当前价格: %.8f", s.takeProfitPrice, f64)
 		s.receiveStop(driverDefine.StopByTakeProfit)
 		return

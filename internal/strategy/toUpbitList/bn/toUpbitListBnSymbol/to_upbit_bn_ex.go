@@ -5,6 +5,7 @@ import (
 	"upbitBnServer/internal/strategy/newsDrive/driverDefine"
 
 	"upbitBnServer/internal/infra/safex"
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
@@ -28,6 +29,13 @@ func (s *Single) clear() {
 	}
 	s.hasAllFilled.Store(false)
 	s.thisOrderAccountId.Store(0)
+	s.TrigExType = exchangeEnum.UNKNOWN
+	s.bnSpotPerNum = decimal.Zero
+	s.bnSellTrigPrice = 0
+	s.stopLossPrice = 0
+	s.takeProfitPrice = 0
+	s.hasTreeNews.Store(false)
+	s.hasReceiveStop = false
 	toUpBitListDataAfter.ClearTrig()
 }
 

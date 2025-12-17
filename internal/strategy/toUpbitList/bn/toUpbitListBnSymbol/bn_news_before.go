@@ -47,7 +47,6 @@ func (s *Single) placePostOnlyOrder(limit decimal.Decimal) {
 					}); err != nil {
 						toUpBitDataStatic.DyLog.GetLog().Errorf("每秒limit_maker订单失败: %v", err)
 					}
-					// time.Sleep(40 * time.Microsecond) // 休眠 40 微秒
 				}
 			}
 		}
@@ -63,7 +62,7 @@ func (s *Single) tryBuyLoopBeforeNews() {
 		defer func() {
 			toUpBitDataStatic.DyLog.GetLog().Infof("每秒抽奖协程结束,抽奖次数[当前抽奖序号:%d,max:%d]", i, 3)
 		}()
-		for i = 1; i < 3; i++ {
+		for i = 1; i < 5; i++ {
 			select {
 			case <-s.ctxStop.Done():
 				toUpBitDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出每秒抽奖协程")
@@ -82,6 +81,11 @@ func (s *Single) tryBuyLoopBeforeNews() {
 
 				//已经完全开满
 				if s.hasAllFilled.Load() {
+					toUpBitDataStatic.DyLog.GetLog().Infof("完全成交,退出每秒抽奖协程")
+					break
+				}
+				if s.hasTreeNews.Load() {
+					toUpBitDataStatic.DyLog.GetLog().Infof("收到 TreeNews,退出每秒抽奖协程")
 					break
 				}
 				// 进入每秒抽奖循环

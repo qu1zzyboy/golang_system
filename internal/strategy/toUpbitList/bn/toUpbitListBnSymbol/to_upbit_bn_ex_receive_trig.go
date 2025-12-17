@@ -19,9 +19,9 @@ func (s *Single) startTrig() {
 	s.MaxNotional = s.MaxNotional.Sub(toUpBitDataStatic.Dec500)
 }
 
-func (s *Single) setExecuteParam(trigPrice float64, twapSec float64) {
+func (s *Single) setExecuteParam(takeProfitPrice float64, twapSec float64) {
 	s.twapSec = twapSec
-	s.takeProfitPrice = trigPrice
+	s.takeProfitPrice = takeProfitPrice
 	s.closeDuration = time.Duration(twapSec) * time.Second
-	toUpBitDataStatic.DyLog.GetLog().Infof("止盈价格: %.8f,平仓持续时间: %s,单账户上限:%s", trigPrice, s.closeDuration.String(), s.MaxNotional)
+	toUpBitDataStatic.DyLog.GetLog().Infof("止盈价格: %.8f,平仓持续时间: %s,单账户上限:%s", takeProfitPrice, s.closeDuration.String(), s.MaxNotional)
 }

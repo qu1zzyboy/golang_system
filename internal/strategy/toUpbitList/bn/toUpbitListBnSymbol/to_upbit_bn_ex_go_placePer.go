@@ -53,7 +53,7 @@ OUTER:
 			}
 
 			orderType := execute.ORDER_TYPE_POST_ONLY
-			if s.hasTreeNews {
+			if s.hasTreeNews.Load() {
 				// 上一次循环没有收到这一秒的标记价格
 				if !hasReceive {
 

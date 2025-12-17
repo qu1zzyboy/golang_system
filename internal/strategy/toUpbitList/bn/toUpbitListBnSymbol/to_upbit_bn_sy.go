@@ -66,7 +66,6 @@ type cache_line_3 struct {
 	hasAllFilled    atomic.Bool               // 是否已经完全成交
 	isStopLossAble  atomic.Bool               // 能否开始移动止损
 	hasReceiveStop  bool                      // 是否已经收到过停止信号
-	hasTreeNews     bool                      // 是否已经接受到treeNews
 }
 
 type cache_line_4 struct {
@@ -119,11 +118,13 @@ type Single struct {
 	bnSpotPerNum       decimal.Decimal                        // bn现货每次下单数量
 	bnSellTrigPrice    float64                                // bn止盈触发价格
 	stopLossPrice      float64                                // 止损价格
+	hasTreeNews        atomic.Bool                            // 是否已经接受到treeNews
 }
 
 func (s *Single) Clear() {
 	s.newPriceMinWindowU64(toUpBitDataStatic.TickCap)
 	s.lastRiseValue = 0.0
+	s.clear()
 }
 
 func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
@@ -216,10 +217,6 @@ func (s *Single) onLoop() {
 				case toUpbitListChan.ReceiveNoTreeNews:
 					{
 						s.ReceiveNoTreeNews()
-					}
-				case toUpbitListChan.ReceiveTreeNewsAndOpen:
-					{
-						s.intoExecuteByMsg()
 					}
 				case toUpbitListChan.CancelOrderReturn:
 					{

@@ -12,7 +12,6 @@ const (
 	ReceiveTreeNews Sig = iota
 	ReceiveNoTreeNews
 	CancelOrderReturn
-	ReceiveTreeNewsAndOpen
 	FailureOrder
 	QUERY_ACCOUNT_RETURN
 )

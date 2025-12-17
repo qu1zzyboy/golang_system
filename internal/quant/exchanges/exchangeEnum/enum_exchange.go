@@ -15,6 +15,7 @@ const (
 	BYBIT
 	UPBIT
 	BITHUMB
+	UNKNOWN
 )
 
 func (s ExchangeType) GetNotSupportError(flag string) error {
