@@ -5,9 +5,11 @@ type StopType uint8
 const (
 	StopByTreeNews StopType = iota
 	StopByMoveStopLoss
-	StopByBtTakeProfit
+	StopByTakeProfit
 	StopByGetCmcFailure
 	StopByGetRemoteFailure
+	StopByTrigClosePrice
+	StopByStopLoss
 	TotalLen
 )
 
@@ -18,5 +20,7 @@ var (
 		"BookTick止盈触发",
 		"获取cmc_id失败",
 		"获取远程参数失败",
+		"触发平仓价格",
+		"止损触发",
 	}
 )

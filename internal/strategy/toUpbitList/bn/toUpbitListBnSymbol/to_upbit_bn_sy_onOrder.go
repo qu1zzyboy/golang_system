@@ -11,7 +11,7 @@ import (
 
 func (s *Single) onPayloadOrder(data []byte) {
 	if toUpBitListDataAfter.LoadTrig() {
-		if s.symbolIndex == toUpBitListDataAfter.TrigSymbolIndex {
+		if s.SymbolIndex == toUpBitListDataAfter.TrigSymbolIndex {
 			toUpBitDataStatic.SendToUpBitMsg("发送bn二次确认失败", map[string]string{
 				"symbol": s.StMeta.SymbolName,
 				"op":     "ORDER_UPDATE二次上涨确认",

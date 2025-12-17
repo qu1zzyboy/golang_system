@@ -34,7 +34,7 @@ func (s *Single) OnTransOut(maxWithdrawAmount decimal.Decimal) {
 		for {
 			accountKeyId = s.toAccountId.Load()
 			if err = toUpBitListBnAccount.GetBnAccountManager().TransferOut(accountKeyId, maxWithdrawAmount); err == nil {
-				s.secondArr[accountKeyId].maxNotional.Store(decimal.Min(maxWithdrawAmount.Mul(dec4), s.maxNotional))
+				s.SecondArr[accountKeyId].maxNotional.Store(decimal.Min(maxWithdrawAmount.Mul(dec4), s.MaxNotional))
 				break
 			} else {
 				toUpBitDataStatic.DyLog.GetLog().Errorf("划转到[%d]失败:%v", accountKeyId, err)

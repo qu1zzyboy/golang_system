@@ -60,7 +60,7 @@ func (s *Single) onMarkPrice(len int, bufPtr *[]byte) {
 
 	if toUpBitListDataAfter.LoadTrig() {
 		/*********************上币已经触发**************************/
-		if s.symbolIndex != toUpBitListDataAfter.TrigSymbolIndex {
+		if s.SymbolIndex != toUpBitListDataAfter.TrigSymbolIndex {
 			return
 		}
 		// 1、计算价格上限并存储
@@ -75,6 +75,7 @@ func (s *Single) onMarkPrice(len int, bufPtr *[]byte) {
 		markPrice_8 := convertx.PriceStringToUint64(results[0].String(), bnConst.PScale_8)
 		s.markPriceTs = results[1].Int()
 		s.minPriceAfterMp = markPrice_8
+		s.TrigMartPrice = results[0].Float()
 		// 2、计算价格上限
 		s.markPrice_8 = markPrice_8
 		s.priceMaxBuy_10 = markPrice_8 * s.upLimitPercent_2
@@ -95,7 +96,7 @@ func (s *Single) onPreFilled(clientOrderId string) {
 			clientOrders.Delete(clientOrderId)
 			clientOrderSig.Store(clientOrderId, struct{}{})
 			// 下买入平空单
-			if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(ws_req_from, s.preAccountKeyId, s.symbolIndex,
+			if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(ws_req_from, s.preAccountKeyId, s.SymbolIndex,
 				&orderModel.MyPlaceOrderReq{
 					OrigPrice:     decimal.New(int64(s.lastMarkPrice_8), -bnConst.PScale_8).Truncate(s.pScale),
 					OrigVol:       s.orderNum,

@@ -17,6 +17,7 @@ import (
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/infra/observe/log/staticLog"
 	"upbitBnServer/internal/infra/safex"
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/pkg/utils/timeUtils"
 
 	"github.com/gorilla/websocket"
@@ -65,6 +66,7 @@ type Event struct {
 	LatencyAdjustMS int
 	LatencyMS       int
 	RTTMS           int64
+	ExType          exchangeEnum.ExchangeType
 }
 
 // HandlerFunc 会在每条过滤后的事件上被调用。

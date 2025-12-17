@@ -17,7 +17,7 @@ func (s *Single) onBookTick(len int, bufPtr *[]byte) {
 
 	/****处理盘口数据****/
 	if toUpBitListDataAfter.LoadTrig() {
-		if s.symbolIndex != toUpBitListDataAfter.TrigSymbolIndex {
+		if s.SymbolIndex != toUpBitListDataAfter.TrigSymbolIndex {
 			return
 		}
 		/*********************上币已经触发**************************/

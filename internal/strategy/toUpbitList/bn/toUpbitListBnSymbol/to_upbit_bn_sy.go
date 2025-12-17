@@ -60,9 +60,9 @@ type cache_line_3 struct {
 	StMeta          *symbolStatic.StaticTrade // 交易对静态信息
 	bidPrice        atomic.Value              // 买一价,平仓和计算仓位价值用到
 	takeProfitPrice float64                   // 止盈价格
-	symbolIndex     int                       // 交易对下标
+	SymbolIndex     int                       // 交易对下标
 	pScale          int32                     // 价格小数位
-	qScale          int32                     // 数量小数位
+	QScale          int32                     // 数量小数位
 	hasAllFilled    atomic.Bool               // 是否已经完全成交
 	isStopLossAble  atomic.Bool               // 能否开始移动止损
 	hasReceiveStop  bool                      // 是否已经收到过停止信号
@@ -87,6 +87,7 @@ type cache_line_5 struct {
 
 type cache_line_6 struct {
 	trigPriceMax_10 myMap.MySyncMap[int64, uint64] // 已触发品种的买入上限,秒级别时间戳和价格
+	TrigMartPrice   float64                        // 触发的标记价格
 }
 
 type Single struct {
@@ -102,18 +103,22 @@ type Single struct {
 	chanMonitor        chan []byte                            // 订单监测chan
 	chanOutSideSig     chan toUpbitListChan.Special           // 外部信号chan
 	chanSuOrder        chan toUpBitListDataAfter.OnSuccessEvt // 成功订单chan
-	secondArr          [11]*secondPerInfo                     // 每秒信息
+	SecondArr          [11]*secondPerInfo                     // 每秒信息
 	clientOrderIds     myMap.MySyncMap[string, uint8]         // 挂单成功的clientOrderId
-	posTotalNeed       decimal.Decimal                        // 需要开仓的数量
-	firstPriceBuy      decimal.Decimal                        // 当前应该下单的价格
-	maxNotional        decimal.Decimal                        // 单品种最大开仓上限
+	PosTotalNeed       decimal.Decimal                        // 需要开仓的数量
+	FirstPriceBuy      decimal.Decimal                        // 当前应该下单的价格
+	MaxNotional        decimal.Decimal                        // 单品种最大开仓上限
 	ctxStop            context.Context                        // 同步关闭ctx
 	cancel             context.CancelFunc                     // 关闭函数
-	pos                *toUpbitListPos.PosCal                 // 持仓计算对象
+	Pos                *toUpbitListPos.PosCal                 // 持仓计算对象
 	twapSec            float64                                // twap下单间隔秒数
 	closeDuration      time.Duration                          // 平仓持续时间
 	thisOrderAccountId atomic.Int32                           // 当前订单使用的资金账户ID
 	toAccountId        atomic.Int32                           // 准备接收资金的账户id
+	TrigExType         exchangeEnum.ExchangeType              // 触发的交易所类型
+	bnSpotPerNum       decimal.Decimal                        // bn现货每次下单数量
+	bnSellTrigPrice    float64                                // bn止盈触发价格
+	stopLossPrice      float64                                // 止损价格
 }
 
 func (s *Single) Clear() {
@@ -143,7 +148,7 @@ func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 		return err
 	}
 	s.pScale = dyMeta.PScale
-	s.qScale = dyMeta.QScale
+	s.QScale = dyMeta.QScale
 
 	limit, err := symbolLimit.GetManager().Get(symbolKeyId)
 	if err != nil {
@@ -174,12 +179,12 @@ func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 	s.agLatencyTotal = latency.NewHttpMonitor(idGen.BuildName2(latencyPrefix, total), latency.PROCESS_TOTAL, resourceEnum.AGG_TRADE)
 	s.btLatencyTotal = latency.NewHttpMonitor(idGen.BuildName2(latencyPrefix, total), latency.PROCESS_TOTAL, resourceEnum.BOOK_TICK)
 	s.mpLatencyTotal = latency.NewHttpMonitor(idGen.BuildName2(latencyPrefix, total), latency.PROCESS_TOTAL, resourceEnum.MARK_PRICE)
-	s.symbolIndex = index
+	s.SymbolIndex = index
 	toUpBitDataStatic.SymbolIndex.Store(symbolName, index)
 	for i := range 11 {
 		temp := &secondPerInfo{}
 		temp.clear()
-		s.secondArr[i] = temp
+		s.SecondArr[i] = temp
 	}
 	s.trigPriceMax_10 = myMap.NewMySyncMap[int64, uint64]()
 	safex.SafeGo(symbolName+"单品种协程", s.onLoop)
@@ -206,7 +211,7 @@ func (s *Single) onLoop() {
 				switch sig.SigType {
 				case toUpbitListChan.ReceiveTreeNews:
 					{
-						s.ReceiveTreeNews()
+						// s.ReceiveTreeNews()
 					}
 				case toUpbitListChan.ReceiveNoTreeNews:
 					{

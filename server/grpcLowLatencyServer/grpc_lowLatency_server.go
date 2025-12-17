@@ -142,7 +142,7 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 
 			// 触发品种和TreeNews品种一致
 			if symbolIndexTrue == toUpBitListDataAfter.TrigSymbolIndex {
-				toUpbitListBnSymbolArr.GetSymbolObj(symbolIndexTrue).ReceiveTreeNews()
+				// toUpbitListBnSymbolArr.GetSymbolObj(symbolIndexTrue).ReceiveTreeNews()
 			} else {
 				toUpbitListBnSymbolArr.GetSymbolObj(toUpBitListDataAfter.TrigSymbolIndex).ReceiveNoTreeNews()
 			}
@@ -151,7 +151,7 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 		{
 			symbolIndex, _ := toUpBitDataStatic.SymbolIndex.Load("XPINUSDT")
 			obj := toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex)
-			go obj.ReceiveTreeNews()
+			// go obj.ReceiveTreeNews()
 			obj.IntoExecuteNoCheck(time.Now().UnixMilli(), "test", 200000000)
 		}
 	case grpcEvent.TO_UPBIT_PARAM_TEST:

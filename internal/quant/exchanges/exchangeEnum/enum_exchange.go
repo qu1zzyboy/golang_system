@@ -14,6 +14,7 @@ const (
 	BINANCE ExchangeType = iota
 	BYBIT
 	UPBIT
+	BITHUMB
 )
 
 func (s ExchangeType) GetNotSupportError(flag string) error {
@@ -40,6 +41,8 @@ func (s ExchangeType) String() string {
 		return "BYBIT"
 	case UPBIT:
 		return "UPBIT"
+	case BITHUMB:
+		return "BITHUMB"
 	default:
 		return "ERROR"
 	}

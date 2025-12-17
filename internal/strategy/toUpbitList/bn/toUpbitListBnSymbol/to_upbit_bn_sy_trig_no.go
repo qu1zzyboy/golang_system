@@ -30,13 +30,15 @@ func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
 
 func (s *Single) IntoExecuteNoCheck(eventTs int64, trigFlag string, priceTrig_8 uint64) {
 	s.hasTreeNews = toUpbitBnMode.Mode.GetTreeNewsFlag()
-	toUpBitListDataAfter.Trig(s.symbolIndex)
+	toUpBitListDataAfter.Trig(s.SymbolIndex)
 	s.startTrig()
 	limit := decimal.New(int64(s.priceMaxBuy_10), -bnConst.PScale_10).Truncate(s.pScale)
 	// debug版默认为true,不会收到消息也不会退出
 	s.checkTreeNews()
-	s.PlacePostOnlyOrder(limit)
-	s.TryBuyLoop(20)
+	s.placePostOnlyOrder(limit)
+
+	s.tryBuyLoopBeforeNews()
+
 	// 获取止盈止损参数
 	s.calParam()
 	toUpBitDataStatic.DyLog.GetLog().Infof("%s->[%s]价格触发,最新价格: %d,涨幅: %f%%,事件时间:%d",
@@ -45,9 +47,9 @@ func (s *Single) IntoExecuteNoCheck(eventTs int64, trigFlag string, priceTrig_8 
 
 func (s *Single) intoExecuteByMsg() {
 	s.hasTreeNews = true
-	toUpBitListDataAfter.Trig(s.symbolIndex)
+	toUpBitListDataAfter.Trig(s.SymbolIndex)
 	s.startTrig()
-	s.TryBuyLoop(20)
+	s.tryBuyLoopUpBitKrw(20)
 	// 获取止盈止损参数
 	s.calParam()
 	toUpBitDataStatic.DyLog.GetLog().Infof("treeNews->[%s]触发,涨幅: %f%%", s.StMeta.SymbolName, s.lastRiseValue*100)
@@ -70,7 +72,7 @@ func (s *Single) calParam() {
 	last2MinCloseF64 := float64(s.last2MinClose_8) / 1e8
 	cap2Min := mesh.SupplyNow * last2MinCloseF64
 	//计算止盈止损参数
-	gainPct, twapSec, err := toUpbitBnMode.Mode.GetTakeProfitParam(mesh.IsMeMe, s.symbolIndex, cap2Min/1_000_000)
+	gainPct, twapSec, err := toUpbitBnMode.Mode.GetTakeProfitParam(mesh.IsMeMe, s.SymbolIndex, cap2Min/1_000_000)
 	if err != nil {
 		toUpBitDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] 获取止盈止损失败: %v", symbolName, err)
 		s.receiveStop(driverDefine.StopByGetRemoteFailure)

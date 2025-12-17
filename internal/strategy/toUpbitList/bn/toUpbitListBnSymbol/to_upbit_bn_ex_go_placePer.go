@@ -18,9 +18,9 @@ func (s *Single) placePer(i int32, accountIndex uint8) {
 	var post, limit, market int
 	var maxNotional decimal.Decimal //这一秒的能开的仓位的上限,第3秒之后要判断钱够不够开
 	if i >= 3 {
-		val := s.secondArr[accountIndex].maxNotional.Load()
+		val := s.SecondArr[accountIndex].maxNotional.Load()
 		if val == nil {
-			maxNotional = s.maxNotional
+			maxNotional = s.MaxNotional
 		} else {
 			maxNotional = val.(decimal.Decimal)
 		}
@@ -38,7 +38,7 @@ func (s *Single) placePer(i int32, accountIndex uint8) {
 	if markPrice_u10, ok := s.trigPriceMax_10.Load(tsSec - 1); ok {
 		priceBuy = decimal.New(int64(markPrice_u10), -bnConst.PScale_10).Mul(dec103).Truncate(s.pScale)
 	} else {
-		priceBuy = s.firstPriceBuy
+		priceBuy = s.FirstPriceBuy
 	}
 OUTER:
 	for j = 0; j <= 230; j++ {
@@ -48,7 +48,7 @@ OUTER:
 			break OUTER
 		default:
 			//有成交或者本轮挂单成功
-			if s.secondArr[accountIndex].loadStop() || s.hasAllFilled.Load() {
+			if s.SecondArr[accountIndex].loadStop() || s.hasAllFilled.Load() {
 				break OUTER
 			}
 
@@ -86,16 +86,16 @@ OUTER:
 			}
 
 			//0.3*(总仓位-当前仓位)
-			num := (s.posTotalNeed.Sub(s.pos.GetTotal()).Mul(dec03))
+			num := (s.PosTotalNeed.Sub(s.Pos.GetTotal()).Mul(dec03))
 			if i >= 3 {
 				num = decimal.Min(num, maxNotional.Div(priceBuy))
 			}
 
 			// 每次只开剩余应开仓位
-			if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(order_from, accountIndex, s.symbolIndex,
+			if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(order_from, accountIndex, s.SymbolIndex,
 				&orderModel.MyPlaceOrderReq{
 					OrigPrice:     priceBuy,
-					OrigVol:       num.Truncate(s.qScale),
+					OrigVol:       num.Truncate(s.QScale),
 					ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("second"),
 					StaticMeta:    s.StMeta,
 					OrderType:     orderType,

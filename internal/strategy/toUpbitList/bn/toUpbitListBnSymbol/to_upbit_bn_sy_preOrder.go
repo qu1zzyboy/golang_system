@@ -22,7 +22,7 @@ func (s *Single) checkPreOrder(markPrice_8 uint64) {
 		}
 		//下小订单
 		thisMarkPriceDec := decimal.New(int64(markPrice_8), -bnConst.PScale_8)
-		if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(ws_req_from, s.preAccountKeyId, s.symbolIndex,
+		if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(ws_req_from, s.preAccountKeyId, s.SymbolIndex,
 			&orderModel.MyPlaceOrderReq{
 				OrigPrice:     thisMarkPriceDec.Mul(s.smallPercent).Truncate(s.pScale),
 				OrigVol:       s.orderNum,
@@ -45,7 +45,7 @@ func (s *Single) checkPreOrder(markPrice_8 uint64) {
 		s.lastMarkPrice_8 = markPrice_8
 		if _, ok := clientOrders.Load(s.clientOrderIdSmall); ok {
 			toUpBitDataStatic.DyLog.GetLog().Infof("[%d,%s] 触发[%d,%d,%d_%d],准备更新预挂单:%s",
-				s.preAccountKeyId, symbolKey, lastMarkPrice_8, markPrice_8, s.pScale, s.qScale, modifySmallPrice)
+				s.preAccountKeyId, symbolKey, lastMarkPrice_8, markPrice_8, s.pScale, s.QScale, modifySmallPrice)
 			//更新订单价格
 			if err := bnOrderAppManager.GetTradeManager().SendModifyOrder(ws_req_from, s.preAccountKeyId,
 				&orderModel.MyModifyOrderReq{
@@ -69,7 +69,7 @@ func (s *Single) checkPreOrder(markPrice_8 uint64) {
 				return
 			}
 			//下小订单
-			if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(ws_req_from, s.preAccountKeyId, s.symbolIndex,
+			if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(ws_req_from, s.preAccountKeyId, s.SymbolIndex,
 				&orderModel.MyPlaceOrderReq{
 					OrigPrice:     modifySmallPrice,
 					OrigVol:       s.orderNum,

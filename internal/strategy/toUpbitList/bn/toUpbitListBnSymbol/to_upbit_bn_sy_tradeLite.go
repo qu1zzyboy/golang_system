@@ -11,7 +11,7 @@ import (
 
 func (s *Single) onTradeLite(data []byte) {
 	if toUpBitListDataAfter.LoadTrig() {
-		if s.symbolIndex == toUpBitListDataAfter.TrigSymbolIndex {
+		if s.SymbolIndex == toUpBitListDataAfter.TrigSymbolIndex {
 			toUpBitDataStatic.SendToUpBitMsg("发送bn二次确认失败", map[string]string{
 				"symbol": s.StMeta.SymbolName,
 				"op":     "bn_TRADE_LITE二次上涨确认",

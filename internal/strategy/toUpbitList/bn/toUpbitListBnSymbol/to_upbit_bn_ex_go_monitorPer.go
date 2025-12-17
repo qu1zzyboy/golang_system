@@ -14,7 +14,7 @@ func (s *Single) monitorPer(accountIndex uint8) {
 	defer func() {
 		toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d],探测[%d]次,协程结束", accountIndex, i)
 	}()
-	price := s.firstPriceBuy.Mul(dec2).Truncate(s.pScale)
+	price := s.FirstPriceBuy.Mul(dec2).Truncate(s.pScale)
 OUTER:
 	for i = 0; i <= 230; i++ {
 		select {
@@ -23,13 +23,13 @@ OUTER:
 			break OUTER
 		default:
 			//有成交或者本轮挂单成功
-			if s.secondArr[accountIndex].loadStop() || s.hasAllFilled.Load() {
+			if s.SecondArr[accountIndex].loadStop() || s.hasAllFilled.Load() {
 				break OUTER
 			}
-			if err := bnOrderAppManager.GetMonitorManager().SendMonitorOrder(order_from, accountIndex, s.symbolIndex,
+			if err := bnOrderAppManager.GetMonitorManager().SendMonitorOrder(order_from, accountIndex, s.SymbolIndex,
 				&orderModel.MyPlaceOrderReq{
 					OrigPrice:     price,
-					OrigVol:       s.posTotalNeed,
+					OrigVol:       s.PosTotalNeed,
 					ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("sec-Mo"),
 					StaticMeta:    s.StMeta,
 					OrderType:     execute.ORDER_TYPE_LIMIT,

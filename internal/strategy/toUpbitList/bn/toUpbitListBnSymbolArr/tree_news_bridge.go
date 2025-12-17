@@ -30,7 +30,7 @@ func treeNewsHandler(_ context.Context, evt treenews.Event) {
 		toUpBitDataStatic.DyLog.GetLog().Infof("received tree news: symbol=%s id=%s", symbolName, evt.ID)
 		// 触发品种和TreeNews品种一致
 		if symbolIndexTrue == toUpBitListDataAfter.TrigSymbolIndex {
-			GetSymbolObj(symbolIndexTrue).ReceiveTreeNews()
+			GetSymbolObj(symbolIndexTrue).ReceiveTreeNews(evt.ExType)
 		} else {
 			GetSymbolObj(toUpBitListDataAfter.TrigSymbolIndex).ReceiveNoTreeNews()
 		}

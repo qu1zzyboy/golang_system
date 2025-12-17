@@ -18,7 +18,7 @@ func (s *Single) onAggTrade(len int, bufPtr *[]byte) {
 	/****处理成交数据****/
 	if toUpBitListDataAfter.LoadTrig() {
 		/*********************上币已经触发**************************/
-		if s.symbolIndex != toUpBitListDataAfter.TrigSymbolIndex {
+		if s.SymbolIndex != toUpBitListDataAfter.TrigSymbolIndex {
 			return
 		}
 	} else {

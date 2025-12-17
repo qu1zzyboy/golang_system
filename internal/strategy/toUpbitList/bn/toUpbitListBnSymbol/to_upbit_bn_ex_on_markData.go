@@ -1,6 +1,7 @@
 package toUpbitListBnSymbol
 
 import (
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/strategy/newsDrive/driverDefine"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
@@ -19,23 +20,40 @@ func (s *Single) onBookTickExecute(f64 float64, ts int64) {
 		return
 	}
 
+	switch s.TrigExType {
+	case exchangeEnum.UPBIT:
+		// 止损判定
+		tsSecond := ts / 1000
+		// 只在最后100ms判断移动止损
+		if ts >= tsSecond*1000+900 {
+			if markPrice_u10, ok := s.trigPriceMax_10.Load(tsSecond); ok {
+				if toUpbitBnMode.Mode.IsDynamicStopLossTrig(f64, float64(markPrice_u10)/1e10) {
+					toUpBitDataStatic.DyLog.GetLog().Infof("移动止损触发,价格上限:%d,bid: %.8f", markPrice_u10, f64)
+					s.receiveStop(driverDefine.StopByMoveStopLoss)
+					return
+				}
+			}
+		}
+		
+	case exchangeEnum.BINANCE:
+		//价格涨到位,触发平仓
+		if s.hasTreeNews && s.bnSellTrigPrice > 0 && f64 > s.bnSellTrigPrice {
+			toUpBitDataStatic.DyLog.GetLog().Infof("触发平仓价格: %.8f,当前价格: %.8f", s.bnSellTrigPrice, f64)
+			s.receiveStop(driverDefine.StopByTrigClosePrice)
+			return
+		}
+
+		if s.hasTreeNews && s.stopLossPrice > 0 && f64 < s.stopLossPrice {
+			toUpBitDataStatic.DyLog.GetLog().Infof("触发止损价格: %.8f,当前价格: %.8f", s.stopLossPrice, f64)
+			s.receiveStop(driverDefine.StopByStopLoss)
+			return
+		}
+	}
+
 	//价格涨到位,触发平仓
 	if s.hasTreeNews && s.takeProfitPrice > 0 && f64 > s.takeProfitPrice {
 		toUpBitDataStatic.DyLog.GetLog().Infof("触发平仓价格: %.8f,当前价格: %.8f", s.takeProfitPrice, f64)
-		s.receiveStop(driverDefine.StopByBtTakeProfit)
+		s.receiveStop(driverDefine.StopByTakeProfit)
 		return
-	}
-
-	// 止损判定
-	tsSecond := ts / 1000
-	// 只在最后100ms判断移动止损
-	if ts >= tsSecond*1000+900 {
-		if markPrice_u10, ok := s.trigPriceMax_10.Load(tsSecond); ok {
-			if toUpbitBnMode.Mode.IsDynamicStopLossTrig(f64, float64(markPrice_u10)/1e10) {
-				toUpBitDataStatic.DyLog.GetLog().Infof("移动止损触发,价格上限:%d,bid: %.8f", markPrice_u10, f64)
-				s.receiveStop(driverDefine.StopByMoveStopLoss)
-				return
-			}
-		}
 	}
 }

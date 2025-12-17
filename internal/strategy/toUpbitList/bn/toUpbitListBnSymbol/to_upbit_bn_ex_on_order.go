@@ -24,16 +24,16 @@ func (s *Single) onSuccessOrder(evt toUpBitListDataAfter.OnSuccessEvt) {
 		if evt.Volume.GreaterThan(decimal.Zero) {
 			// 有成交更新可用仓位
 			if evt.OrderMode.IsOpen() {
-				posTotalAmount := s.pos.OpenFilled(accountKeyId, evt.Volume)
+				posTotalAmount := s.Pos.OpenFilled(accountKeyId, evt.Volume)
 				// 判断是否完全开满
-				left := s.posTotalNeed.Sub(posTotalAmount).Abs()
+				left := s.PosTotalNeed.Sub(posTotalAmount).Abs()
 
 				val := s.bidPrice.Load()
 				if val != nil {
 					lastPrice := decimal.NewFromFloat(val.(float64))
 					if left.Mul(lastPrice).LessThan(toUpBitDataStatic.Dec500) {
 						s.hasAllFilled.Store(true)
-						toUpBitDataStatic.DyLog.GetLog().Infof("完全成交,当前总仓位:%s,需要:%s", posTotalAmount, s.posTotalNeed)
+						toUpBitDataStatic.DyLog.GetLog().Infof("完全成交,当前总仓位:%s,需要:%s", posTotalAmount, s.PosTotalNeed)
 					}
 				}
 				toUpBitDataStatic.SendToUpBitMsg("发送开仓成交失败", map[string]string{
@@ -41,7 +41,7 @@ func (s *Single) onSuccessOrder(evt toUpBitListDataAfter.OnSuccessEvt) {
 					"op":     fmt.Sprintf("账户[%d][%s]开仓成交:%s,当前总仓位:%s", accountKeyId, evt.ClientOrderId, evt.Volume, posTotalAmount),
 				})
 			} else {
-				posTotalAmount := s.pos.CloseFilled(accountKeyId, evt.Volume)
+				posTotalAmount := s.Pos.CloseFilled(accountKeyId, evt.Volume)
 				toUpBitDataStatic.SendToUpBitMsg("发送平仓成交失败", map[string]string{
 					"symbol": s.StMeta.SymbolName,
 					"op":     fmt.Sprintf("账户[%d][%s]平仓成交:%s,当前总仓位:%s", accountKeyId, evt.ClientOrderId, evt.Volume, posTotalAmount),

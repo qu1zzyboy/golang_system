@@ -20,11 +20,11 @@ const (
 )
 
 func (s *Single) clear() {
-	s.posTotalNeed = decimal.Zero
-	s.pos.Clear() //清空持仓统计
+	s.PosTotalNeed = decimal.Zero
+	s.Pos.Clear() //清空持仓统计
 	s.takeProfitPrice = 0
-	for i := range s.secondArr {
-		s.secondArr[i].clear()
+	for i := range s.SecondArr {
+		s.SecondArr[i].clear()
 	}
 	s.hasAllFilled.Store(false)
 	s.thisOrderAccountId.Store(0)
@@ -55,7 +55,7 @@ func (s *Single) receiveStop(stopType driverDefine.StopType) {
 		})
 
 		// 判断有没有持仓
-		use := s.pos.GetTotal()
+		use := s.Pos.GetTotal()
 		if use.LessThanOrEqual(decimal.Zero) {
 			toUpBitDataStatic.DyLog.GetLog().Infof("没有可用的平仓数量,取消平仓")
 			return
@@ -67,9 +67,9 @@ func (s *Single) receiveStop(stopType driverDefine.StopType) {
 		//每秒平一次
 		var closeDecArr [11]decimal.Decimal // 每个账户每秒应该止盈的数量
 		perDec := decimal.NewFromFloat(1 / s.twapSec)
-		copyMap := s.pos.GetAllAccountPos()
+		copyMap := s.Pos.GetAllAccountPos()
 		for accountKeyId, vol := range copyMap {
-			closeDecArr[accountKeyId] = vol.Mul(perDec).Truncate(s.qScale) //每秒应该止盈的数量
+			closeDecArr[accountKeyId] = vol.Mul(perDec).Truncate(s.QScale) //每秒应该止盈的数量
 		}
 		ticker := time.NewTicker(time.Second)
 		timeout := time.After(s.closeDuration)
@@ -82,15 +82,15 @@ func (s *Single) receiveStop(stopType driverDefine.StopType) {
 						continue
 					}
 					priceDec := decimal.NewFromFloat(val.(float64)).Truncate(s.pScale)
-					posLeft := s.pos.GetTotal()
-					if s.pos.GetTotal().Mul(priceDec).LessThanOrEqual(toUpBitDataStatic.Dec500) {
+					posLeft := s.Pos.GetTotal()
+					if s.Pos.GetTotal().Mul(priceDec).LessThanOrEqual(toUpBitDataStatic.Dec500) {
 						toUpBitDataStatic.DyLog.GetLog().Infof("平仓完全成交,开始清理资源")
 						ticker.Stop()
 						return
 					}
 					toUpBitDataStatic.DyLog.GetLog().Infof("============开始平仓,剩余:%s============", posLeft)
 					// 最新的每个账户的仓位情况
-					copyMap := s.pos.GetAllAccountPos()
+					copyMap := s.Pos.GetAllAccountPos()
 					for accountKeyId, vol := range copyMap {
 						// 已经完全平完了
 						if vol.LessThanOrEqual(decimal.Zero) {
@@ -99,10 +99,10 @@ func (s *Single) receiveStop(stopType driverDefine.StopType) {
 						// 不够就全平
 						num := closeDecArr[accountKeyId]
 						if vol.LessThan(num) {
-							num = vol.Truncate(s.qScale)
+							num = vol.Truncate(s.QScale)
 						}
 						// 发送平仓信号
-						if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(order_from, accountKeyId, s.symbolIndex,
+						if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(order_from, accountKeyId, s.SymbolIndex,
 							&orderModel.MyPlaceOrderReq{
 								OrigPrice:     priceDec,
 								OrigVol:       num,
