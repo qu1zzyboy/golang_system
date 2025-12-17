@@ -4,12 +4,12 @@ import (
 	"context"
 	"strconv"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolLimit"
+	"upbitBnServer/internal/strategy/newsDrive/common/driverStatic"
 
 	"upbitBnServer/internal/quant/market/symbolInfo"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/pkg/utils/jsonUtils"
 
 	"github.com/go-redis/redis/v8"
@@ -109,7 +109,7 @@ func loadCoinMesh(ctx context.Context, redisClient *redis.Client) error {
 }
 
 func loadUpBitCfg(ctx context.Context, redisClient *redis.Client) error {
-	res := redisClient.Get(ctx, toUpBitDataStatic.TO_UPBIT_LIST_CFG)
+	res := redisClient.Get(ctx, driverStatic.TO_UPBIT_LIST_CFG)
 	if res.Err() != nil {
 		return res.Err()
 	}
@@ -117,7 +117,7 @@ func loadUpBitCfg(ctx context.Context, redisClient *redis.Client) error {
 	if err != nil {
 		return err
 	}
-	if err := jsonUtils.UnmarshalFromString(data, &toUpBitDataStatic.GlobalCfg); err != nil {
+	if err := jsonUtils.UnmarshalFromString(data, &driverStatic.GlobalCfg); err != nil {
 		return err
 	}
 	return nil

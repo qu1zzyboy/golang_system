@@ -2,26 +2,8 @@ package toUpBitListDataAfter
 
 import (
 	"sync/atomic"
-
-	"upbitBnServer/internal/quant/execute"
-	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
-
-	"github.com/shopspring/decimal"
+	"upbitBnServer/internal/strategy/newsDrive/common/driverStatic"
 )
-
-type OnSuccessEvt struct {
-	ClientOrderId string
-	Volume        decimal.Decimal
-	SortPrice     float64
-	TimeStamp     int64
-	OrderMode     execute.MyOrderMode
-	IsOnline      bool
-	AccountKeyId  uint8
-	InstanceId    orderBelongEnum.Type
-}
-
-type OnSuccessOrder func(evt OnSuccessEvt)
 
 var (
 	TrigSymbolIndex int         = -1 // 触发的交易对索引
@@ -38,7 +20,7 @@ func LoadTrig() bool {
 }
 
 func ClearTrig() {
-	toUpBitDataStatic.DyLog.GetLog().Info("===========================清空ClearTrig()===============================")
+	driverStatic.DyLog.GetLog().Info("===========================清空ClearTrig()===============================")
 	hasTrig.Store(false)
 	TrigSymbolIndex = -1
 }

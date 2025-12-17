@@ -1,13 +1,18 @@
 package orderSdkBnWsSign
 
 import (
-	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
+	"bytes"
+	"time"
+	"upbitBnServer/internal/infra/systemx"
+	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
+	"upbitBnServer/internal/quant/execute/order/orderStaticMeta"
 	"upbitBnServer/internal/quant/execute/order/wsRequestCache"
 	"upbitBnServer/pkg/container/pool/byteBufPool"
 )
 
-func (s *FutureClient) CreateOrder(reqFrom orderBelongEnum.Type, api *orderSdkBnModel.FuturePlaceLimitSdk) error {
+func (s *FutureClient) CreateOrder(req *orderModel.MyPlaceOrderReq) error {
+	api := orderSdkBnModel.GetFuturePlaceLimitSdk(req)
 	rawData, err := api.ParseWsReqFast(s.apiKey, s.secretByte)
 	defer byteBufPool.ReleaseBuffer(rawData)
 	if rawData == nil || err != nil {
@@ -16,10 +21,19 @@ func (s *FutureClient) CreateOrder(reqFrom orderBelongEnum.Type, api *orderSdkBn
 	if err = s.conn.WriteAsync(*rawData); err != nil {
 		return err
 	}
-	wsRequestCache.GetCache().StoreMeta("P"+api.ClientOrderId, &wsRequestCache.WsRequestMeta{
-		Json:    string(*rawData),
-		ReqType: wsRequestCache.PLACE_ORDER,
-		ReqFrom: reqFrom,
+	orderStaticMeta.GetService().SaveOrderMeta(req.ClientOrderId, orderStaticMeta.StaticMeta{
+		SymbolIndex:  req.SymbolIndex,
+		OrderMode:    req.OrderMode,
+		InstanceFrom: req.ReqFrom,
+		UsageFrom:    req.UsageFrom,
 	})
-	return err
+	wsRequestCache.GetCache().StoreMeta(systemx.WsId16B("P"+api.ClientOrderId), &wsRequestCache.WsRequestMeta{
+		ReqJson:       bytes.Clone(*rawData),
+		ClientOrderId: req.ClientOrderId,
+		UpdateAt:      time.Now().UnixMilli(),
+		ReqType:       wsRequestCache.PLACE_ORDER,
+		ReqFrom:       req.ReqFrom,
+		UsageFrom:     req.UsageFrom,
+	})
+	return nil
 }

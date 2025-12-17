@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v6.31.1
-// source: api/toUpbit/v1/toUpbitParam.proto
+// source: api/toUpbit/v1/driverParam.proto
 
 package params
 
@@ -167,7 +167,7 @@ func (*HealthCheckRequest) Descriptor() ([]byte, []int) {
 // ===== Health =====
 type HealthCheckResponse struct {
 	state         protoimpl.MessageState     `protogen:"open.v1"`
-	Status        HealthCheckResponse_Status `protobuf:"varint,1,opt,name=status,proto3,enum=toUpbitParam.HealthCheckResponse_Status" json:"status,omitempty"`
+	Status        HealthCheckResponse_Status `protobuf:"varint,1,opt,name=status,proto3,enum=driverParam.HealthCheckResponse_Status" json:"status,omitempty"`
 	Detail        string                     `protobuf:"bytes,2,opt,name=detail,proto3" json:"detail,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -372,7 +372,7 @@ var File_api_toUpbit_v1_params_proto protoreflect.FileDescriptor
 
 const file_api_toUpbit_v1_params_proto_rawDesc = "" +
 	"\n" +
-	"\x1bapi/toUpbit/v1/toUpbitParam.proto\x12\x06params\"k\n" +
+	"\x1bapi/toUpbit/v1/driverParam.proto\x12\x06params\"k\n" +
 	"\rParamsRequest\x12 \n" +
 	"\fmarket_cap_m\x18\x01 \x01(\x01R\n" +
 	"marketCapM\x12\x17\n" +
@@ -381,7 +381,7 @@ const file_api_toUpbit_v1_params_proto_rawDesc = "" +
 	"symbolName\"\x14\n" +
 	"\x12HealthCheckRequest\"\x91\x01\n" +
 	"\x13HealthCheckResponse\x12:\n" +
-	"\x06status\x18\x01 \x01(\x0e2\".toUpbitParam.HealthCheckResponse.StatusR\x06status\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\x0e2\".driverParam.HealthCheckResponse.StatusR\x06status\x12\x16\n" +
 	"\x06detail\x18\x02 \x01(\tR\x06detail\"&\n" +
 	"\x06Status\x12\v\n" +
 	"\aSERVING\x10\x00\x12\x0f\n" +
@@ -395,10 +395,10 @@ const file_api_toUpbit_v1_params_proto_rawDesc = "" +
 	"bool_value\x18\x04 \x01(\bH\x00R\tboolValueB\a\n" +
 	"\x05value\"<\n" +
 	"\x12ParamsJsonResponse\x12&\n" +
-	"\x04data\x18\x01 \x03(\v2\x12.toUpbitParam.FieldValueR\x04data2\x97\x01\n" +
+	"\x04data\x18\x01 \x03(\v2\x12.driverParam.FieldValueR\x04data2\x97\x01\n" +
 	"\rParamsService\x12>\n" +
-	"\tGetParams\x12\x15.toUpbitParam.ParamsRequest\x1a\x1a.toUpbitParam.ParamsJsonResponse\x12F\n" +
-	"\vHealthCheck\x12\x1a.toUpbitParam.HealthCheckRequest\x1a\x1b.toUpbitParam.HealthCheckResponseB\n" +
+	"\tGetParams\x12\x15.driverParam.ParamsRequest\x1a\x1a.driverParam.ParamsJsonResponse\x12F\n" +
+	"\vHealthCheck\x12\x1a.driverParam.HealthCheckRequest\x1a\x1b.driverParam.HealthCheckResponseB\n" +
 	"Z\b.;paramsb\x06proto3"
 
 var (
@@ -416,20 +416,20 @@ func file_api_toUpbit_v1_params_proto_rawDescGZIP() []byte {
 var file_api_toUpbit_v1_params_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_api_toUpbit_v1_params_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_api_toUpbit_v1_params_proto_goTypes = []any{
-	(HealthCheckResponse_Status)(0), // 0: toUpbitParam.HealthCheckResponse.Status
-	(*ParamsRequest)(nil),           // 1: toUpbitParam.ParamsRequest
-	(*HealthCheckRequest)(nil),      // 2: toUpbitParam.HealthCheckRequest
-	(*HealthCheckResponse)(nil),     // 3: toUpbitParam.HealthCheckResponse
-	(*FieldValue)(nil),              // 4: toUpbitParam.FieldValue
-	(*ParamsJsonResponse)(nil),      // 5: toUpbitParam.ParamsJsonResponse
+	(HealthCheckResponse_Status)(0), // 0: driverParam.HealthCheckResponse.Status
+	(*ParamsRequest)(nil),           // 1: driverParam.ParamsRequest
+	(*HealthCheckRequest)(nil),      // 2: driverParam.HealthCheckRequest
+	(*HealthCheckResponse)(nil),     // 3: driverParam.HealthCheckResponse
+	(*FieldValue)(nil),              // 4: driverParam.FieldValue
+	(*ParamsJsonResponse)(nil),      // 5: driverParam.ParamsJsonResponse
 }
 var file_api_toUpbit_v1_params_proto_depIdxs = []int32{
-	0, // 0: toUpbitParam.HealthCheckResponse.status:type_name -> toUpbitParam.HealthCheckResponse.Status
-	4, // 1: toUpbitParam.ParamsJsonResponse.data:type_name -> toUpbitParam.FieldValue
-	1, // 2: toUpbitParam.ParamsService.GetParams:input_type -> toUpbitParam.ParamsRequest
-	2, // 3: toUpbitParam.ParamsService.HealthCheck:input_type -> toUpbitParam.HealthCheckRequest
-	5, // 4: toUpbitParam.ParamsService.GetParams:output_type -> toUpbitParam.ParamsJsonResponse
-	3, // 5: toUpbitParam.ParamsService.HealthCheck:output_type -> toUpbitParam.HealthCheckResponse
+	0, // 0: driverParam.HealthCheckResponse.status:type_name -> driverParam.HealthCheckResponse.Status
+	4, // 1: driverParam.ParamsJsonResponse.data:type_name -> driverParam.FieldValue
+	1, // 2: driverParam.ParamsService.GetParams:input_type -> driverParam.ParamsRequest
+	2, // 3: driverParam.ParamsService.HealthCheck:input_type -> driverParam.HealthCheckRequest
+	5, // 4: driverParam.ParamsService.GetParams:output_type -> driverParam.ParamsJsonResponse
+	3, // 5: driverParam.ParamsService.HealthCheck:output_type -> driverParam.HealthCheckResponse
 	4, // [4:6] is the sub-list for method output_type
 	2, // [2:4] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name

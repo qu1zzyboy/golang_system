@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"time"
-	"upbitBnServer/internal/strategy/newsDrive/upbit/toUpbitMesh"
-
 	strategyV1 "upbitBnServer/api/strategy/v1"
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
@@ -14,11 +12,12 @@ import (
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolDynamic"
 	"upbitBnServer/internal/quant/market/symbolInfo/symbolStatic"
-	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpBitListBn"
-	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
+	"upbitBnServer/internal/strategy/newsDrive/bn/bnDriveSymbolArr"
+	"upbitBnServer/internal/strategy/newsDrive/bn/toUpBitListBn"
+	driverStatic2 "upbitBnServer/internal/strategy/newsDrive/common/driverStatic"
+	"upbitBnServer/internal/strategy/newsDrive/driverParam"
+	"upbitBnServer/internal/strategy/newsDrive/upbit/toUpbitMesh"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
-	"upbitBnServer/internal/strategy/toUpbitParam"
 	"upbitBnServer/pkg/utils/jsonUtils"
 	"upbitBnServer/server/grpcEvent"
 	"upbitBnServer/server/instance"
@@ -135,45 +134,45 @@ func (s *Server) StartStrategy(ctx context.Context, in *strategyV1.StrategyReq) 
 		{
 			Asset := gjson.Get(in.JsonData, "events.0.symbols.0").String()
 			symbolName := Asset + "USDT"
-			symbolIndexTrue, ok := toUpBitDataStatic.SymbolIndex.Load(symbolName)
+			symbolIndexTrue, ok := driverStatic2.SymbolIndex.Load(symbolName)
 			if !ok {
 				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, "TreeNews品种不在品种池内", nil)
 			}
 
 			// 触发品种和TreeNews品种一致
 			if symbolIndexTrue == toUpBitListDataAfter.TrigSymbolIndex {
-				toUpbitListBnSymbolArr.GetSymbolObj(symbolIndexTrue).ReceiveTreeNews()
+				bnDriveSymbolArr.GetSymbolObj(symbolIndexTrue).ReceiveTreeNews()
 			} else {
-				toUpbitListBnSymbolArr.GetSymbolObj(toUpBitListDataAfter.TrigSymbolIndex).ReceiveNoTreeNews()
+				bnDriveSymbolArr.GetSymbolObj(toUpBitListDataAfter.TrigSymbolIndex).ReceiveNoTreeNews()
 			}
 		}
 	case grpcEvent.TO_UPBIT_TEST:
 		{
-			symbolIndex, _ := toUpBitDataStatic.SymbolIndex.Load("XPINUSDT")
-			obj := toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex)
+			symbolIndex, _ := driverStatic2.SymbolIndex.Load("XPINUSDT")
+			obj := bnDriveSymbolArr.GetSymbolObj(symbolIndex)
 			go obj.ReceiveTreeNews()
 			obj.IntoExecuteNoCheck(time.Now().UnixMilli(), "test", 200000000)
 		}
 	case grpcEvent.TO_UPBIT_PARAM_TEST:
 		{
-			var req toUpbitParam.ComputeRequest
+			var req driverParam.ComputeRequest
 			if err = jsonUtils.UnmarshalFromString(in.JsonData, &req); err != nil {
 				logError.GetLog().Error("特有参数json解析失败:", err)
 				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
 			}
-			res, err := toUpbitParam.GetService().Compute(ctx, req)
+			res, err := driverParam.GetService().Compute(ctx, req)
 			fmt.Println(err)
 			res.PrintMe()
 		}
 	case grpcEvent.TO_UPBIT_CFG:
 		{
-			var cfg toUpBitDataStatic.ConfigVir
+			var cfg driverStatic2.ConfigVir
 			err = jsonUtils.UnmarshalFromString(in.JsonData, &cfg)
 			if err != nil {
 				logError.GetLog().Error("特有参数json解析失败:", err)
 				return failure(strategyV1.ErrorCode_INVALID_ARGUMENT, err.Error(), nil)
 			}
-			toUpBitDataStatic.UpdateParam(cfg.PriceRiceTrig)
+			driverStatic2.UpdateParam(cfg.PriceRiceTrig)
 		}
 	default:
 	}

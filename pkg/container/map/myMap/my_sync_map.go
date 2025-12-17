@@ -11,8 +11,8 @@ type MySyncMap[K comparable, V any] struct {
 	size atomic.Int64
 }
 
-func NewMySyncMap[K comparable, V any]() MySyncMap[K, V] {
-	return MySyncMap[K, V]{}
+func NewMySyncMap[K comparable, V any]() *MySyncMap[K, V] {
+	return &MySyncMap[K, V]{}
 }
 
 func (m *MySyncMap[K, V]) Load(k K) (V, bool) {
@@ -36,9 +36,8 @@ func (m *MySyncMap[K, V]) Store(k K, v V) {
 
 // Delete 移除指定键,并自动更新 size
 func (m *MySyncMap[K, V]) Delete(k K) {
-	_, existed := m.smap.Load(k)
+	_, existed := m.smap.LoadAndDelete(k)
 	if existed {
-		m.smap.Delete(k)
 		m.size.Add(-1)
 	}
 }
@@ -49,8 +48,8 @@ func (m *MySyncMap[K, V]) Range(f func(k K, v V) bool) {
 	})
 }
 
-func (m *MySyncMap[K, V]) Length() int {
-	return int(m.size.Load())
+func (m *MySyncMap[K, V]) Length() int64 {
+	return m.size.Load()
 }
 
 func (m *MySyncMap[K, V]) Clear() {

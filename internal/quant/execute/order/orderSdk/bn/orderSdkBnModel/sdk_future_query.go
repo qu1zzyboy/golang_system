@@ -79,5 +79,5 @@ func NewFutureQuerySdk() *FutureQuerySdk {
 }
 
 func GetFutureQuerySdk(req *orderModel.MyQueryOrderReq) *FutureQuerySdk {
-	return NewFutureQuerySdk().Symbol_(req.StaticMeta.SymbolName).ClientOrderId_(req.ClientOrderId)
+	return NewFutureQuerySdk().Symbol_(req.SymbolName).ClientOrderId_(string(req.ClientOrderId[:]))
 }

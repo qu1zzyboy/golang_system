@@ -2,11 +2,11 @@ package bnPayloadManager
 
 import (
 	"context"
+	"upbitBnServer/internal/strategy/newsDrive/bn/bnDriveSymbolArr"
+	"upbitBnServer/internal/strategy/newsDrive/common/driverStatic"
 
 	"upbitBnServer/internal/quant/account/accountConfig"
 	"upbitBnServer/internal/quant/account/bnPayload"
-	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbolArr"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
 
 	"github.com/shopspring/decimal"
@@ -50,7 +50,7 @@ func (s *Payload) OnPayload(data []byte) {
 				if symbolIndex > (-1) {
 					max_ := decimal.RequireFromString(wb.String())
 					if max_.GreaterThan(decimal.Zero) {
-						toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex).OnTransOut(max_)
+						bnDriveSymbolArr.GetSymbolObj(symbolIndex).OnTransOut(max_)
 					}
 				}
 			}
@@ -59,7 +59,7 @@ func (s *Payload) OnPayload(data []byte) {
 		if eveType == bnPayload.ALGO_UPDATE || eveType == bnPayload.ACCOUNT_CONFIG_UPDATE {
 			return
 		}
-		toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]未知事件类型: %s", s.accountKeyId, string(data))
+		driverStatic.DyLog.GetLog().Errorf("[%d]未知事件类型: %s", s.accountKeyId, string(data))
 	}
 }
 

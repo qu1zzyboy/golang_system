@@ -2,7 +2,6 @@ package orderSdkBnModel
 
 import (
 	"upbitBnServer/internal/infra/errorx/errDefine"
-	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/utils/myCrypto"
 	"upbitBnServer/pkg/container/pool/byteBufPool"
@@ -70,31 +69,24 @@ func NewFuturePlaceSdk() *FuturePlaceLimitSdk {
 }
 
 func GetFuturePlaceLimitSdk(req *orderModel.MyPlaceOrderReq) *FuturePlaceLimitSdk {
-	side, psSide := getBnOrderMode(req.OrderMode)
-	timeInForce := timeInForceGTC
-	switch req.OrderType {
-	case execute.ORDER_TYPE_POST_ONLY:
-		timeInForce = timeInForceGTX
-	case execute.ORDER_TYPE_IOC:
-		timeInForce = timeInForceIOC
-	case execute.ORDER_TYPE_MARKET:
+	side, psSide, timeInForce, isMarket := getBnOrderMode(req.OrderMode)
+
+	if isMarket {
 		return NewFuturePlaceSdk().
-			ClientOrderId_(req.ClientOrderId).
-			Symbol_(req.StaticMeta.SymbolName).
+			ClientOrderId_(string(req.ClientOrderId)).
+			Symbol_(req.SymbolName).
 			Side_(side).
 			PositionSide_(psSide).
-			Volume_(req.OrigVol).
-			OrderType_(orderTypeMarket).
-			TimeInForce_(timeInForce)
-	default:
+			Volume_(decimal.Decimal(req.Qvalue)).
+			OrderType_(orderTypeMarket)
 	}
 	return NewFuturePlaceSdk().
-		ClientOrderId_(req.ClientOrderId).
-		Symbol_(req.StaticMeta.SymbolName).
+		ClientOrderId_(string(req.ClientOrderId)).
+		Symbol_(req.SymbolName).
 		Side_(side).
 		PositionSide_(psSide).
-		Price_(req.OrigPrice).
-		Volume_(req.OrigVol).
+		Price_(decimal.Decimal(req.Pvalue)).
+		Volume_(decimal.Decimal(req.Qvalue)).
 		OrderType_(orderTypeLimit).
 		TimeInForce_(timeInForce)
 }

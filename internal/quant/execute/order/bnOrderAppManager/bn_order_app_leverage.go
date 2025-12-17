@@ -2,9 +2,9 @@ package bnOrderAppManager
 
 import (
 	"context"
+	"upbitBnServer/internal/strategy/newsDrive/common/driverStatic"
 
 	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 )
 
 func (s *TradeManager) SetBnLeverage(leverage uint8, symbolName string) error {
@@ -15,10 +15,10 @@ func (s *TradeManager) SetBnLeverage(leverage uint8, symbolName string) error {
 			Leverage: leverage,
 		})
 		if err != nil {
-			toUpBitDataStatic.DyLog.GetLog().Errorf("[%d]设置币安[%s]杠杆失败,leverage:%d,err:%v", k, symbolName, leverage, err)
+			driverStatic.DyLog.GetLog().Errorf("[%d]设置币安[%s]杠杆失败,leverage:%d,err:%v", k, symbolName, leverage, err)
 			return err
 		}
-		toUpBitDataStatic.DyLog.GetLog().Infof("[%d]设置币安[%s]杠杆成功,leverage:%d,res:%v", k, symbolName, leverage, res)
+		driverStatic.DyLog.GetLog().Infof("[%d]设置币安[%s]杠杆成功,leverage:%d,res:%v", k, symbolName, leverage, res)
 	}
 	return nil
 }

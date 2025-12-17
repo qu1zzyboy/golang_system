@@ -1,0 +1,121 @@
+package driverStatic
+
+import (
+	"strconv"
+	"sync/atomic"
+	"upbitBnServer/internal/infra/systemx"
+
+	"upbitBnServer/internal/infra/observe/log/dynamicLog"
+	"upbitBnServer/internal/infra/observe/log/staticLog"
+	"upbitBnServer/internal/infra/observe/notify/notifyTg"
+	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
+	"upbitBnServer/internal/utils/algorithms"
+	"upbitBnServer/pkg/container/map/myMap"
+	"upbitBnServer/pkg/container/ring/ringBuf"
+	"upbitBnServer/pkg/utils/idGen"
+	"upbitBnServer/pkg/utils/timeUtils"
+
+	"github.com/shopspring/decimal"
+)
+
+const (
+	DAY_BEGIN_STR                            = "1 0 7 * * *"   // 每天的 07:00:01 执行任务
+	DAY_END_STR                              = "1 10 18 * * *" // 每天的 18:10:01 执行任务
+	TO_UPBIT_LIST_CFG                        = "to_upbit_list_cfg"
+	TrigIndexDefault  systemx.SymbolIndex16I = -1
+)
+
+var (
+	GlobalCfg         ConfigVir                                       // 全局配置
+	SymbolIndex       = myMap.NewMySyncMap[string, int]()             // symbolName --> symbolIndex
+	SymbolMaxNotional = myMap.NewMySyncMap[int, decimal.Decimal]()    //symbolIndex-->最大仓位上限
+	Dec500            = decimal.NewFromInt(500)                       // 小于这个数全部平仓
+	PriceRiceTrig     float64                                         // 价格触发阈值,当价格变化超过该值时触发
+	DyLog             = dynamicLog.NewDynamicLogger(staticLog.Config{ // 创建日志记录器
+		NeedErrorHook: true,
+		FileDir:       "toUpBitList",
+		DateStr:       timeUtils.GetNowDateStr(),
+		FileName:      "instanceId",
+		Level:         staticLog.INFO_LEVEL,
+	})
+	SigLog = dynamicLog.NewDynamicLogger(staticLog.Config{ // 创建日志记录器
+		NeedErrorHook: true,
+		FileDir:       "toUpBitList",
+		DateStr:       timeUtils.GetNowDateStr(),
+		FileName:      "signal",
+		Level:         staticLog.INFO_LEVEL,
+	})
+	TickCap         ringBuf.Capacity          // 容量
+	TrigSymbolIndex = TrigIndexDefault        // 触发5%的交易对索引
+	hasTrig         atomic.Bool               // 是否已经成功触发,这里必须是全局变量,减少cpu解析
+	ExType          exchangeEnum.ExchangeType // 交易所类型
+	AcType          exchangeEnum.AccountType  // 账户类型
+)
+
+func Trig(symbolIndex systemx.SymbolIndex16I) {
+	hasTrig.Store(true)
+	TrigSymbolIndex = symbolIndex
+}
+
+func LoadTrig() bool {
+	return hasTrig.Load()
+}
+
+func ClearTrig() {
+	DyLog.GetLog().Info("===========================清空ClearTrig()===============================")
+	hasTrig.Store(false)
+	TrigSymbolIndex = -1
+}
+
+func SetParam(priceRiceTrig float64, tickCap ringBuf.Capacity, dec500 int64) {
+	TickCap = tickCap
+	PriceRiceTrig = priceRiceTrig
+	Dec500 = decimal.NewFromInt(dec500)
+}
+
+func UpdateParam(priceRiceTrig float64) {
+	PriceRiceTrig = priceRiceTrig
+}
+
+func getClientOrderId(acType exchangeEnum.AccountType, flag string) string {
+	str := ""
+	switch acType {
+	case exchangeEnum.SPOT:
+		str = "sp"
+	case exchangeEnum.FUTURE:
+		str = "fu"
+	case exchangeEnum.SWAP:
+		str = "sw"
+	case exchangeEnum.FULL_MARGIN:
+		str = "fm"
+	case exchangeEnum.ISOLATED_MARGIN:
+		str = "im"
+	default:
+	}
+	str += strconv.Itoa(algorithms.GetRandom09()) + "-" + string(algorithms.GetRandomaZ()) + "-" + flag
+	return str + idGen.GetSnowflakeIdStr()
+}
+
+func GetMakerClientOrderId() string {
+	return getClientOrderId(AcType, "maker")
+}
+
+func GetClientOrderIdBy(flag string) string {
+	return getClientOrderId(AcType, flag)
+}
+
+func SendToUpBitMsg(flag string, payload map[string]string) {
+	go func() {
+		if err := notifyTg.GetTg().SendToUpBitMsg(payload); err != nil {
+			DyLog.GetLog().Errorf("%s:%v", flag, err)
+		}
+	}()
+}
+
+func SendToUpBitStrMsg(flag, msg string) {
+	go func() {
+		if err := notifyTg.GetTg().SendToUpBitStrMsg(msg); err != nil {
+			DyLog.GetLog().Errorf("%s:%v", flag, err)
+		}
+	}()
+}

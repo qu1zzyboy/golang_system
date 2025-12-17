@@ -7,7 +7,7 @@ import (
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
 	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
-	"upbitBnServer/internal/quant/execute/order/orderStatic"
+	"upbitBnServer/internal/quant/execute/order/orderStaticMeta"
 	"upbitBnServer/pkg/singleton"
 )
 
@@ -37,9 +37,9 @@ func (m *MonitorManager) init(ctx context.Context) error {
 }
 
 func (m *MonitorManager) SendMonitorOrder(reqFrom orderBelongEnum.Type, index uint8, symbolIndex int, req *orderModel.MyPlaceOrderReq) error {
-	err := m.appArray[index].wsOrderSign.CreateOrder(reqFrom, orderSdkBnModel.GetFuturePlaceLimitSdk(req))
+	err := m.appArray[index].wsOrder.CreateOrder(reqFrom, orderSdkBnModel.GetFuturePlaceLimitSdk(req))
 	if err == nil {
-		orderStatic.GetService().SaveOrderMeta(req.ClientOrderId, orderStatic.StaticMeta{
+		orderStaticMeta.GetService().SaveOrderMeta(req.ClientOrderId, orderStaticMeta.StaticMeta{
 			SymbolIndex: symbolIndex,
 			OrderMode:   req.OrderMode,
 			OrderFrom:   reqFrom,

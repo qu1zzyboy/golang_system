@@ -4,16 +4,16 @@ import (
 	"upbitBnServer/internal/infra/observe/log/dynamicLog"
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
-	"upbitBnServer/internal/quant/execute/order/orderStatic"
-	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitListBnSymbol"
-	"upbitBnServer/internal/strategy/toUpbitList/toUpbitListChan"
+	"upbitBnServer/internal/quant/execute/order/orderStaticMeta"
+	"upbitBnServer/internal/strategy/newsDrive/bn/bnDriveSymbol"
+	"upbitBnServer/internal/strategy/newsDrive/common/driverListChan"
 
 	"github.com/tidwall/gjson"
 )
 
 func (s *Payload) onTradeLite(data []byte) {
 	clientOrderId := gjson.GetBytes(data, "c").String()
-	orderFrom, orderMode, symbolIndex, ok := orderStatic.GetService().GetOrderInstanceIdAndSymbolId(clientOrderId)
+	orderFrom, orderMode, symbolIndex, ok := orderStaticMeta.GetService().GetOrderInstanceIdAndSymbolId(clientOrderId)
 	if !ok {
 		// 可能是手动平仓单
 		if clientOrderId[0:3] == "ios" || clientOrderId[0:3] == "web" || clientOrderId[0:3] == "ele" {
@@ -30,11 +30,11 @@ func (s *Payload) onTradeLite(data []byte) {
 				return
 			}
 			// 该笔订单已经被处理过了
-			if _, ok = toUpbitListBnSymbol.ClientOrderIsCheck.Load(clientOrderId); ok {
+			if _, ok = bnDriveSymbol.ClientOrderIsCheck.Load(clientOrderId); ok {
 				return
 			}
-			toUpbitListBnSymbol.ClientOrderIsCheck.Store(clientOrderId, struct{}{})
-			toUpbitListChan.SendTradeLite(symbolIndex, data)
+			bnDriveSymbol.ClientOrderIsCheck.Store(clientOrderId, struct{}{})
+			driverListChan.SendTradeLite(symbolIndex, data)
 		}
 	case orderBelongEnum.TO_UPBIT_LIST_LOOP:
 		{
