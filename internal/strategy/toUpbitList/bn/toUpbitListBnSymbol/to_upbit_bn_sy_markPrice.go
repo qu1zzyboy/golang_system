@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"upbitBnServer/internal/conf"
 	"upbitBnServer/internal/infra/observe/notify/notifyTg"
 	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
 	"upbitBnServer/internal/quant/execute"
@@ -24,6 +25,8 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/tidwall/gjson"
 )
+
+const pointPrefix = "point"
 
 var (
 	dec12              = decimal.RequireFromString("12.00")     //2倍最小下单金额
@@ -83,6 +86,9 @@ func (s *Single) onMarkPrice(len int, bufPtr *[]byte) {
 		if !toUpbitBnMode.Mode.IsPlacePreOrder() {
 			return
 		}
+		if conf.IsTestDev {
+			return
+		}
 		// 3、回调函数更新预挂单
 		s.checkPreOrder(markPrice_8)
 	}
@@ -100,7 +106,7 @@ func (s *Single) onPreFilled(clientOrderId string) {
 				&orderModel.MyPlaceOrderReq{
 					OrigPrice:     decimal.New(int64(s.lastMarkPrice_8), -bnConst.PScale_8).Truncate(s.pScale),
 					OrigVol:       s.orderNum,
-					ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("close_pre"),
+					ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("server_close_pre"),
 					StaticMeta:    s.StMeta,
 					OrderType:     execute.ORDER_TYPE_MARKET,
 					OrderMode:     execute.ORDER_BUY_CLOSE,
@@ -129,7 +135,6 @@ func (s *Single) initPreOrder() error {
 	if !ok {
 		return errors.New("coinMesh.GetManager().Get not found")
 	}
-
 	limit, err := symbolLimit.GetManager().Get(s.StMeta.SymbolKeyId)
 	if err != nil {
 		toUpBitDataStatic.DyLog.GetLog().Errorf("symbolKeyId %d not found", s.StMeta.SymbolKeyId)
@@ -139,7 +144,7 @@ func (s *Single) initPreOrder() error {
 
 	//挂单量=最大(最小下单量,2*最小下单金额/最新标记价格)
 	s.orderNum = decimal.Max(dyMeta.LotSize, dec12.Mul(dyMeta.MinQty).Div(lastMarkPriceDec)).Truncate(dyMeta.QScale)
-	s.clientOrderIdSmall = toUpBitDataStatic.GetClientOrderIdBy(mesh.CmcAsset) //小订单id
+	s.clientOrderIdSmall = toUpBitDataStatic.GetClientOrderIdBy(pointPrefix + mesh.CmcAsset) //小订单id
 	//1.0+0.33*(1.15-1.0)
 	s.smallPercent = dec5.Mul(limit.UpLimitPercent.Sub(dec1)).Add(dec1)
 	s.hasInit = true

@@ -61,9 +61,6 @@ func initConfig() {
 	ServerName = getConfig("serverName")
 	ServerIpIn = getConfig("serverIpIn")
 	ServerIpOut = getConfig("serverIpOut")
-	DES_KEY = getConfig("desKey")
-	DataSavePath = getConfig("dataSavePath")
-	ToUpBitPath = getConfig("toUpbitPath")
 
 	var err error
 	CPU_HZ, err = strconv.ParseUint(getConfig("cpuHz"), 10, 64)
@@ -71,6 +68,7 @@ func initConfig() {
 		panic(err)
 	}
 	MsgAble = getConfig("msgAble") == "true"
+	IsTestDev = getConfig("isTestDev") == "true"
 	log.Info("服务器名称:", ServerName)
 	log.Info("服务器内网ip:", ServerIpIn)
 	log.Info("服务器外网ip:", ServerIpOut)
@@ -80,19 +78,9 @@ func initConfig() {
 	RedisCfg.Hosts = getConfig("redisConfig.hosts")
 	RedisCfg.Pass = getConfig("redisConfig.pass")
 
-	GrpcCfg.ObservePort = getConfig("grpc.notifyPort")
-	GrpcCfg.DownLoadPort = getConfig("grpc.dynamicPort")
-	GrpcCfg.StrategyPort = getConfig("grpc.strategyPort")
-	GrpcCfg.CrossPort = getConfig("grpc.crossPort")
-	GrpcCfg.ExecutePort = getConfig("grpc.executePort")
 	GrpcCfg.LowLatencyPort = getConfig("grpc.lowLatencyPort")
 	GrpcCfg.AppId = getConfig("grpc.appId")
 	GrpcCfg.AppKey = getConfig("grpc.appKey")
-	log.Info("grpc配置:观测服务端口:", GrpcCfg.ObservePort)
-	log.Info("grpc配置:动态下载端口:", GrpcCfg.DownLoadPort)
-	log.Info("grpc配置:策略服务端口:", GrpcCfg.StrategyPort)
-	log.Info("grpc配置:截面服务端口:", GrpcCfg.CrossPort)
-	log.Info("grpc配置:执行服务端口:", GrpcCfg.ExecutePort)
 	log.Info("grpc配置:低延时服务端口:", GrpcCfg.LowLatencyPort)
 	log.Info("grpc配置:appId:", GrpcCfg.AppId)
 	log.Info("grpc配置:appKey:", GrpcCfg.AppKey)

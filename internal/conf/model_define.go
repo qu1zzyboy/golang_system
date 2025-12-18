@@ -8,12 +8,7 @@ type RedisConfig struct {
 }
 
 type GrpcConfig struct {
-	ObservePort    string `yaml:"notifyPort"`
-	DownLoadPort   string `yaml:"dynamicPort"`
 	LowLatencyPort string `yaml:"lowLatencyPort"`
-	StrategyPort   string `yaml:"strategyPort"`
-	CrossPort      string `yaml:"crossPort"`
-	ExecutePort    string `yaml:"executePort"`
 	AppId          string `yaml:"appId"`
 	AppKey         string `yaml:"appKey"`
 }

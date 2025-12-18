@@ -41,7 +41,7 @@ func (s *Single) placePer(i int32, accountIndex uint8) {
 		priceBuy = s.FirstPriceBuy
 	}
 OUTER:
-	for j = 0; j <= 230; j++ {
+	for j = 0; j <= toUpBitDataStatic.MAX_BUY_COUNT_PER; j++ {
 		select {
 		case <-s.ctxStop.Done():
 			toUpBitDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出每秒下单协程")
@@ -96,14 +96,14 @@ OUTER:
 				&orderModel.MyPlaceOrderReq{
 					OrigPrice:     priceBuy,
 					OrigVol:       num.Truncate(s.QScale),
-					ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("second"),
+					ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("server_second"),
 					StaticMeta:    s.StMeta,
 					OrderType:     orderType,
 					OrderMode:     execute.ORDER_BUY_OPEN,
 				}); err != nil {
 				toUpBitDataStatic.DyLog.GetLog().Errorf("每秒创建订单失败: %v", err)
 			}
-			time.Sleep(150 * time.Microsecond) // 休眠 300 微秒
+			time.Sleep(500 * time.Microsecond) // 休眠 500 微秒
 		}
 	}
 }

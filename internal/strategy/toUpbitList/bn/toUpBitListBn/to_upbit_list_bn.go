@@ -2,6 +2,7 @@ package toUpBitListBn
 
 import (
 	"context"
+	"upbitBnServer/internal/quant/exchanges/binance/bnVar"
 	toUpbitMesh2 "upbitBnServer/internal/strategy/newsDrive/upbit/toUpbitMesh"
 
 	strategyV1 "upbitBnServer/api/strategy/v1"
@@ -109,24 +110,25 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 	toUpbitListChan.InitUpBit(needLen)
 	toUpbitListBnSymbolArr.Init(needLen)
 
-	for index, symbolName := range symbols {
+	for _, symbolName := range symbols {
+		symbolIndex := bnVar.GetOrStoreNoTrade(symbolName)
 		// 提前指定每个品种的挂单账户
-		if err := toUpbitListBnSymbolArr.GetSymbolObj(index).Start(e.getPreAccountKeyId(), index, symbolName); err != nil {
+		if err = toUpbitListBnSymbolArr.GetSymbolObj(symbolIndex).Start(e.getPreAccountKeyId(), symbolIndex, symbolName); err != nil {
 			return err
 		}
 	}
 	// 注册行情资源
-	if err := toUpBitListBnMarket.GetMarket().RegisterBefore(ctx, symbols); err != nil {
+	if err = toUpBitListBnMarket.GetMarket().RegisterBefore(ctx, symbols); err != nil {
 		return err
 	}
 	// 注册交易时间段
-	if _, err := globalCron.AddFunc(toUpBitDataStatic.DAY_BEGIN_STR, e.OnDayBegin); err != nil {
+	if _, err = globalCron.AddFunc(toUpBitDataStatic.DAY_BEGIN_STR, e.OnDayBegin); err != nil {
 		return err
 	}
-	if _, err := globalCron.AddFunc(toUpBitDataStatic.DAY_END_STR, e.OnDayEnd); err != nil {
+	if _, err = globalCron.AddFunc(toUpBitDataStatic.DAY_END_STR, e.OnDayEnd); err != nil {
 		return err
 	}
-	if err := toUpBitListBnAccount.GetBnAccountManager().RefreshSymbolConfig(); err != nil {
+	if err = toUpBitListBnAccount.GetBnAccountManager().RefreshSymbolConfig(); err != nil {
 		return err
 	}
 	return nil

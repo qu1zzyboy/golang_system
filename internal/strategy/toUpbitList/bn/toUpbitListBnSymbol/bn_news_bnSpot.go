@@ -36,7 +36,7 @@ func (s *Single) initBnSpotBuyOpen() {
 	}
 
 	for i := range 25 {
-		clientOrderId := toUpBitDataStatic.GetClientOrderIdBy("bn_sp")
+		clientOrderId := toUpBitDataStatic.GetClientOrderIdBy("server_bn_sp")
 		req.ClientOrderId = clientOrderId
 		clientOrderArr[i] = clientOrderId
 		switch i % 3 {

@@ -114,7 +114,7 @@ func (s *Single) receiveStop(stopType driverDefine.StopType) {
 							&orderModel.MyPlaceOrderReq{
 								OrigPrice:     priceDec,
 								OrigVol:       num,
-								ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("close"),
+								ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("server_close"),
 								StaticMeta:    s.StMeta,
 								OrderType:     execute.ORDER_TYPE_LIMIT,
 								OrderMode:     execute.ORDER_SELL_CLOSE,

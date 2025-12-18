@@ -28,6 +28,7 @@ var (
 	SymbolMaxNotional = myMap.NewMySyncMap[int, decimal.Decimal]()    //symbolIndex-->最大仓位上限
 	Dec500            = decimal.NewFromInt(500)                       // 小于这个数全部平仓
 	PriceRiceTrig     float64                                         // 价格触发阈值,当价格变化超过该值时触发
+	MAX_BUY_COUNT_PER = 100                                           // 每秒最大下单次数
 	DyLog             = dynamicLog.NewDynamicLogger(staticLog.Config{ // 创建日志记录器
 		NeedErrorHook: true,
 		FileDir:       "toUpBitList",
@@ -58,26 +59,28 @@ func UpdateParam(priceRiceTrig float64) {
 }
 
 func getClientOrderId(acType exchangeEnum.AccountType, flag string) string {
-	str := ""
 	switch acType {
 	case exchangeEnum.SPOT:
-		str = "sp"
+		flag += "sp"
 	case exchangeEnum.FUTURE:
-		str = "fu"
+		flag += "fu"
 	case exchangeEnum.SWAP:
-		str = "sw"
+		flag += "sw"
 	case exchangeEnum.FULL_MARGIN:
-		str = "fm"
+		flag += "fm"
 	case exchangeEnum.ISOLATED_MARGIN:
-		str = "im"
+		flag += "im"
 	default:
 	}
-	str += strconv.Itoa(algorithms.GetRandom09()) + "-" + string(algorithms.GetRandomaZ()) + "-" + flag
-	return str + idGen.GetSnowflakeIdStr()
+	flag += idGen.GetSnowflakeIdStr()
+	if len(flag) > 33 {
+		flag = flag[:33]
+	}
+	return flag + strconv.Itoa(algorithms.GetRandom09()) + "-" + string(algorithms.GetRandomaZ())
 }
 
 func GetMakerClientOrderId() string {
-	return getClientOrderId(AcType, "maker")
+	return getClientOrderId(AcType, "server")
 }
 
 func GetClientOrderIdBy(flag string) string {

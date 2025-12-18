@@ -16,7 +16,7 @@ func (s *Single) monitorPer(accountIndex uint8) {
 	}()
 	price := s.FirstPriceBuy.Mul(dec2).Truncate(s.pScale)
 OUTER:
-	for i = 0; i <= 230; i++ {
+	for i = 0; i <= toUpBitDataStatic.MAX_BUY_COUNT_PER; i++ {
 		select {
 		case <-s.ctxStop.Done():
 			toUpBitDataStatic.DyLog.GetLog().Infof("收到关闭信号,退出探测协程")
@@ -30,7 +30,7 @@ OUTER:
 				&orderModel.MyPlaceOrderReq{
 					OrigPrice:     price,
 					OrigVol:       s.PosTotalNeed,
-					ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("sec-Mo"),
+					ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("server_sec-Mo"),
 					StaticMeta:    s.StMeta,
 					OrderType:     execute.ORDER_TYPE_LIMIT,
 					OrderMode:     execute.ORDER_BUY_OPEN,
