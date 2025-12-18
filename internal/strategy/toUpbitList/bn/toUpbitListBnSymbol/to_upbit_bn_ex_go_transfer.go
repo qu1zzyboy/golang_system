@@ -31,7 +31,12 @@ func (s *Single) OnTransOut(maxWithdrawAmount decimal.Decimal) {
 		//接受到母账户金额的返回,从母账户划出
 		var err error
 		var accountKeyId int32 = 0
+		var i int = 0
 		for {
+			i++
+			if i > 20 {
+				break
+			}
 			accountKeyId = s.toAccountId.Load()
 			if err = toUpBitListBnAccount.GetBnAccountManager().TransferOut(accountKeyId, maxWithdrawAmount); err == nil {
 				s.SecondArr[accountKeyId].maxNotional.Store(decimal.Min(maxWithdrawAmount.Mul(dec4), s.MaxNotional))

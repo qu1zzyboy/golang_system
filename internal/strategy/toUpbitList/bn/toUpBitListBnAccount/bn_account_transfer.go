@@ -79,6 +79,7 @@ func (s *BnAccountManager) TransferOut(to int32, amount decimal.Decimal) error {
 		toUpBitDataStatic.DyLog.GetLog().Infof("母账户划转[%s]usdt到[%d][%s]成功:%s", reqOut.Amount.String(), in.AccountId, reqOut.ToAcType, resOut)
 		return nil
 	}
+	toUpBitDataStatic.DyLog.GetLog().Infof("母账户划转[%s]usdt到[%d][%s]失败:%s", reqOut.Amount.String(), in.AccountId, reqOut.ToAcType, resOut)
 	return errors.New(resOut)
 }
 
