@@ -76,7 +76,7 @@ func getClientOrderId(acType exchangeEnum.AccountType, flag string) string {
 	if len(flag) > 33 {
 		flag = flag[:33]
 	}
-	return flag + strconv.Itoa(algorithms.GetRandom09()) + "-" + string(algorithms.GetRandomaZ())
+	return flag + strconv.Itoa(algorithms.GetRandom09()) + string(algorithms.GetRandomaZ())
 }
 
 func GetMakerClientOrderId() string {
