@@ -1,9 +1,9 @@
 package toUpbitListBnSymbol
 
 import (
+	"context"
 	"time"
 
-	"upbitBnServer/internal/infra/safex"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
 	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
 	"upbitBnServer/internal/strategy/newsDrive/driverDefine"
@@ -45,11 +45,9 @@ func (s *Single) ReceiveTreeNews(exType exchangeEnum.ExchangeType) {
 		toUpBitDataStatic.SendToUpBitMsg("TreeNews确认", map[string]string{"symbol": symbolName, "op": "bithumb_TreeNews确认"})
 
 	case exchangeEnum.BINANCE:
-		s.bnSellTrigPrice = 1.19 * s.TrigMartPrice
-		safex.SafeGo("bnSpot_initBuyOpen", func() {
-			s.initBnSpotBuyOpen()
-			s.buyLoop()
-		})
+		s.bnSpotCtxStop, s.bnSpotCancel = context.WithCancel(context.Background())
+		s.bnBeginTwapBuy = 1.19 * s.TrigMartPrice
+		s.tryBuyLoopBnSpot(20)
 		toUpBitDataStatic.SendToUpBitMsg("TreeNews确认", map[string]string{"symbol": symbolName, "op": "binance_TreeNews确认"})
 	}
 }

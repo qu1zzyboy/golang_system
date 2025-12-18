@@ -116,9 +116,12 @@ type Single struct {
 	toAccountId        atomic.Int32                           // 准备接收资金的账户id
 	TrigExType         exchangeEnum.ExchangeType              // 触发的交易所类型
 	bnSpotPerNum       decimal.Decimal                        // bn现货每次下单数量
-	bnSellTrigPrice    float64                                // bn止盈触发价格
+	bnBeginTwapBuy     float64                                // bn止盈触发价格
 	stopLossPrice      float64                                // 止损价格
 	hasTreeNews        atomic.Bool                            // 是否已经接受到treeNews
+	bnSpotCtxStop      context.Context                        // 同步关闭 ctx
+	bnSpotCancel       context.CancelFunc                     // 关闭函数
+	bnAlreadyTwapBuy   bool
 }
 
 func (s *Single) Clear() {

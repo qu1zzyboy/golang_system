@@ -31,11 +31,12 @@ func (s *Single) clear() {
 	s.thisOrderAccountId.Store(0)
 	s.TrigExType = exchangeEnum.UNKNOWN
 	s.bnSpotPerNum = decimal.Zero
-	s.bnSellTrigPrice = 0
+	s.bnBeginTwapBuy = 0
 	s.stopLossPrice = 0
 	s.takeProfitPrice = 0
 	s.hasTreeNews.Store(false)
 	s.hasReceiveStop = false
+	s.bnAlreadyTwapBuy = false
 	toUpBitListDataAfter.ClearTrig()
 }
 
