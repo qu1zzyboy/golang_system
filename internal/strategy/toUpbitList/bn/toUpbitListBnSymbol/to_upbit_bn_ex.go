@@ -22,7 +22,9 @@ const (
 
 func (s *Single) clear() {
 	s.PosTotalNeed = decimal.Zero
-	s.Pos.Clear() //清空持仓统计
+	if s.Pos != nil {
+		s.Pos.Clear() //清空持仓统计
+	}
 	s.takeProfitPrice = 0
 	for i := range s.SecondArr {
 		s.SecondArr[i].clear()
