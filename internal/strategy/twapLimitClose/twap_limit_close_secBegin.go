@@ -34,7 +34,12 @@ func InitPerSecondBegin(orderMode execute.MyOrderMode, accountKeyId uint8, symbo
 	risePercent := decimal.NewFromFloat(0.001)
 
 	for i := 0; i < closeN; i++ {
-		price := priceDec.Mul(dec1.Add(risePercent.Mul(decimal.NewFromInt(int64(i + 1))))) // 每次加0.1%
+		var price decimal.Decimal
+		if orderMode.IsBuy() {
+			price = priceDec.Mul(dec1.Sub(risePercent.Mul(decimal.NewFromInt(int64(i + 1))))) // 每次加0.1%
+		} else {
+			price = priceDec.Mul(dec1.Add(risePercent.Mul(decimal.NewFromInt(int64(i + 1))))) // 每次加0.1%
+		}
 		num := closePer
 		if accountPos.LessThan(closePer) {
 			num = accountPos // 吃掉剩余
@@ -73,7 +78,12 @@ func RefreshPerSecondBegin(orderMode execute.MyOrderMode, accountKeyId uint8, pS
 			return true
 		}
 		i++
-		price := priceDec.Mul(dec1.Add(risePercent.Mul(decimal.NewFromInt(int64(i))))) // 每次加0.1%
+		var price decimal.Decimal
+		if orderMode.IsBuy() {
+			price = priceDec.Mul(dec1.Sub(risePercent.Mul(decimal.NewFromInt(int64(i))))) // 每次加0.1%
+		} else {
+			price = priceDec.Mul(dec1.Add(risePercent.Mul(decimal.NewFromInt(int64(i))))) // 每次加0.1%
+		}
 		if err := bnOrderAppManager.GetTradeManager().SendModifyOrder(orderBelongEnum.TO_UPBIT_LIST_PRE, accountKeyId, &orderModel.MyModifyOrderReq{
 			ModifyPrice:   price.Truncate(pScale),
 			OrigVol:       oMeta.OrigVolume,
