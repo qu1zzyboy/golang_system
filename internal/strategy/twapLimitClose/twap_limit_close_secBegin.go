@@ -73,6 +73,9 @@ func RefreshPerSecondBegin(orderMode execute.MyOrderMode, accountKeyId uint8, pS
 
 	var i = 0
 	closeOrderIds.Range(func(clientOrderId string, v bool) bool {
+		if v {
+			return true
+		}
 		oMeta, ok := orderStatic.GetService().GetOrderMeta(clientOrderId)
 		// 不属于这个服务的订单直接 pass
 		if !ok {
