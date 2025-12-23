@@ -1,6 +1,7 @@
 package twapLimitClose
 
 import (
+	"fmt"
 	"upbitBnServer/internal/infra/observe/notify/notifyTg"
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
@@ -48,6 +49,7 @@ func InitPerSecondBegin(orderMode execute.MyOrderMode, accountKeyId uint8, symbo
 			break
 		}
 		clientOrderId := toUpBitDataStatic.GetClientOrderIdBy("server_twap")
+		fmt.Println("init", clientOrderId)
 		if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(orderBelongEnum.TO_UPBIT_LIST_PRE, accountKeyId, symbolIndex, &orderModel.MyPlaceOrderReq{
 			OrigPrice:     price.Truncate(pScale),
 			OrigVol:       num.Truncate(qScale),

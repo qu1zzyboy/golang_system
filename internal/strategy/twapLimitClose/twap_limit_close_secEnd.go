@@ -1,6 +1,7 @@
 package twapLimitClose
 
 import (
+	"fmt"
 	"upbitBnServer/internal/infra/observe/notify/notifyTg"
 	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
@@ -31,6 +32,7 @@ func RefreshPerSecondEnd(orderMode execute.MyOrderMode, accountKeyId uint8, stMe
 		toUpBitDataStatic.DyLog.GetLog().Errorf("[%d] 每秒REFRESH_ORDER: [%s,%s] not found", accountKeyId, stMeta.SymbolName, clientOrderId)
 		return
 	}
+	fmt.Println("modify", clientOrderId)
 	// 修改订单价格和数量,改单有最小下单数量限制
 	if err := bnOrderAppManager.GetTradeManager().SendModifyOrder(orderBelongEnum.TO_UPBIT_LIST_PRE, accountKeyId, &orderModel.MyModifyOrderReq{
 		ModifyPrice:   priceDec,
