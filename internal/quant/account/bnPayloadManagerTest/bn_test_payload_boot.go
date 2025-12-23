@@ -4,16 +4,20 @@ import (
 	"context"
 
 	"upbitBnServer/internal/infra/observe/notify"
+	"upbitBnServer/internal/infra/ws/wsDefine"
 	"upbitBnServer/internal/quant/account/accountConfig"
 )
 
 const MODULE_ID = "bn_payload_manager"
 
 type Boot struct {
+	read wsDefine.ReadPrivateHandler
 }
 
-func NewBoot() *Boot {
-	return &Boot{}
+func NewBoot(read_ wsDefine.ReadPrivateHandler) *Boot {
+	return &Boot{
+		read: read_,
+	}
 }
 
 func (s *Boot) ModuleId() string {
@@ -28,7 +32,7 @@ func (s *Boot) DependsOn() []string {
 }
 
 func (s *Boot) Start(ctx context.Context) error {
-	if err := GetManager().init(ctx); err != nil {
+	if err := GetManager().init(ctx, s.read); err != nil {
 		return err
 	}
 	return nil
