@@ -1,6 +1,7 @@
 package orderSdkBnWsSign
 
 import (
+	"fmt"
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/orderSdk/bn/orderSdkBnModel"
 	"upbitBnServer/internal/quant/execute/order/wsRequestCache"
@@ -16,6 +17,7 @@ func (s *FutureClient) ModifyOrder(reqFrom orderBelongEnum.Type, api *orderSdkBn
 	if err = s.conn.WriteAsync(*rawData); err != nil {
 		return err
 	}
+	fmt.Println("M"+api.ClientOrderId, "-->", string(*rawData))
 	wsRequestCache.GetCache().StoreMeta("M"+api.ClientOrderId, &wsRequestCache.WsRequestMeta{
 		Json:    string(*rawData),
 		ReqType: wsRequestCache.MODIFY_ORDER,
