@@ -14,7 +14,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func InitPerSecondBegin(accountKeyId uint8, symbolIndex int, pScale, qScale int32, stMeta *symbolStatic.StaticTrade, closeOrderIds *myMap.MySyncMap[string, bool],
+func InitPerSecondBegin(orderMode execute.MyOrderMode, accountKeyId uint8, symbolIndex int, pScale, qScale int32, stMeta *symbolStatic.StaticTrade, closeOrderIds *myMap.MySyncMap[string, bool],
 	priceDec, accountPos, closePer decimal.Decimal) {
 
 	if accountPos.IsZero() {
@@ -49,7 +49,7 @@ func InitPerSecondBegin(accountKeyId uint8, symbolIndex int, pScale, qScale int3
 			ClientOrderId: clientOrderId,
 			StaticMeta:    stMeta,
 			OrderType:     execute.ORDER_TYPE_LIMIT,
-			OrderMode:     execute.ORDER_SELL_CLOSE,
+			OrderMode:     orderMode,
 		}); err != nil {
 			toUpBitDataStatic.DyLog.GetLog().Errorf("每秒平仓创建订单失败: %v", err)
 		}
@@ -58,7 +58,7 @@ func InitPerSecondBegin(accountKeyId uint8, symbolIndex int, pScale, qScale int3
 	}
 }
 
-func RefreshPerSecondBegin(accountKeyId uint8, pScale int32, stMeta *symbolStatic.StaticTrade, closeOrderIds *myMap.MySyncMap[string, bool],
+func RefreshPerSecondBegin(orderMode execute.MyOrderMode, accountKeyId uint8, pScale int32, stMeta *symbolStatic.StaticTrade, closeOrderIds *myMap.MySyncMap[string, bool],
 	priceDec decimal.Decimal) {
 
 	dec1 := decimal.NewFromFloat(1.00)
@@ -79,7 +79,7 @@ func RefreshPerSecondBegin(accountKeyId uint8, pScale int32, stMeta *symbolStati
 			OrigVol:       oMeta.OrigVolume,
 			StaticMeta:    stMeta,
 			ClientOrderId: clientOrderId,
-			OrderMode:     execute.ORDER_SELL_CLOSE,
+			OrderMode:     orderMode,
 		}); err != nil {
 			notifyTg.GetTg().SendToUpBitMsg(map[string]string{
 				"symbol": stMeta.SymbolName,

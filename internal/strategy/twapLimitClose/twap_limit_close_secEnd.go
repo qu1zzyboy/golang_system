@@ -14,7 +14,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func RefreshPerSecondEnd(accountKeyId uint8, stMeta *symbolStatic.StaticTrade, closeOrderIds *myMap.MySyncMap[string, bool], priceDec decimal.Decimal) {
+func RefreshPerSecondEnd(orderMode execute.MyOrderMode, accountKeyId uint8, stMeta *symbolStatic.StaticTrade, closeOrderIds *myMap.MySyncMap[string, bool], priceDec decimal.Decimal) {
 	if closeOrderIds.Length() <= 0 {
 		toUpBitDataStatic.DyLog.GetLog().Errorf("账户[%d]平多单已全部成交，停止刷新止盈单", accountKeyId)
 		return

@@ -7,6 +7,7 @@ import (
 
 	"upbitBnServer/internal/infra/safex"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
+	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
@@ -88,7 +89,7 @@ func (s *Single) receiveStop(stopType driverDefine.StopType) {
 			if vol.LessThanOrEqual(decimal.Zero) {
 				continue
 			}
-			twapLimitClose.InitPerSecondBegin(accountKeyId, s.SymbolIndex, s.pScale, s.QScale, s.StMeta, s.closeMap[accountKeyId], priceDec, vol, vol.Mul(perDec).Truncate(s.QScale))
+			twapLimitClose.InitPerSecondBegin(execute.ORDER_SELL_CLOSE, accountKeyId, s.SymbolIndex, s.pScale, s.QScale, s.StMeta, s.closeMap[accountKeyId], priceDec, vol, vol.Mul(perDec).Truncate(s.QScale))
 			//closeDecArr[accountKeyId] = vol.Mul(perDec).Truncate(s.QScale) //每秒应该止盈的数量
 		}
 		ticker := time.NewTicker(time.Second)
@@ -110,8 +111,8 @@ func (s *Single) receiveStop(stopType driverDefine.StopType) {
 					}
 					toUpBitDataStatic.DyLog.GetLog().Infof("============开始平仓,剩余:%s============", posLeft)
 					for accountKeyId, closeOrderMap := range s.closeMap {
-						twapLimitClose.RefreshPerSecondEnd(uint8(accountKeyId), s.StMeta, closeOrderMap, priceDec)
-						twapLimitClose.RefreshPerSecondBegin(uint8(accountKeyId), s.pScale, s.StMeta, closeOrderMap, priceDec)
+						twapLimitClose.RefreshPerSecondEnd(execute.ORDER_SELL_CLOSE, uint8(accountKeyId), s.StMeta, closeOrderMap, priceDec)
+						twapLimitClose.RefreshPerSecondBegin(execute.ORDER_SELL_CLOSE, uint8(accountKeyId), s.pScale, s.StMeta, closeOrderMap, priceDec)
 					}
 					//// 最新的每个账户的仓位情况
 					//copyMap := s.Pos.GetAllAccountPos()
