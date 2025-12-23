@@ -3,6 +3,7 @@ package bnOrderAppManager
 import (
 	"context"
 
+	"upbitBnServer/internal/infra/observe/log/staticLog"
 	"upbitBnServer/internal/quant/account/accountConfig"
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
@@ -33,11 +34,12 @@ func (m *MonitorManager) init(ctx context.Context) error {
 		app.isMonitor = true
 		m.appArray[k] = app
 	}
+	staticLog.Log.Infof("监控账户:%d", len(m.appArray))
 	return nil
 }
 
 func (m *MonitorManager) SendMonitorOrder(reqFrom orderBelongEnum.Type, index uint8, symbolIndex int, req *orderModel.MyPlaceOrderReq) error {
-	err := m.appArray[index].wsOrderSign.CreateOrder(reqFrom, orderSdkBnModel.GetFuturePlaceLimitSdk(req))
+	err := m.appArray[index].wsOrder.CreateOrder(reqFrom, orderSdkBnModel.GetFuturePlaceLimitSdk(req))
 	if err == nil {
 		orderStatic.GetService().SaveOrderMeta(req.ClientOrderId, orderStatic.StaticMeta{
 			SymbolIndex: symbolIndex,

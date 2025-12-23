@@ -21,7 +21,7 @@ import (
 
 type OrderApp struct {
 	rest         *orderSdkBnRest.FutureRest     // REST API 客户端
-	wsOrderSign  *orderSdkBnWsSign.FutureClient // WS API 客户端
+	wsOrder      *orderSdkBnWsSign.FutureClient // WS API 客户端
 	accountKeyId uint8                          // 账户序号
 	isMonitor    bool                           // 是否是监控账户
 }
@@ -33,8 +33,8 @@ func newOrderApp() *OrderApp {
 func (s *OrderApp) init(ctx context.Context, v accountConfig.Config) error {
 	s.accountKeyId = v.AccountId
 	s.rest = orderSdkBnRest.NewFutureRest(v.ApiKeyHmac, v.SecretHmac)
-	s.wsOrderSign = orderSdkBnWsSign.NewFutureClient(v.ApiKeyHmac, v.SecretHmac)
-	if err := s.wsOrderSign.RegisterReadHandler(ctx, v.AccountId, s.OnWsOrder); err != nil {
+	s.wsOrder = orderSdkBnWsSign.NewFutureClient(v.ApiKeyHmac, v.SecretHmac)
+	if err := s.wsOrder.RegisterReadHandler(ctx, v.AccountId, s.OnWsOrder); err != nil {
 		return err
 	}
 	return nil

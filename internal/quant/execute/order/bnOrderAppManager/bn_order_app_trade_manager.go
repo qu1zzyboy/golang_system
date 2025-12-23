@@ -3,6 +3,7 @@ package bnOrderAppManager
 import (
 	"context"
 
+	"upbitBnServer/internal/infra/observe/log/staticLog"
 	"upbitBnServer/internal/quant/account/accountConfig"
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
@@ -32,11 +33,12 @@ func (s *TradeManager) init(ctx context.Context) error {
 		}
 		s.appArray[k] = app
 	}
+	staticLog.Log.Infof("交易账户:%d", len(s.appArray))
 	return nil
 }
 
 func (s *TradeManager) SendPlaceOrder(reqFrom orderBelongEnum.Type, index uint8, symbolIndex int, req *orderModel.MyPlaceOrderReq) error {
-	err := s.appArray[index].wsOrderSign.CreateOrder(reqFrom, orderSdkBnModel.GetFuturePlaceLimitSdk(req))
+	err := s.appArray[index].wsOrder.CreateOrder(reqFrom, orderSdkBnModel.GetFuturePlaceLimitSdk(req))
 	if err == nil {
 		orderStatic.GetService().SaveOrderMeta(req.ClientOrderId, orderStatic.StaticMeta{
 			OrigPrice:   req.OrigPrice,
@@ -50,13 +52,13 @@ func (s *TradeManager) SendPlaceOrder(reqFrom orderBelongEnum.Type, index uint8,
 }
 
 func (s *TradeManager) SendCancelOrder(reqFrom orderBelongEnum.Type, index uint8, req *orderModel.MyQueryOrderReq) error {
-	return s.appArray[index].wsOrderSign.CancelOrder(reqFrom, orderSdkBnModel.GetFutureQuerySdk(req))
+	return s.appArray[index].wsOrder.CancelOrder(reqFrom, orderSdkBnModel.GetFutureQuerySdk(req))
 }
 
 func (s *TradeManager) SendModifyOrder(reqFrom orderBelongEnum.Type, index uint8, req *orderModel.MyModifyOrderReq) error {
-	return s.appArray[index].wsOrderSign.ModifyOrder(reqFrom, orderSdkBnModel.GetFutureModifySdk(req))
+	return s.appArray[index].wsOrder.ModifyOrder(reqFrom, orderSdkBnModel.GetFutureModifySdk(req))
 }
 
 func (s *TradeManager) SendQueryAccountBalance(reqFrom orderBelongEnum.Type, index uint8) error {
-	return s.appArray[index].wsOrderSign.QueryAccount(reqFrom)
+	return s.appArray[index].wsOrder.QueryAccount(reqFrom)
 }
