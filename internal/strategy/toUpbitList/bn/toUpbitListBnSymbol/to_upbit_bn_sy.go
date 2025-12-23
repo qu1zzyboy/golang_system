@@ -103,6 +103,7 @@ type Single struct {
 	chanOutSideSig     chan toUpbitListChan.Special           // 外部信号chan
 	chanSuOrder        chan toUpBitListDataAfter.OnSuccessEvt // 成功订单chan
 	SecondArr          [11]*secondPerInfo                     // 每秒信息
+	closeMap           [11]*myMap.MySyncMap[string, bool]     // 每秒平仓订单map
 	clientOrderIds     myMap.MySyncMap[string, uint8]         // 挂单成功的clientOrderId
 	PosTotalNeed       decimal.Decimal                        // 需要开仓的数量
 	FirstPriceBuy      decimal.Decimal                        // 当前应该下单的价格
@@ -189,6 +190,9 @@ func (s *Single) Start(accountKeyId uint8, index int, symbolName string) error {
 		temp := &secondPerInfo{}
 		temp.clear()
 		s.SecondArr[i] = temp
+
+		closeMap := myMap.NewMySyncMap[string, bool]()
+		s.closeMap[i] = &closeMap
 	}
 	s.trigPriceMax_10 = myMap.NewMySyncMap[int64, uint64]()
 	safex.SafeGo(symbolName+"单品种协程", s.onLoop)

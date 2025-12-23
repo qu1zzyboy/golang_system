@@ -3,10 +3,10 @@ package toUpbitListBnSymbol
 import (
 	"time"
 	"upbitBnServer/internal/strategy/newsDrive/driverDefine"
+	"upbitBnServer/internal/strategy/twapLimitClose"
 
 	"upbitBnServer/internal/infra/safex"
 	"upbitBnServer/internal/quant/exchanges/exchangeEnum"
-	"upbitBnServer/internal/quant/execute"
 	"upbitBnServer/internal/quant/execute/order/bnOrderAppManager"
 	"upbitBnServer/internal/quant/execute/order/orderBelongEnum"
 	"upbitBnServer/internal/quant/execute/order/orderModel"
@@ -75,12 +75,21 @@ func (s *Single) receiveStop(stopType driverDefine.StopType) {
 			toUpBitDataStatic.DyLog.GetLog().Infof("没有足够的平仓数量,取消平仓")
 			return
 		}
+		val := s.bidPrice.Load()
+		if val == nil {
+			return
+		}
+		priceDec := decimal.NewFromFloat(val.(float64)).Truncate(s.pScale)
 		//每秒平一次
-		var closeDecArr [11]decimal.Decimal // 每个账户每秒应该止盈的数量
+		//var closeDecArr [11]decimal.Decimal // 每个账户每秒应该止盈的数量
 		perDec := decimal.NewFromFloat(1 / s.twapSec)
 		copyMap := s.Pos.GetAllAccountPos()
 		for accountKeyId, vol := range copyMap {
-			closeDecArr[accountKeyId] = vol.Mul(perDec).Truncate(s.QScale) //每秒应该止盈的数量
+			if vol.LessThanOrEqual(decimal.Zero) {
+				continue
+			}
+			twapLimitClose.InitPerSecondBegin(accountKeyId, s.SymbolIndex, s.pScale, s.QScale, s.StMeta, s.closeMap[accountKeyId], priceDec, vol, vol.Mul(perDec).Truncate(s.QScale))
+			//closeDecArr[accountKeyId] = vol.Mul(perDec).Truncate(s.QScale) //每秒应该止盈的数量
 		}
 		ticker := time.NewTicker(time.Second)
 		timeout := time.After(s.closeDuration)
@@ -88,11 +97,11 @@ func (s *Single) receiveStop(stopType driverDefine.StopType) {
 			select {
 			case <-ticker.C:
 				{
-					val := s.bidPrice.Load()
+					val = s.bidPrice.Load()
 					if val == nil {
 						continue
 					}
-					priceDec := decimal.NewFromFloat(val.(float64)).Truncate(s.pScale)
+					priceDec = decimal.NewFromFloat(val.(float64)).Truncate(s.pScale)
 					posLeft := s.Pos.GetTotal()
 					if s.Pos.GetTotal().Mul(priceDec).LessThanOrEqual(toUpBitDataStatic.Dec500) {
 						toUpBitDataStatic.DyLog.GetLog().Infof("平仓完全成交,开始清理资源")
@@ -100,31 +109,35 @@ func (s *Single) receiveStop(stopType driverDefine.StopType) {
 						return
 					}
 					toUpBitDataStatic.DyLog.GetLog().Infof("============开始平仓,剩余:%s============", posLeft)
-					// 最新的每个账户的仓位情况
-					copyMap := s.Pos.GetAllAccountPos()
-					for accountKeyId, vol := range copyMap {
-						// 已经完全平完了
-						if vol.LessThanOrEqual(decimal.Zero) {
-							continue
-						}
-						// 不够就全平
-						num := closeDecArr[accountKeyId]
-						if vol.LessThan(num) {
-							num = vol.Truncate(s.QScale)
-						}
-						// 发送平仓信号
-						if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(order_from, accountKeyId, s.SymbolIndex,
-							&orderModel.MyPlaceOrderReq{
-								OrigPrice:     priceDec,
-								OrigVol:       num,
-								ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("server_close"),
-								StaticMeta:    s.StMeta,
-								OrderType:     execute.ORDER_TYPE_LIMIT,
-								OrderMode:     execute.ORDER_SELL_CLOSE,
-							}); err != nil {
-							toUpBitDataStatic.DyLog.GetLog().Errorf("每秒平仓创建订单失败: %v", err)
-						}
+					for accountKeyId, closeOrderMap := range s.closeMap {
+						twapLimitClose.RefreshPerSecondEnd(uint8(accountKeyId), s.StMeta, closeOrderMap, priceDec)
+						twapLimitClose.RefreshPerSecondBegin(uint8(accountKeyId), s.pScale, s.StMeta, closeOrderMap, priceDec)
 					}
+					//// 最新的每个账户的仓位情况
+					//copyMap := s.Pos.GetAllAccountPos()
+					//for accountKeyId, vol := range copyMap {
+					//	// 已经完全平完了
+					//	if vol.LessThanOrEqual(decimal.Zero) {
+					//		continue
+					//	}
+					//	// 不够就全平
+					//	num := closeDecArr[accountKeyId]
+					//	if vol.LessThan(num) {
+					//		num = vol.Truncate(s.QScale)
+					//	}
+					//	// 发送平仓信号
+					//	if err := bnOrderAppManager.GetTradeManager().SendPlaceOrder(order_from, accountKeyId, s.SymbolIndex,
+					//		&orderModel.MyPlaceOrderReq{
+					//			OrigPrice:     priceDec,
+					//			OrigVol:       num,
+					//			ClientOrderId: toUpBitDataStatic.GetClientOrderIdBy("server_close"),
+					//			StaticMeta:    s.StMeta,
+					//			OrderType:     execute.ORDER_TYPE_LIMIT,
+					//			OrderMode:     execute.ORDER_SELL_CLOSE,
+					//		}); err != nil {
+					//		toUpBitDataStatic.DyLog.GetLog().Errorf("每秒平仓创建订单失败: %v", err)
+					//	}
+					//}
 				}
 			case <-timeout:
 				toUpBitDataStatic.DyLog.GetLog().Infof("平仓时间结束,开始清理资源")

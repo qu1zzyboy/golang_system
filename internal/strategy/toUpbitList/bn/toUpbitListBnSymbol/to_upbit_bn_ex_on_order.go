@@ -19,7 +19,12 @@ func (s *Single) onFailureOrder(accountKeyId uint8, errCode int64) {
 func (s *Single) onSuccessOrder(evt toUpBitListDataAfter.OnSuccessEvt) {
 	accountKeyId := evt.AccountKeyId
 	if evt.IsOnline {
-		s.clientOrderIds.Store(evt.ClientOrderId, accountKeyId)
+
+		if evt.OrderMode.IsOpen() {
+			s.clientOrderIds.Store(evt.ClientOrderId, accountKeyId)
+		} else {
+			s.closeMap[accountKeyId].Store(evt.ClientOrderId, false)
+		}
 	} else {
 		if evt.Volume.GreaterThan(decimal.Zero) {
 			// 有成交更新可用仓位
@@ -49,8 +54,14 @@ func (s *Single) onSuccessOrder(evt toUpBitListDataAfter.OnSuccessEvt) {
 			}
 		}
 		// 删除掉这个订单
-		s.clientOrderIds.Delete(evt.ClientOrderId)
-		toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d][%s]订单完成[%s],剩余挂单数:%d",
-			accountKeyId, evt.ClientOrderId, evt.Volume, s.clientOrderIds.Length())
+		if evt.OrderMode.IsOpen() {
+			s.clientOrderIds.Delete(evt.ClientOrderId)
+			toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d][%s]开仓订单完成[%s],剩余挂单数:%d",
+				accountKeyId, evt.ClientOrderId, evt.Volume, s.clientOrderIds.Length())
+		} else {
+			s.closeMap[accountKeyId].Delete(evt.ClientOrderId)
+			toUpBitDataStatic.DyLog.GetLog().Infof("账户[%d][%s]平仓订单完成[%s],剩余挂单数:%d",
+				accountKeyId, evt.ClientOrderId, evt.Volume, s.closeMap[accountKeyId].Length())
+		}
 	}
 }
