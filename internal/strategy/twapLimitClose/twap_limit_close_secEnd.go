@@ -39,7 +39,7 @@ func RefreshPerSecondEnd(orderMode execute.MyOrderMode, accountKeyId uint8, stMe
 		OrigVol:       oMeta.OrigVolume,
 		StaticMeta:    stMeta,
 		ClientOrderId: clientOrderId,
-		OrderMode:     execute.ORDER_SELL_CLOSE,
+		OrderMode:     orderMode,
 	}); err != nil {
 		notifyTg.GetTg().SendToUpBitMsg(map[string]string{
 			"symbol": stMeta.SymbolName,
