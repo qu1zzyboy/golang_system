@@ -123,6 +123,7 @@ type Single struct {
 	bnSpotCtxStop      context.Context                        // 同步关闭 ctx
 	bnSpotCancel       context.CancelFunc                     // 关闭函数
 	bnAlreadyTwapBuy   bool
+	cap2Min            float64 // 2min之前的市值
 }
 
 func (s *Single) Clear() {

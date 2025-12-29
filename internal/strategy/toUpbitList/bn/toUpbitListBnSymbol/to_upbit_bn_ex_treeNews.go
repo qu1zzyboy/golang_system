@@ -18,6 +18,12 @@ func (s *Single) checkTreeNews() {
 		if s.hasTreeNews.Load() {
 			return
 		}
+		if s.cap2Min <= 50_000_000 {
+			time.Sleep(3 * time.Second)
+			if s.hasTreeNews.Load() {
+				return
+			}
+		}
 		s.receiveStop(driverDefine.StopByTreeNews)
 		toUpBitDataStatic.SendToUpBitMsg("TreeNews未确认", map[string]string{
 			"symbol": s.StMeta.SymbolName,
@@ -42,6 +48,7 @@ func (s *Single) ReceiveTreeNews(exType exchangeEnum.ExchangeType) {
 		toUpBitDataStatic.SendToUpBitMsg("TreeNews确认", map[string]string{"symbol": symbolName, "op": "upbit_TreeNews确认"})
 
 	case exchangeEnum.BITHUMB:
+		s.tryBuyLoopBithumbKrw(20)
 		toUpBitDataStatic.SendToUpBitMsg("TreeNews确认", map[string]string{"symbol": symbolName, "op": "bithumb_TreeNews确认"})
 
 	case exchangeEnum.BINANCE:

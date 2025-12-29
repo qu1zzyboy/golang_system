@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"upbitBnServer/internal/quant/exchanges/binance/bnConst"
+	"upbitBnServer/internal/quant/market/symbolInfo/coinMesh"
+	"upbitBnServer/internal/strategy/newsDrive/driverDefine"
 	"upbitBnServer/internal/strategy/toUpbitList/bn/toUpbitBnMode"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitDataStatic"
 	"upbitBnServer/internal/strategy/toUpbitList/toUpBitListDataAfter"
@@ -27,6 +29,20 @@ func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
 }
 
 func (s *Single) IntoExecuteNoCheck(eventTs int64, trigFlag string, priceTrig_8 uint64) {
+
+	symbolName := s.StMeta.SymbolName
+	//获取流通量
+	mesh, ok := coinMesh.GetManager().Get(s.StMeta.TradeId)
+	if !ok {
+		toUpBitDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] not found for tradeId: %d", symbolName, s.StMeta.TradeId)
+		s.receiveStop(driverDefine.StopByGetCmcFailure)
+		toUpBitDataStatic.SendToUpBitMsg("获取cmc_id失败", map[string]string{"symbol": symbolName, "op": "获取cmc_id失败"})
+		return
+	}
+	// 2min之前的市值
+	last2MinCloseF64 := float64(s.last2MinClose_8) / 1e8
+	s.cap2Min = mesh.SupplyNow * last2MinCloseF64
+
 	s.hasTreeNews.Store(toUpbitBnMode.Mode.GetTreeNewsFlag())
 	toUpBitListDataAfter.Trig(s.SymbolIndex)
 	s.startTrig()
