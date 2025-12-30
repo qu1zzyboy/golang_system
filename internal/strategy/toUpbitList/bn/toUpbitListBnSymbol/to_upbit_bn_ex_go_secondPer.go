@@ -31,7 +31,9 @@ type secondPerInfo struct {
 }
 
 func (s *secondPerInfo) clear() {
-	s.maxNotional.Store(decimal.Zero)
+	if s.maxNotional.Load() != nil {
+		s.maxNotional.Store(decimal.Zero)
+	}
 	s.hasInToSecondPerLoop.Store(false)
 	s.stopThisSecondPer.Store(false)
 }
