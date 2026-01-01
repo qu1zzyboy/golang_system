@@ -28,6 +28,9 @@ func (s *Single) clear() {
 	}
 	s.takeProfitPrice = 0
 	for i := range s.SecondArr {
+		if s.SecondArr[i] == nil {
+			continue
+		}
 		s.SecondArr[i].clear()
 	}
 	s.hasAllFilled.Store(false)
