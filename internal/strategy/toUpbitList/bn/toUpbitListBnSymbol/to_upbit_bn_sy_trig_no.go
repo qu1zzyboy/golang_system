@@ -31,6 +31,9 @@ func (s *Single) onOrderPriceCheck(tradeTs int64, priceU64_8 uint64) {
 func (s *Single) IntoExecuteNoCheck(eventTs int64, trigFlag string, priceTrig_8 uint64) {
 
 	symbolName := s.StMeta.SymbolName
+	if symbolName == "币安人生USDT" {
+		s.isBnLife = true
+	}
 	//获取流通量
 	mesh, ok := coinMesh.GetManager().Get(s.StMeta.TradeId)
 	if !ok {

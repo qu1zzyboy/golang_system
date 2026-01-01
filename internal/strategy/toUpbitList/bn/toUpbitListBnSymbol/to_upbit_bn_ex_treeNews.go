@@ -53,7 +53,11 @@ func (s *Single) ReceiveTreeNews(exType exchangeEnum.ExchangeType) {
 
 	case exchangeEnum.BINANCE:
 		s.bnSpotCtxStop, s.bnSpotCancel = context.WithCancel(context.Background())
-		s.bnBeginTwapBuy = 1.19 * s.TrigMartPrice
+		if s.isBnLife {
+			s.bnBeginTwapBuy = 1.25 * s.TrigMartPrice
+		} else {
+			s.bnBeginTwapBuy = 1.19 * s.TrigMartPrice
+		}
 		s.tryBuyLoopBnSpot(20)
 		toUpBitDataStatic.SendToUpBitMsg("TreeNews确认", map[string]string{"symbol": symbolName, "op": "binance_TreeNews确认"})
 	}
@@ -79,7 +83,7 @@ func (s *Single) calParam(exType exchangeEnum.ExchangeType) {
 	last2MinCloseF64 := float64(s.last2MinClose_8) / 1e8
 	cap2Min := mesh.SupplyNow * last2MinCloseF64
 	//计算止盈止损参数
-	gainPct, twapSec, err := toUpbitBnMode.Mode.GetTakeProfitParam(exType, mesh.IsMeMe, s.SymbolIndex, cap2Min/1_000_000)
+	gainPct, twapSec, err := toUpbitBnMode.Mode.GetTakeProfitParam(exType, mesh.IsMeMe, s.isBnLife, s.SymbolIndex, cap2Min/1_000_000)
 	if err != nil {
 		toUpBitDataStatic.DyLog.GetLog().Errorf("coin mesh [%s] 获取止盈止损失败: %v", symbolName, err)
 		s.receiveStop(driverDefine.StopByGetRemoteFailure)

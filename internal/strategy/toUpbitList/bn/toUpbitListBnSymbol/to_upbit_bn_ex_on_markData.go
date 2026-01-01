@@ -38,7 +38,7 @@ func (s *Single) onBookTickExecute(f64 float64, ts int64) {
 		}
 
 	case exchangeEnum.BINANCE:
-		//价格涨到位,触发平仓
+		//价格涨到位,触发twap买入,关闭抢单买入
 		if s.bnBeginTwapBuy > 0 && f64 > s.bnBeginTwapBuy {
 			toUpBitDataStatic.DyLog.GetLog().Infof("触发平仓价格: %.8f,当前价格: %.8f", s.bnBeginTwapBuy, f64)
 			if !s.bnAlreadyTwapBuy {
@@ -49,7 +49,11 @@ func (s *Single) onBookTickExecute(f64 float64, ts int64) {
 					s.buyLoop()
 				})
 				safex.SafeGo("bnSpot_timeLine", func() {
-					time.Sleep(25 * time.Second)
+					if s.isBnLife {
+						time.Sleep(100 * time.Second)
+					} else {
+						time.Sleep(25 * time.Second)
+					}
 					s.receiveStop(driverDefine.StopByTimeLine)
 				})
 			}

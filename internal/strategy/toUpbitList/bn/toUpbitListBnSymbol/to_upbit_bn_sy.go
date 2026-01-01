@@ -124,6 +124,7 @@ type Single struct {
 	bnSpotCancel       context.CancelFunc                     // 关闭函数
 	bnAlreadyTwapBuy   bool
 	cap2Min            float64 // 2min之前的市值
+	isBnLife           bool    //是不是币安人生触发
 }
 
 func (s *Single) Clear() {

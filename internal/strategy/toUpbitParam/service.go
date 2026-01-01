@@ -120,6 +120,7 @@ type ComputeRequest struct {
 	MarketCapM  float64                   `json:"market_cap_m"`
 	SymbolIndex int                       `json:"symbol_index"`
 	IsMeme      bool                      `json:"is_meme"`
+	IsBnLife    bool                      `json:"is_bn_life"`
 	ExType      exchangeEnum.ExchangeType `json:"ex_type"`
 }
 
@@ -162,7 +163,12 @@ func (s *Service) Compute(ctx context.Context, req ComputeRequest) (ComputeRespo
 		btc7d = 0
 	}
 	marketCapM := req.MarketCapM
-	gainBase, twapBase := ExpectedSplitGainAndTwapDurationWithExchange(req.ExType, marketCapM, fgiValue, btc1d, btc7d, req.IsMeme)
+	var gainBase, twapBase float64
+	if req.IsBnLife {
+		gainBase, twapBase = expectedSplitGainAndTwapDurationBinanceLife(marketCapM, fgiValue, btc1d, btc7d, req.IsMeme)
+	} else {
+		gainBase, twapBase = ExpectedSplitGainAndTwapDurationWithExchange(req.ExType, marketCapM, fgiValue, btc1d, btc7d, req.IsMeme)
+	}
 
 	var (
 		oiValue float64
