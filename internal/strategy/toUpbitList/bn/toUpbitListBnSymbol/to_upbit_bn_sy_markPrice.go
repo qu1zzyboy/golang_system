@@ -144,7 +144,11 @@ func (s *Single) initPreOrder() error {
 
 	//挂单量=最大(最小下单量,2*最小下单金额/最新标记价格)
 	s.orderNum = decimal.Max(dyMeta.LotSize, dec12.Mul(dyMeta.MinQty).Div(lastMarkPriceDec)).Truncate(dyMeta.QScale)
-	s.clientOrderIdSmall = toUpBitDataStatic.GetClientOrderIdBy(pointPrefix + mesh.CmcAsset) //小订单id
+	if s.StMeta.SymbolName == "币安人生USDT" {
+		s.clientOrderIdSmall = toUpBitDataStatic.GetClientOrderIdBy(pointPrefix + "BF") //小订单id
+	} else {
+		s.clientOrderIdSmall = toUpBitDataStatic.GetClientOrderIdBy(pointPrefix + mesh.CmcAsset) //小订单id
+	}
 	//1.0+0.33*(1.15-1.0)
 	s.smallPercent = dec5.Mul(limit.UpLimitPercent.Sub(dec1)).Add(dec1)
 	s.hasInit = true
