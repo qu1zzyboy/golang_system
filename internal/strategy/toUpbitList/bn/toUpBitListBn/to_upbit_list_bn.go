@@ -85,7 +85,7 @@ func (e *Engine) start(ctx context.Context, req *Req) error {
 	// 要订阅的品种
 	var symbols []string
 	// 白名单
-	symbols = append(symbols, "币安人生USDT")
+	// symbols = append(symbols, "币安人生USDT")
 	for _, v := range data {
 		var mesh toUpbitMesh2.Save
 		if err := jsonUtils.UnmarshalFromString(v, &mesh); err != nil {
