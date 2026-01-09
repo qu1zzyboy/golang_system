@@ -1,0 +1,1 @@
+ssh -i "ofeis-tk-a.pem" ec2-user@ec2-52-194-147-92.ap-northeast-1.compute.amazonaws.com

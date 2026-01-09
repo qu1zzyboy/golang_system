@@ -45,8 +45,6 @@ vendor/
 go.work
 go.work.sum
 
-# 脚本（如果包含敏感信息）
-scripts/
 
 # 测试目录（如果包含临时测试文件）
 test/
