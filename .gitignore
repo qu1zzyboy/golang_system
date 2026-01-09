@@ -24,6 +24,7 @@ config/
 *.key
 *.crt
 *.p12
+.env
 
 # 本地数据和临时文件
 localData/
