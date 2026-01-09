@@ -48,7 +48,7 @@ func (s *OrderApp) OnWsOrder(data []byte) {
 		if gjson.GetBytes(data, "status").Int() == 200 {
 			return
 		}
-		dynamicLog.Error.GetLog().Errorf("[%d]WS_REQUEST: [%s] req_id not found %s", s.accountKeyId, idStr, string(data))
+		dynamicLog.Error.GetLog().Errorf("[%d]WS_REQUEST: [%s,LEN:%d] req_id not found %s", s.accountKeyId, idStr, wsRequestCache.GetCache().Len(), string(data))
 		return
 	}
 	// 最终删除ws_meta

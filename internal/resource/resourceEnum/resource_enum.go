@@ -12,15 +12,16 @@ type ResourceType uint8
 
 // 行情资源
 const (
-	DELTA_DEPTH ResourceType = iota //全量深度数据
-	LEVEL_DEPTH                     //深度数据
-	ALL_DEPTH                       //全量深度数据
-	BOOK_TICK                       //最优挂单数据
-	KLINE                           //K线数据
-	AGG_TRADE                       //聚合交易数据
-	MARK_PRICE                      //标记价格数据
-	FORCE_ORDER                     //强平订单数据
-	PRICE_LIMIT                     //价格限制数据
+	DELTA_DEPTH      ResourceType = iota //全量深度数据
+	LEVEL_DEPTH                          //深度数据
+	ALL_DEPTH                            //全量深度数据
+	BOOK_TICK                            //最优挂单数据
+	KLINE                                //K线数据
+	CONTINIOUS_KLINE                     //连续K线数据
+	AGG_TRADE                            //聚合交易数据
+	MARK_PRICE                           //标记价格数据
+	FORCE_ORDER                          //强平订单数据
+	PRICE_LIMIT                          //价格限制数据
 
 	// 私有数据
 	ORDER_WRITE  //订单ws连接
@@ -33,7 +34,7 @@ func (s ResourceType) GetNotSupportError(flag string) error {
 
 func (s ResourceType) Verify() error {
 	switch s {
-	case DELTA_DEPTH, LEVEL_DEPTH, ALL_DEPTH, BOOK_TICK, KLINE, AGG_TRADE, MARK_PRICE, PRICE_LIMIT, ORDER_WRITE, FORCE_ORDER:
+	case DELTA_DEPTH, LEVEL_DEPTH, ALL_DEPTH, BOOK_TICK, KLINE, CONTINIOUS_KLINE, AGG_TRADE, MARK_PRICE, PRICE_LIMIT, ORDER_WRITE, FORCE_ORDER:
 		return nil
 	default:
 		return errDefine.EnumDefineError.WithMetadata(map[string]string{
@@ -55,6 +56,8 @@ func (s ResourceType) String() string {
 		return "BOOK_TICKER"
 	case KLINE:
 		return "KLINE"
+	case CONTINIOUS_KLINE:
+		return "CONTINIOUS_KLINE"
 	case AGG_TRADE:
 		return "AGG_TRADE"
 	case FORCE_ORDER:

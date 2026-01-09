@@ -42,6 +42,8 @@ func (s *BnKline) ParamBuild(resourceType resourceEnum.ResourceType) (func(symbo
 	switch resourceType {
 	case resourceEnum.KLINE:
 		return getKlineFuSubParam(s.interval), nil
+	case resourceEnum.CONTINIOUS_KLINE:
+		return getContinuousKlineFuSubParam(s.interval), nil
 	default:
 		return nil, resourceType.GetNotSupportError("bnParamBuild")
 	}

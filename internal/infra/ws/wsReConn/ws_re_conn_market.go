@@ -148,7 +148,10 @@ func (c *ReConnMarket) connect(ctx context.Context) error {
 		case resourceEnum.MARK_PRICE, resourceEnum.BOOK_TICK, resourceEnum.AGG_TRADE:
 			safeRead := wsRead.NewReadMarket(conn.GetConn(), byteBufPool.SIZE_256, c.resourceId)
 			safeRead.ReadMarketLoop(ctxStopChild, c.read, c.sigChan)
-		case resourceEnum.KLINE:
+		case resourceEnum.KLINE, resourceEnum.CONTINIOUS_KLINE:
+			safeRead := wsRead.NewReadMarket(conn.GetConn(), byteBufPool.SIZE_512, c.resourceId)
+			safeRead.ReadMarketLoop(ctxStopChild, c.read, c.sigChan)
+		case resourceEnum.DELTA_DEPTH:
 			safeRead := wsRead.NewReadMarket(conn.GetConn(), byteBufPool.SIZE_512, c.resourceId)
 			safeRead.ReadMarketLoop(ctxStopChild, c.read, c.sigChan)
 		default:

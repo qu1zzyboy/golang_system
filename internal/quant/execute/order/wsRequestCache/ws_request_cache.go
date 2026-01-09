@@ -49,3 +49,6 @@ func (s *Manager) GetMeta(clientOrderId string) (*WsRequestMeta, bool) {
 func (s *Manager) DelMeta(clientOrderId string) {
 	s.doJson.Delete(clientOrderId)
 }
+func (s *Manager) Len() int {
+	return s.doJson.Length()
+}
