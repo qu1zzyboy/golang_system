@@ -14,6 +14,7 @@ import (
 	"upbitBnServer/internal/infra/safex"
 	"upbitBnServer/internal/strategy/continuousKlineTest"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
@@ -26,6 +27,13 @@ func (e *emptyNotify) SendReminderMsg(payload map[string]string) error       { r
 
 func main() {
 	fmt.Println("=== 连续 K 线测试服务 ===")
+
+	// 从 .env 文件加载环境变量（如果文件存在）
+	// .env 文件应该在项目根目录或当前工作目录
+	if err := godotenv.Load(); err != nil {
+		// .env 文件不存在时忽略错误（允许使用系统环境变量）
+		fmt.Println("未找到 .env 文件，使用系统环境变量")
+	}
 
 	// 设置环境变量跳过配置文件（测试程序不需要完整配置）
 	os.Setenv("USE_OS_CONFIG", "1")
